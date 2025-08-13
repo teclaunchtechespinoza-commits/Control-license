@@ -804,11 +804,11 @@ const AdminPanel = () => {
                 <div className="space-y-2">
                   <Label htmlFor="edit-company">Empresa</Label>
                   <Select 
-                    value={licenseForm.company_id} 
-                    onValueChange={(value) => setLicenseForm({...licenseForm, company_id: value})}
+                    value={licenseForm.company_id || ''} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, company_id: value || null})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar empresa" />
+                      <SelectValue placeholder="Nenhuma empresa" />
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map(company => (
