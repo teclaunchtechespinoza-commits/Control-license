@@ -381,6 +381,11 @@ class PessoaJuridicaUpdate(BaseModel):
     celular: Optional[str] = None
     whatsapp: Optional[str] = None
     contact_preference: Optional[ContactPreference] = None
+    # CNPJ com formatos
+    cnpj: Optional[str] = None
+    cnpj_formato_informado: Optional[str] = None
+    cnpj_normalizado: Optional[str] = None
+    # Dados da empresa
     razao_social: Optional[str] = None
     nome_fantasia: Optional[str] = None
     data_abertura: Optional[date] = None
@@ -389,15 +394,34 @@ class PessoaJuridicaUpdate(BaseModel):
     cnaes_secundarios: Optional[List[str]] = None
     regime_tributario: Optional[TaxRegime] = None
     porte_empresa: Optional[CompanySize] = None
+    # Inscrições
     inscricao_estadual: Optional[str] = None
     ie_situacao: Optional[str] = None
     ie_uf: Optional[str] = None
     inscricao_municipal: Optional[str] = None
+    inscricao_municipal_ccm: Optional[str] = None
+    inscricoes_locais: Optional[List[InscricoesLocais]] = None
+    # Endereços
     endereco_matriz: Optional[Address] = None
+    filiais: Optional[List[Filial]] = None
+    # Representantes
     responsavel_legal_nome: Optional[str] = None
     responsavel_legal_cpf: Optional[str] = None
     responsavel_legal_email: Optional[EmailStr] = None
     responsavel_legal_telefone: Optional[str] = None
+    # Procurador
+    procurador_nome: Optional[str] = None
+    procurador_cpf: Optional[str] = None
+    procurador_contato: Optional[str] = None
+    procurador_email: Optional[EmailStr] = None
+    procurador_telefone: Optional[str] = None
+    procuracao_validade: Optional[date] = None
+    procuracao_numero: Optional[str] = None
+    # Certificado digital
+    certificado_digital: Optional[CertificadoDigital] = None
+    # Documentos societários
+    documentos_societarios: Optional[DocumentosSocietarios] = None
+    # Outros campos
     internal_notes: Optional[str] = None
     license_info: Optional[LicenseInfo] = None
     remote_access: Optional[RemoteAccessInfo] = None
