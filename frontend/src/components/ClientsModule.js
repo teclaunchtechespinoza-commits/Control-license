@@ -1952,7 +1952,6 @@ const ClientsModule = () => {
                           <SelectValue placeholder="Selecione a marca" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Nenhuma</SelectItem>
                           {equipmentBrands.map(brand => (
                             <SelectItem key={brand.id} value={brand.id}>
                               {brand.name}
