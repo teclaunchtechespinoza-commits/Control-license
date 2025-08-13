@@ -179,6 +179,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/cadastros" 
+                element={
+                  <ProtectedRoute adminOnly>
+                    <RegistryModule />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
