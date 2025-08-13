@@ -1934,6 +1934,95 @@ const ClientsModule = () => {
                   </div>
                 </div>
 
+                {/* Equipment Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <Monitor className="w-4 h-4" />
+                    <h3 className="font-medium">Informações de Equipamento</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Marca do Equipamento</Label>
+                      <Select
+                        value={formData.license_info?.equipment_brand || ''}
+                        onValueChange={(value) => handleBrandChange(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a marca" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Nenhuma</SelectItem>
+                          {equipmentBrands.map(brand => (
+                            <SelectItem key={brand.id} value={brand.id}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Modelo do Equipamento</Label>
+                      <Select
+                        value={formData.license_info?.equipment_model || ''}
+                        onValueChange={(value) => setFormData({
+                          ...formData,
+                          license_info: {
+                            ...formData.license_info,
+                            equipment_model: value
+                          }
+                        })}
+                        disabled={!selectedBrandId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o modelo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Nenhum</SelectItem>
+                          {equipmentModels.map(model => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>ID do Equipamento</Label>
+                      <Input
+                        value={formData.license_info?.equipment_id || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          license_info: {
+                            ...formData.license_info,
+                            equipment_id: e.target.value
+                          }
+                        })}
+                        placeholder="Ex: EQ-001"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Número de Série</Label>
+                      <Input
+                        value={formData.license_info?.equipment_serial || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          license_info: {
+                            ...formData.license_info,
+                            equipment_serial: e.target.value
+                          }
+                        })}
+                        placeholder="Ex: SN123456789"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* LGPD Compliance */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 border-b pb-2">
