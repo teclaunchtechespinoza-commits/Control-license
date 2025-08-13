@@ -1017,6 +1017,7 @@ const ClientsModule = () => {
                         <div className="space-y-2">
                           <Label>CPF *</Label>
                           <Input
+                            name="cpf"
                             value={formData.cpf}
                             onChange={(e) => setFormData({...formData, cpf: e.target.value})}
                             placeholder="000.000.000-00"
