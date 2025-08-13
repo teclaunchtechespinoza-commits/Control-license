@@ -65,6 +65,7 @@ import {
   FileText,
   Building,
   FileCheck,
+  Monitor,
   FileImage,
   Minus
 } from 'lucide-react';
