@@ -34,9 +34,8 @@ const LoginPage = () => {
     // Fetch demo credentials
     const fetchDemoCredentials = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/demo-credentials`);
-        const data = await response.json();
-        setDemoCredentials(data);
+        const response = await axios.get('/demo-credentials');
+        setDemoCredentials(response.data);
       } catch (error) {
         console.error('Failed to fetch demo credentials:', error);
       }
