@@ -474,6 +474,11 @@ const ClientsModule = () => {
           toast.error('Preencha todos os campos obrigatórios: Razão Social, CNPJ e Email');
           return;
         }
+        
+        // Add CNPJ normalization for backend validation
+        if (cleanedData.cnpj) {
+          cleanedData.cnpj_normalizado = cleanedData.cnpj.replace(/\D/g, '');
+        }
       }
       
       console.log('Sending data to backend:', cleanedData);
