@@ -1070,6 +1070,7 @@ const ClientsModule = () => {
                         <div className="space-y-2">
                           <Label>CNPJ *</Label>
                           <Input
+                            name="cnpj"
                             value={formData.cnpj}
                             onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
                             placeholder="00.000.000/0000-00"
