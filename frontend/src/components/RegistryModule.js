@@ -272,7 +272,6 @@ const RegistryModule = () => {
               <SelectValue placeholder={`Selecionar ${field.label.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhum</SelectItem>
               {field.options?.map(option => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
