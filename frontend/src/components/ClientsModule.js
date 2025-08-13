@@ -475,7 +475,28 @@ const ClientsModule = () => {
       fetchAllClients();
     } catch (error) {
       console.error('Failed to update client:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao atualizar cliente');
+      
+      // Better error handling for edit
+      let errorMessage = 'Erro ao atualizar cliente';
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation errors array
+          const errors = error.response.data.detail.map(err => 
+            `${err.loc ? err.loc.join('.') + ': ' : ''}${err.msg}`
+          ).join(', ');
+          errorMessage = `Erro de validação: ${errors}`;
+        } else {
+          // Handle other error object types
+          errorMessage = 'Erro de validação. Verifique os dados preenchidos.';
+        }
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Dados inválidos. Verifique os campos preenchidos.';
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
