@@ -79,16 +79,29 @@ const Navbar = () => {
             </Link>
             
             {user?.role === 'admin' && (
-              <Link to="/admin">
-                <Button
-                  variant={isActive('/admin') ? 'default' : 'ghost'}
-                  size="sm"
-                  className="flex items-center space-x-2"
-                >
-                  <UserCog className="w-4 h-4" />
-                  <span>Admin</span>
-                </Button>
-              </Link>
+              <>
+                <Link to="/admin">
+                  <Button
+                    variant={isActive('/admin') ? 'default' : 'ghost'}
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <UserCog className="w-4 h-4" />
+                    <span>Admin</span>
+                  </Button>
+                </Link>
+                
+                <Link to="/cadastros">
+                  <Button
+                    variant={isActive('/cadastros') ? 'default' : 'ghost'}
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Tag className="w-4 h-4" />
+                    <span>Cadastros</span>
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
 
