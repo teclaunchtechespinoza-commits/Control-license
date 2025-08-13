@@ -765,11 +765,11 @@ const AdminPanel = () => {
               <div className="space-y-2">
                 <Label htmlFor="edit-user">Usuário Atribuído</Label>
                 <Select 
-                  value={licenseForm.assigned_user_id} 
-                  onValueChange={(value) => setLicenseForm({...licenseForm, assigned_user_id: value})}
+                  value={licenseForm.assigned_user_id || ''} 
+                  onValueChange={(value) => setLicenseForm({...licenseForm, assigned_user_id: value || null})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar usuário" />
+                    <SelectValue placeholder="Nenhum usuário selecionado" />
                   </SelectTrigger>
                   <SelectContent>
                     {users.filter(u => u.role !== 'admin').map(user => (
