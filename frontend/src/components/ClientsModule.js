@@ -358,22 +358,58 @@ const ClientsModule = () => {
     try {
       const endpoint = activeTab === 'pf' ? '/clientes-pf' : '/clientes-pj';
       
-      // Clean empty nested objects
+      // Create properly structured data for backend
       const cleanedData = { ...formData };
       
-      // Clean empty arrays and objects
+      // Fix address field mapping (endereco_matriz -> address)
+      if (cleanedData.endereco_matriz) {
+        cleanedData.address = cleanedData.endereco_matriz;
+        delete cleanedData.endereco_matriz;
+      }
+      
+      // Clean empty nested objects and arrays
       Object.keys(cleanedData).forEach(key => {
         if (Array.isArray(cleanedData[key]) && cleanedData[key].length === 0) {
           delete cleanedData[key];
         } else if (typeof cleanedData[key] === 'object' && cleanedData[key] !== null) {
-          const hasValues = Object.values(cleanedData[key]).some(val => val !== '' && val !== null && val !== false);
+          // Check if object has any meaningful values
+          const hasValues = Object.values(cleanedData[key]).some(val => 
+            val !== '' && val !== null && val !== undefined && val !== false
+          );
           if (!hasValues) {
             delete cleanedData[key];
+          } else {
+            // Clean empty string values within objects
+            Object.keys(cleanedData[key]).forEach(nestedKey => {
+              if (cleanedData[key][nestedKey] === '' || cleanedData[key][nestedKey] === null) {
+                delete cleanedData[key][nestedKey];
+              }
+            });
           }
+        } else if (cleanedData[key] === '' || cleanedData[key] === null) {
+          delete cleanedData[key];
         }
       });
       
-      await axios.post(endpoint, cleanedData);
+      // Ensure required fields for PF
+      if (activeTab === 'pf') {
+        if (!cleanedData.nome_completo || !cleanedData.cpf || !cleanedData.email_principal) {
+          toast.error('Preencha todos os campos obrigatórios: Nome Completo, CPF e Email');
+          return;
+        }
+      }
+      
+      // Ensure required fields for PJ
+      if (activeTab === 'pj') {
+        if (!cleanedData.razao_social || !cleanedData.cnpj || !cleanedData.email_principal) {
+          toast.error('Preencha todos os campos obrigatórios: Razão Social, CNPJ e Email');
+          return;
+        }
+      }
+      
+      console.log('Sending data to backend:', cleanedData);
+      
+      const response = await axios.post(endpoint, cleanedData);
       toast.success(`Cliente ${activeTab.toUpperCase()} criado com sucesso!`);
       
       resetForm();
@@ -381,7 +417,26 @@ const ClientsModule = () => {
       fetchAllClients();
     } catch (error) {
       console.error('Failed to create client:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao criar cliente');
+      console.error('Error response:', error.response);
+      
+      // Better error handling
+      let errorMessage = 'Erro ao criar cliente';
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation errors array
+          const errors = error.response.data.detail.map(err => 
+            `${err.loc ? err.loc.join('.') + ': ' : ''}${err.msg}`
+          ).join(', ');
+          errorMessage = `Erro de validação: ${errors}`;
+        }
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Dados inválidos. Verifique os campos preenchidos.';
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
