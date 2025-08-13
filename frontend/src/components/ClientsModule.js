@@ -1050,6 +1050,7 @@ const ClientsModule = () => {
                         <div className="space-y-2">
                           <Label>Razão Social *</Label>
                           <Input
+                            name="razao_social"
                             value={formData.razao_social}
                             onChange={(e) => setFormData({...formData, razao_social: e.target.value})}
                             required
