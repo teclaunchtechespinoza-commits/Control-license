@@ -181,6 +181,14 @@ function App() {
                 } 
               />
               <Route 
+                path="/clientes" 
+                element={
+                  <ProtectedRoute adminOnly>
+                    <ClientsModule />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/cadastros" 
                 element={
                   <ProtectedRoute adminOnly>
