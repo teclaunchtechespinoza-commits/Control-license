@@ -358,6 +358,8 @@ const ClientsModule = () => {
     try {
       const endpoint = activeTab === 'pf' ? '/clientes-pf' : '/clientes-pj';
       
+      console.log('Form data before cleaning:', formData);
+      
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
@@ -398,9 +400,18 @@ const ClientsModule = () => {
             });
           }
         } else if (cleanedData[key] === '' || cleanedData[key] === null) {
-          delete cleanedData[key];
+          // Don't delete required fields even if empty
+          const requiredFields = activeTab === 'pf' 
+            ? ['nome_completo', 'cpf', 'email_principal']
+            : ['razao_social', 'cnpj', 'email_principal'];
+          
+          if (!requiredFields.includes(key)) {
+            delete cleanedData[key];
+          }
         }
       });
+      
+      console.log('Form data after cleaning:', cleanedData);
       
       // Ensure required fields for PF
       if (activeTab === 'pf') {
