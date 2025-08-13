@@ -522,9 +522,241 @@ class LicenseManagementAPITester:
             print(f"❌ {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def test_client_creation_specific(self):
+        """Test specific client creation scenarios as requested in review"""
+        print("\n" + "="*50)
+        print("TESTING SPECIFIC CLIENT CREATION SCENARIOS (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping specific client creation tests")
+            return
+
+        # 1. Test PF creation with minimal fields
+        print("\n🔍 Test 1: PF Client Creation with Minimal Fields")
+        pf_minimal_data = {
+            "client_type": "pf",
+            "nome_completo": "João da Silva Teste",
+            "cpf": "12345678901",
+            "email_principal": "joao.teste@email.com"
+        }
+        success, response = self.run_test("Create PF client (minimal)", "POST", "clientes-pf", 200, pf_minimal_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pf_minimal_id = response['id']
+            print(f"   ✅ PF client created successfully with ID: {self.created_pf_minimal_id}")
+
+        # 2. Test PJ creation with minimal fields
+        print("\n🔍 Test 2: PJ Client Creation with Minimal Fields")
+        pj_minimal_data = {
+            "client_type": "pj", 
+            "razao_social": "Empresa Teste LTDA",
+            "cnpj": "12345678000195",
+            "email_principal": "empresa.teste@email.com"
+        }
+        success, response = self.run_test("Create PJ client (minimal)", "POST", "clientes-pj", 200, pj_minimal_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pj_minimal_id = response['id']
+            print(f"   ✅ PJ client created successfully with ID: {self.created_pj_minimal_id}")
+
+        # 3. Test validation of required fields
+        print("\n🔍 Test 3: Validation of Required Fields")
+        
+        # Test PF with missing required fields
+        pf_missing_name = {
+            "client_type": "pf",
+            "cpf": "98765432100",
+            "email_principal": "test@email.com"
+        }
+        self.run_test("PF missing nome_completo (should fail)", "POST", "clientes-pf", 422, pf_missing_name, self.admin_token)
+        
+        pf_missing_cpf = {
+            "client_type": "pf",
+            "nome_completo": "Test User",
+            "email_principal": "test@email.com"
+        }
+        self.run_test("PF missing CPF (should fail)", "POST", "clientes-pf", 422, pf_missing_cpf, self.admin_token)
+        
+        pf_missing_email = {
+            "client_type": "pf",
+            "nome_completo": "Test User",
+            "cpf": "98765432100"
+        }
+        self.run_test("PF missing email (should fail)", "POST", "clientes-pf", 422, pf_missing_email, self.admin_token)
+
+        # Test PJ with missing required fields
+        pj_missing_razao = {
+            "client_type": "pj",
+            "cnpj": "98765432000100",
+            "email_principal": "test@empresa.com"
+        }
+        self.run_test("PJ missing razao_social (should fail)", "POST", "clientes-pj", 422, pj_missing_razao, self.admin_token)
+        
+        pj_missing_cnpj = {
+            "client_type": "pj",
+            "razao_social": "Test Company",
+            "email_principal": "test@empresa.com"
+        }
+        self.run_test("PJ missing CNPJ (should fail)", "POST", "clientes-pj", 422, pj_missing_cnpj, self.admin_token)
+
+        # Test invalid CPF/CNPJ
+        print("\n🔍 Test 4: Invalid CPF/CNPJ Validation")
+        pf_invalid_cpf = {
+            "client_type": "pf",
+            "nome_completo": "Test User",
+            "cpf": "123",  # Too short
+            "email_principal": "test@email.com"
+        }
+        self.run_test("PF invalid CPF (should fail)", "POST", "clientes-pf", 422, pf_invalid_cpf, self.admin_token)
+        
+        pj_invalid_cnpj = {
+            "client_type": "pj",
+            "razao_social": "Test Company",
+            "cnpj": "123456",  # Too short
+            "email_principal": "test@empresa.com"
+        }
+        self.run_test("PJ invalid CNPJ (should fail)", "POST", "clientes-pj", 422, pj_invalid_cnpj, self.admin_token)
+
+        # Test invalid email
+        pf_invalid_email = {
+            "client_type": "pf",
+            "nome_completo": "Test User",
+            "cpf": "11122233344",
+            "email_principal": "invalid-email"  # Invalid format
+        }
+        self.run_test("PF invalid email (should fail)", "POST", "clientes-pf", 422, pf_invalid_email, self.admin_token)
+
+        # 4. Test with structured data (address, contacts)
+        print("\n🔍 Test 5: Client Creation with Structured Data")
+        
+        pf_structured_data = {
+            "client_type": "pf",
+            "nome_completo": "Maria Santos Oliveira",
+            "cpf": "55566677788",
+            "email_principal": "maria.santos@email.com",
+            "telefone": "+55 11 3333-4444",
+            "celular": "+55 11 99999-8888",
+            "whatsapp": "+55 11 99999-8888",
+            "contact_preference": "whatsapp",
+            "address": {
+                "cep": "01234-567",
+                "logradouro": "Rua das Flores",
+                "numero": "123",
+                "complemento": "Apto 45",
+                "bairro": "Centro",
+                "municipio": "São Paulo",
+                "uf": "SP",
+                "pais": "Brasil"
+            },
+            "billing_contact": {
+                "name": "Maria Santos",
+                "email": "billing@email.com",
+                "phone": "+55 11 8888-7777"
+            },
+            "technical_contact": {
+                "name": "João Técnico",
+                "email": "tech@email.com",
+                "phone": "+55 11 7777-6666"
+            }
+        }
+        success, response = self.run_test("Create PF with structured data", "POST", "clientes-pf", 200, pf_structured_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pf_structured_id = response['id']
+            print(f"   ✅ PF client with structured data created successfully")
+
+        pj_structured_data = {
+            "client_type": "pj",
+            "razao_social": "Empresa Estruturada LTDA",
+            "cnpj": "11222333000144",
+            "email_principal": "contato@estruturada.com",
+            "nome_fantasia": "Estruturada Corp",
+            "telefone": "+55 11 4444-5555",
+            "address": {
+                "cep": "04567-890",
+                "logradouro": "Av. Paulista",
+                "numero": "1000",
+                "complemento": "Sala 1001",
+                "bairro": "Bela Vista",
+                "municipio": "São Paulo",
+                "uf": "SP",
+                "pais": "Brasil"
+            },
+            "billing_contact": {
+                "name": "Financeiro Empresa",
+                "email": "financeiro@estruturada.com",
+                "phone": "+55 11 5555-4444"
+            },
+            "technical_contact": {
+                "name": "TI Empresa",
+                "email": "ti@estruturada.com",
+                "phone": "+55 11 6666-3333"
+            },
+            "responsavel_legal_nome": "Carlos Silva",
+            "responsavel_legal_cpf": "99988877766",
+            "responsavel_legal_email": "carlos@estruturada.com",
+            "responsavel_legal_telefone": "+55 11 7777-2222"
+        }
+        success, response = self.run_test("Create PJ with structured data", "POST", "clientes-pj", 200, pj_structured_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pj_structured_id = response['id']
+            print(f"   ✅ PJ client with structured data created successfully")
+
+        # Test CNPJ with formatting
+        print("\n🔍 Test 6: CNPJ with Formatting")
+        pj_formatted_cnpj = {
+            "client_type": "pj",
+            "razao_social": "Empresa Formatada LTDA",
+            "cnpj": "22.333.444/0001-55",  # Formatted CNPJ
+            "email_principal": "formatada@empresa.com"
+        }
+        success, response = self.run_test("Create PJ with formatted CNPJ", "POST", "clientes-pj", 200, pj_formatted_cnpj, self.admin_token)
+        if success and 'id' in response:
+            self.created_pj_formatted_id = response['id']
+            print(f"   ✅ PJ client with formatted CNPJ created successfully")
+
+    def cleanup_specific_tests(self):
+        """Clean up test data created in specific tests"""
+        print("\n🔍 Cleaning up specific test data...")
+        
+        if not self.admin_token:
+            return
+            
+        # Clean up PF clients
+        for attr in ['created_pf_minimal_id', 'created_pf_structured_id']:
+            if hasattr(self, attr):
+                client_id = getattr(self, attr)
+                self.run_test(f"Cleanup PF client {client_id}", "DELETE", f"clientes-pf/{client_id}", 200, token=self.admin_token)
+        
+        # Clean up PJ clients  
+        for attr in ['created_pj_minimal_id', 'created_pj_structured_id', 'created_pj_formatted_id']:
+            if hasattr(self, attr):
+                client_id = getattr(self, attr)
+                self.run_test(f"Cleanup PJ client {client_id}", "DELETE", f"clientes-pj/{client_id}", 200, token=self.admin_token)
+
 def main():
     tester = LicenseManagementAPITester()
-    return tester.run_all_tests()
+    
+    # Run specific client creation tests as requested
+    print("🚀 Starting Specific Client Creation Tests (Review Request)")
+    print(f"Base URL: {tester.base_url}")
+    
+    # Only run essential tests for this specific review
+    tester.test_health_check()
+    tester.test_authentication()
+    tester.test_client_creation_specific()
+    tester.cleanup_specific_tests()
+    
+    # Print final results
+    print("\n" + "="*50)
+    print("SPECIFIC CLIENT CREATION TEST RESULTS")
+    print("="*50)
+    print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+    
+    if tester.tests_passed == tester.tests_run:
+        print("🎉 All specific client creation tests passed!")
+        return 0
+    else:
+        print(f"❌ {tester.tests_run - tester.tests_passed} tests failed")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
