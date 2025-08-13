@@ -474,8 +474,22 @@ class LicenseManagementAPITester:
         print("TESTING CLEANUP")
         print("="*50)
         
-        if self.created_license_id and self.admin_token:
-            self.run_test("Delete test license", "DELETE", f"licenses/{self.created_license_id}", 200, token=self.admin_token)
+        if not self.admin_token:
+            return
+            
+        # Delete test licenses
+        if hasattr(self, 'created_license_pf_id'):
+            self.run_test("Delete PF test license", "DELETE", f"licenses/{self.created_license_pf_id}", 200, token=self.admin_token)
+            
+        if hasattr(self, 'created_license_pj_id'):
+            self.run_test("Delete PJ test license", "DELETE", f"licenses/{self.created_license_pj_id}", 200, token=self.admin_token)
+
+        # Inactivate test clients (soft delete)
+        if hasattr(self, 'created_pf_id'):
+            self.run_test("Inactivate PF test client", "DELETE", f"clientes-pf/{self.created_pf_id}", 200, token=self.admin_token)
+            
+        if hasattr(self, 'created_pj_id'):
+            self.run_test("Inactivate PJ test client", "DELETE", f"clientes-pj/{self.created_pj_id}", 200, token=self.admin_token)
 
     def run_all_tests(self):
         """Run all API tests"""
