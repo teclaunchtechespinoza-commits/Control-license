@@ -131,6 +131,10 @@ const AdminPanel = () => {
       max_users: 1,
       expires_at: '',
       assigned_user_id: '',
+      category_id: '',
+      company_id: '',
+      product_id: '',
+      plan_id: '',
       features: []
     });
   };
