@@ -361,6 +361,17 @@ const ClientsModule = () => {
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
+      // Fix enum values and field mappings
+      if (cleanedData.porte_empresa === '') {
+        delete cleanedData.porte_empresa;
+      }
+      if (cleanedData.regime_tributario === '') {
+        delete cleanedData.regime_tributario;
+      }
+      if (cleanedData.origin_channel === '') {
+        delete cleanedData.origin_channel;
+      }
+      
       // Fix address field mapping (endereco_matriz -> address)
       if (cleanedData.endereco_matriz) {
         cleanedData.address = cleanedData.endereco_matriz;
