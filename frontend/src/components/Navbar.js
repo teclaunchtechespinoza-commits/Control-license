@@ -170,6 +170,12 @@ const Navbar = () => {
                           <span>Admin Panel</span>
                         </DropdownMenuItem>
                       </Link>
+                      <Link to="/clientes">
+                        <DropdownMenuItem>
+                          <Users className="mr-2 h-4 w-4" />
+                          <span>Clientes</span>
+                        </DropdownMenuItem>
+                      </Link>
                       <Link to="/cadastros">
                         <DropdownMenuItem>
                           <Tag className="mr-2 h-4 w-4" />
