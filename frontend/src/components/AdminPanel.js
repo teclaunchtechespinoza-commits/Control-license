@@ -218,11 +218,11 @@ const AdminPanel = () => {
       description: license.description || '',
       max_users: license.max_users,
       expires_at: license.expires_at ? license.expires_at.split('T')[0] : '',
-      assigned_user_id: license.assigned_user_id || '',
-      category_id: license.category_id || '',
-      company_id: license.company_id || '',
-      product_id: license.product_id || '',
-      plan_id: license.plan_id || '',
+      assigned_user_id: license.assigned_user_id || null,
+      category_id: license.category_id || null,
+      company_id: license.company_id || null,
+      product_id: license.product_id || null,
+      plan_id: license.plan_id || null,
       features: license.features || []
     });
     setShowEditLicenseDialog(true);
