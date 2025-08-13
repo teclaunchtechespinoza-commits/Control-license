@@ -172,7 +172,10 @@ const AdminPanel = () => {
       fetchData();
     } catch (error) {
       console.error('Failed to create license:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao criar licença');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao criar licença';
+      toast.error(errorMessage);
     }
   };
 
