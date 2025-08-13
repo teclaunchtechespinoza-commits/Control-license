@@ -705,7 +705,7 @@ class LicenseManagementAPITester:
         pj_formatted_cnpj = {
             "client_type": "pj",
             "razao_social": "Empresa Formatada LTDA",
-            "cnpj": "22.333.444/0001-55",  # Formatted CNPJ
+            "cnpj": "55.666.777/0001-88",  # Formatted CNPJ
             "email_principal": "formatada@empresa.com"
         }
         success, response = self.run_test("Create PJ with formatted CNPJ", "POST", "clientes-pj", 200, pj_formatted_cnpj, self.admin_token)
