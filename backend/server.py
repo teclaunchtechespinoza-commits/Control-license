@@ -696,6 +696,99 @@ async def update_user_role(
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User role updated successfully"}
 
+# Equipment Management Models
+class EquipmentBrandBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    is_active: bool = True
+
+class EquipmentBrandCreate(EquipmentBrandBase):
+    pass
+
+class EquipmentBrand(EquipmentBrandBase, BaseEntity):
+    pass
+
+class EquipmentModelBase(BaseModel):
+    name: str
+    brand_id: str
+    description: Optional[str] = None
+    specifications: Optional[Dict[str, Any]] = {}
+    is_active: bool = True
+
+class EquipmentModelCreate(EquipmentModelBase):
+    pass
+
+class EquipmentModel(EquipmentModelBase, BaseEntity):
+    pass
+
+# Equipment Management Routes
+@api_router.get("/equipment-brands", response_model=List[EquipmentBrand])
+async def get_equipment_brands(current_user: User = Depends(get_current_user)):
+    brands = await db.equipment_brands.find({"is_active": True}).to_list(1000)
+    return [EquipmentBrand(**brand) for brand in brands]
+
+@api_router.post("/equipment-brands", response_model=EquipmentBrand)
+async def create_equipment_brand(
+    brand_data: EquipmentBrandCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    # Check if brand name already exists
+    existing_brand = await db.equipment_brands.find_one({"name": brand_data.name})
+    if existing_brand:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Marca já cadastrada"
+        )
+    
+    brand_dict = brand_data.dict()
+    brand_dict["created_by"] = current_user.id
+    
+    brand = EquipmentBrand(**brand_dict)
+    await db.equipment_brands.insert_one(brand.dict())
+    
+    return brand
+
+@api_router.get("/equipment-models", response_model=List[EquipmentModel])
+async def get_equipment_models(brand_id: Optional[str] = None, current_user: User = Depends(get_current_user)):
+    query = {"is_active": True}
+    if brand_id:
+        query["brand_id"] = brand_id
+    
+    models = await db.equipment_models.find(query).to_list(1000)
+    return [EquipmentModel(**model) for model in models]
+
+@api_router.post("/equipment-models", response_model=EquipmentModel)
+async def create_equipment_model(
+    model_data: EquipmentModelCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    # Check if brand exists
+    brand = await db.equipment_brands.find_one({"id": model_data.brand_id})
+    if not brand:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Marca não encontrada"
+        )
+    
+    # Check if model name already exists for this brand
+    existing_model = await db.equipment_models.find_one({
+        "name": model_data.name,
+        "brand_id": model_data.brand_id
+    })
+    if existing_model:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Modelo já cadastrado para esta marca"
+        )
+    
+    model_dict = model_data.dict()
+    model_dict["created_by"] = current_user.id
+    
+    model = EquipmentModel(**model_dict)
+    await db.equipment_models.insert_one(model.dict())
+    
+    return model
+
 # Pessoa Física Routes
 @api_router.post("/clientes-pf", response_model=PessoaFisica)
 async def create_pessoa_fisica(
