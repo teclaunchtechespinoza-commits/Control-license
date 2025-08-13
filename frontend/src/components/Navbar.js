@@ -92,6 +92,17 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 
+                <Link to="/clientes">
+                  <Button
+                    variant={isActive('/clientes') ? 'default' : 'ghost'}
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Clientes</span>
+                  </Button>
+                </Link>
+                
                 <Link to="/cadastros">
                   <Button
                     variant={isActive('/cadastros') ? 'default' : 'ghost'}
