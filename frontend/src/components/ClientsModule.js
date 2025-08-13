@@ -80,6 +80,11 @@ const ClientsModule = () => {
   const [clientesPF, setClientesPF] = useState([]);
   const [clientesPJ, setClientesPJ] = useState([]);
   
+  // Equipment data
+  const [equipmentBrands, setEquipmentBrands] = useState([]);
+  const [equipmentModels, setEquipmentModels] = useState([]);
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
