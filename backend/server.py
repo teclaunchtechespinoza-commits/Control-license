@@ -264,10 +264,44 @@ class PessoaFisicaUpdate(BaseModel):
     license_info: Optional[LicenseInfo] = None
     remote_access: Optional[RemoteAccessInfo] = None
 
+# Branch Model for Filiais
+class Filial(BaseModel):
+    cnpj_filial: str
+    ordem: str  # Ordem da filial (001, 002, etc.)
+    nome_fantasia: Optional[str] = None
+    endereco: Address
+    is_active: bool = True
+
+# Digital Certificate Model
+class CertificadoDigital(BaseModel):
+    tipo: Optional[str] = None  # A1, A3
+    numero_serie: Optional[str] = None
+    emissor: Optional[str] = None
+    validade: Optional[date] = None
+    
+# Corporate Documents Model
+class DocumentosSocietarios(BaseModel):
+    contrato_social_url: Optional[str] = None
+    estatuto_social_url: Optional[str] = None
+    ultima_alteracao_url: Optional[str] = None
+    ultima_alteracao_data: Optional[date] = None
+    observacoes: Optional[str] = None
+
+# Local Registrations Model
+class InscricoesLocais(BaseModel):
+    numero: str
+    municipio: str
+    tipo: Optional[str] = None  # Alvará, licença, etc.
+    validade: Optional[date] = None
+
 # Pessoa Jurídica Model
 class PessoaJuridicaBase(ClientBase):
     client_type: Literal[ClientType.PJ] = ClientType.PJ
+    # Documento CNPJ com formato informado e normalizado
     cnpj: str
+    cnpj_formato_informado: Optional[str] = None  # Como o usuário digitou
+    cnpj_normalizado: str  # Formato padronizado para busca
+    
     razao_social: str
     nome_fantasia: Optional[str] = None
     data_abertura: Optional[date] = None
@@ -277,49 +311,61 @@ class PessoaJuridicaBase(ClientBase):
     regime_tributario: Optional[TaxRegime] = None
     porte_empresa: Optional[CompanySize] = None
     
-    # Inscrições
+    # Inscrições Estaduais
     inscricao_estadual: Optional[str] = None
     ie_situacao: Optional[str] = None  # contribuinte, isento, nao_obrigado
     ie_uf: Optional[str] = None
+    
+    # Inscrição Municipal
     inscricao_municipal: Optional[str] = None
-    alvara_numero: Optional[str] = None
-    alvara_municipio: Optional[str] = None
+    inscricao_municipal_ccm: Optional[str] = None  # CCM específico
     
-    # Addresses (Matriz e Filiais)
+    # Inscrições e Alvarás Locais
+    inscricoes_locais: List[InscricoesLocais] = []
+    
+    # Endereços estruturados
     endereco_matriz: Optional[Address] = None
-    enderecos_filiais: List[Address] = []
+    filiais: List[Filial] = []  # Lista estruturada de filiais
     
-    # Legal representative
+    # Representantes legais
     responsavel_legal_nome: Optional[str] = None
     responsavel_legal_cpf: Optional[str] = None
     responsavel_legal_email: Optional[EmailStr] = None
     responsavel_legal_telefone: Optional[str] = None
     
-    # Procurador/Representative
+    # Procurador/Representante
     procurador_nome: Optional[str] = None
     procurador_cpf: Optional[str] = None
     procurador_contato: Optional[str] = None
+    procurador_email: Optional[EmailStr] = None
+    procurador_telefone: Optional[str] = None
     procuracao_validade: Optional[date] = None
+    procuracao_numero: Optional[str] = None
     
-    # Digital Certificate
-    certificado_tipo: Optional[str] = None  # A1, A3
-    certificado_numero_serie: Optional[str] = None
-    certificado_emissor: Optional[str] = None
-    certificado_validade: Optional[date] = None
+    # Certificado Digital para integrações fiscais
+    certificado_digital: Optional[CertificadoDigital] = None
     
-    # NFe/NFSe
+    # Documentos Societários
+    documentos_societarios: Optional[DocumentosSocietarios] = None
+    
+    # NFe/NFSe (mantendo campos existentes)
     municipio_emissor_nfse: Optional[str] = None
     codigo_servico_lc: Optional[str] = None
     aliquota_iss: Optional[float] = None
     serie_nfse: Optional[str] = None
     
-    @validator('cnpj')
-    def validate_cnpj(cls, v):
-        # Remove formatting - prepare for future alphanumeric CNPJ
-        cnpj = re.sub(r'[^0-9A-Za-z]', '', v.upper())
-        if len(cnpj) != 14:
-            raise ValueError('CNPJ deve ter 14 caracteres')
-        return cnpj
+    @validator('cnpj', pre=True)
+    def process_cnpj(cls, v, values):
+        if v:
+            # Armazenar formato informado
+            values['cnpj_formato_informado'] = v
+            # Normalizar CNPJ (remover pontuação, manter alfanumérico)
+            normalized = re.sub(r'[^0-9A-Za-z]', '', str(v).upper())
+            if len(normalized) != 14:
+                raise ValueError('CNPJ deve ter 14 caracteres')
+            values['cnpj_normalizado'] = normalized
+            return normalized
+        return v
 
 class PessoaJuridicaCreate(PessoaJuridicaBase):
     pass
