@@ -182,6 +182,13 @@ const AdminPanel = () => {
         formData.expires_at = new Date(formData.expires_at).toISOString();
       }
 
+      // Remove null fields before sending
+      Object.keys(formData).forEach(key => {
+        if (formData[key] === null || formData[key] === '') {
+          delete formData[key];
+        }
+      });
+
       await axios.put(`/licenses/${editingLicense.id}`, formData);
       toast.success('Licença atualizada com sucesso!');
       
