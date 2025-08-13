@@ -4,9 +4,9 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
-from pydantic import BaseModel, Field, validator
-from typing import List, Optional
-from datetime import datetime, timedelta
+from pydantic import BaseModel, Field, validator, EmailStr
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timedelta, date
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from enum import Enum
@@ -14,6 +14,7 @@ import os
 import logging
 import uuid
 import secrets
+import re
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -49,20 +50,313 @@ class LicenseStatus(str, Enum):
     SUSPENDED = "suspended"
     PENDING = "pending"
 
+class ClientType(str, Enum):
+    PF = "pf"  # Pessoa Física
+    PJ = "pj"  # Pessoa Jurídica
+
+class ClientStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    PENDING_VERIFICATION = "pending_verification"
+
+class ContactPreference(str, Enum):
+    EMAIL = "email"
+    PHONE = "phone"
+    WHATSAPP = "whatsapp"
+
+class OriginChannel(str, Enum):
+    WEBSITE = "website"
+    WHATSAPP = "whatsapp"
+    PARTNER = "partner"
+    REFERRAL = "referral"
+    PHONE = "phone"
+    EMAIL = "email"
+
+class TaxRegime(str, Enum):
+    MEI = "mei"
+    SIMPLES = "simples"
+    LUCRO_PRESUMIDO = "lucro_presumido"
+    LUCRO_REAL = "lucro_real"
+
 class CompanySize(str, Enum):
-    SMALL = "small"
-    MEDIUM = "medium"
-    LARGE = "large"
-    ENTERPRISE = "enterprise"
+    MEI = "mei"
+    ME = "me"  # Microempresa
+    EPP = "epp"  # Empresa de Pequeno Porte
+    MEDIO = "medio"
+    GRANDE = "grande"
+
+class PaymentMethod(str, Enum):
+    CREDIT_CARD = "credit_card"
+    BOLETO = "boleto"
+    PIX = "pix"
+    BANK_TRANSFER = "bank_transfer"
+
+class BillingCycle(str, Enum):
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    SEMI_ANNUAL = "semi_annual"
+    ANNUAL = "annual"
+
+class RemoteAccessType(str, Enum):
+    TEAMVIEWER = "teamviewer"
+    ANYDESK = "anydesk"
+    CHROME_REMOTE = "chrome_remote"
+    WINDOWS_REMOTE = "windows_remote"
+    VNC = "vnc"
+    OTHER = "other"
 
 # Base Models
 class BaseEntity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    is_active: bool = True
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
-# User Models
+# Address Model
+class Address(BaseModel):
+    cep: Optional[str] = None
+    logradouro: Optional[str] = None
+    numero: Optional[str] = None
+    complemento: Optional[str] = None
+    bairro: Optional[str] = None
+    municipio: Optional[str] = None
+    uf: Optional[str] = None
+    pais: str = "Brasil"
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+# Contact Model
+class Contact(BaseModel):
+    name: str
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+
+# LGPD Consent Model
+class LGPDConsent(BaseModel):
+    finalidade: str
+    base_legal: str
+    consentimento_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    ip_address: Optional[str] = None
+    terms_version: Optional[str] = None
+    privacy_policy_accepted: bool = False
+    marketing_opt_in: bool = False
+    marketing_channels: List[str] = []
+
+# Document Model
+class Document(BaseModel):
+    type: str  # "cpf", "cnpj", "rg", "ie", "im", etc.
+    number: str
+    issuer: Optional[str] = None
+    uf: Optional[str] = None
+    file_url: Optional[str] = None
+
+# Remote Access Info
+class RemoteAccessInfo(BaseModel):
+    system_type: RemoteAccessType
+    access_id: Optional[str] = None  # TeamViewer ID, AnyDesk ID, etc.
+    is_host: bool = False
+    last_analyst: Optional[str] = None
+    last_access: Optional[datetime] = None
+
+# License Info Model
+class LicenseInfo(BaseModel):
+    plan_type: Optional[str] = None
+    license_quantity: int = 1
+    equipment_brand: Optional[str] = None
+    equipment_model: Optional[str] = None
+    authorized_serials: List[str] = []
+    activation_keys: List[str] = []
+    billing_cycle: BillingCycle = BillingCycle.MONTHLY
+    billing_day: int = 1
+    payment_method: PaymentMethod = PaymentMethod.BOLETO
+    nfe_email: Optional[EmailStr] = None
+
+# Verification Controls
+class VerificationControls(BaseModel):
+    document_status: str = "pending"  # valid, invalid, pending
+    address_status: str = "pending"
+    risk_score: Optional[int] = None
+    is_blocked: bool = False
+    blocked_reason: Optional[str] = None
+    blocked_date: Optional[datetime] = None
+
+# Client Base Model
+class ClientBase(BaseModel):
+    client_type: ClientType
+    status: ClientStatus = ClientStatus.ACTIVE
+    origin_channel: Optional[OriginChannel] = None
+    email_principal: EmailStr
+    telefone: Optional[str] = None
+    celular: Optional[str] = None
+    whatsapp: Optional[str] = None
+    contact_preference: ContactPreference = ContactPreference.EMAIL
+    
+    # Address
+    address: Optional[Address] = None
+    
+    # Contacts
+    billing_contact: Optional[Contact] = None
+    technical_contact: Optional[Contact] = None
+    
+    # LGPD
+    lgpd_consent: Optional[LGPDConsent] = None
+    
+    # Internal notes
+    internal_notes: Optional[str] = None
+    
+    # License info
+    license_info: Optional[LicenseInfo] = None
+    
+    # Remote access
+    remote_access: Optional[RemoteAccessInfo] = None
+    
+    # Verification
+    verification: Optional[VerificationControls] = None
+
+# Pessoa Física Model
+class PessoaFisicaBase(ClientBase):
+    client_type: ClientType = Field(default=ClientType.PF, const=True)
+    nome_completo: str
+    cpf: str
+    rg_numero: Optional[str] = None
+    rg_orgao_emissor: Optional[str] = None
+    rg_uf: Optional[str] = None
+    data_nascimento: Optional[date] = None
+    nacionalidade: str = "Brasileira"
+    nome_mae: Optional[str] = None
+    profissao: Optional[str] = None
+    
+    @validator('cpf')
+    def validate_cpf(cls, v):
+        # Remove formatting
+        cpf = re.sub(r'[^0-9]', '', v)
+        if len(cpf) != 11:
+            raise ValueError('CPF deve ter 11 dígitos')
+        return cpf
+
+class PessoaFisicaCreate(PessoaFisicaBase):
+    pass
+
+class PessoaFisica(PessoaFisicaBase, BaseEntity):
+    pass
+
+class PessoaFisicaUpdate(BaseModel):
+    status: Optional[ClientStatus] = None
+    origin_channel: Optional[OriginChannel] = None
+    email_principal: Optional[EmailStr] = None
+    telefone: Optional[str] = None
+    celular: Optional[str] = None
+    whatsapp: Optional[str] = None
+    contact_preference: Optional[ContactPreference] = None
+    nome_completo: Optional[str] = None
+    rg_numero: Optional[str] = None
+    rg_orgao_emissor: Optional[str] = None
+    rg_uf: Optional[str] = None
+    data_nascimento: Optional[date] = None
+    nacionalidade: Optional[str] = None
+    nome_mae: Optional[str] = None
+    profissao: Optional[str] = None
+    address: Optional[Address] = None
+    billing_contact: Optional[Contact] = None
+    technical_contact: Optional[Contact] = None
+    internal_notes: Optional[str] = None
+    license_info: Optional[LicenseInfo] = None
+    remote_access: Optional[RemoteAccessInfo] = None
+
+# Pessoa Jurídica Model
+class PessoaJuridicaBase(ClientBase):
+    client_type: ClientType = Field(default=ClientType.PJ, const=True)
+    cnpj: str
+    razao_social: str
+    nome_fantasia: Optional[str] = None
+    data_abertura: Optional[date] = None
+    natureza_juridica: Optional[str] = None
+    cnae_principal: Optional[str] = None
+    cnaes_secundarios: List[str] = []
+    regime_tributario: Optional[TaxRegime] = None
+    porte_empresa: Optional[CompanySize] = None
+    
+    # Inscrições
+    inscricao_estadual: Optional[str] = None
+    ie_situacao: Optional[str] = None  # contribuinte, isento, nao_obrigado
+    ie_uf: Optional[str] = None
+    inscricao_municipal: Optional[str] = None
+    alvara_numero: Optional[str] = None
+    alvara_municipio: Optional[str] = None
+    
+    # Addresses (Matriz e Filiais)
+    endereco_matriz: Optional[Address] = None
+    enderecos_filiais: List[Address] = []
+    
+    # Legal representative
+    responsavel_legal_nome: Optional[str] = None
+    responsavel_legal_cpf: Optional[str] = None
+    responsavel_legal_email: Optional[EmailStr] = None
+    responsavel_legal_telefone: Optional[str] = None
+    
+    # Procurador/Representative
+    procurador_nome: Optional[str] = None
+    procurador_cpf: Optional[str] = None
+    procurador_contato: Optional[str] = None
+    procuracao_validade: Optional[date] = None
+    
+    # Digital Certificate
+    certificado_tipo: Optional[str] = None  # A1, A3
+    certificado_numero_serie: Optional[str] = None
+    certificado_emissor: Optional[str] = None
+    certificado_validade: Optional[date] = None
+    
+    # NFe/NFSe
+    municipio_emissor_nfse: Optional[str] = None
+    codigo_servico_lc: Optional[str] = None
+    aliquota_iss: Optional[float] = None
+    serie_nfse: Optional[str] = None
+    
+    @validator('cnpj')
+    def validate_cnpj(cls, v):
+        # Remove formatting - prepare for future alphanumeric CNPJ
+        cnpj = re.sub(r'[^0-9A-Za-z]', '', v.upper())
+        if len(cnpj) != 14:
+            raise ValueError('CNPJ deve ter 14 caracteres')
+        return cnpj
+
+class PessoaJuridicaCreate(PessoaJuridicaBase):
+    pass
+
+class PessoaJuridica(PessoaJuridicaBase, BaseEntity):
+    pass
+
+class PessoaJuridicaUpdate(BaseModel):
+    status: Optional[ClientStatus] = None
+    origin_channel: Optional[OriginChannel] = None
+    email_principal: Optional[EmailStr] = None
+    telefone: Optional[str] = None
+    celular: Optional[str] = None
+    whatsapp: Optional[str] = None
+    contact_preference: Optional[ContactPreference] = None
+    razao_social: Optional[str] = None
+    nome_fantasia: Optional[str] = None
+    data_abertura: Optional[date] = None
+    natureza_juridica: Optional[str] = None
+    cnae_principal: Optional[str] = None
+    cnaes_secundarios: Optional[List[str]] = None
+    regime_tributario: Optional[TaxRegime] = None
+    porte_empresa: Optional[CompanySize] = None
+    inscricao_estadual: Optional[str] = None
+    ie_situacao: Optional[str] = None
+    ie_uf: Optional[str] = None
+    inscricao_municipal: Optional[str] = None
+    endereco_matriz: Optional[Address] = None
+    responsavel_legal_nome: Optional[str] = None
+    responsavel_legal_cpf: Optional[str] = None
+    responsavel_legal_email: Optional[EmailStr] = None
+    responsavel_legal_telefone: Optional[str] = None
+    internal_notes: Optional[str] = None
+    license_info: Optional[LicenseInfo] = None
+    remote_access: Optional[RemoteAccessInfo] = None
+
+# User Models (keeping existing)
 class UserBase(BaseModel):
     email: str
     name: str
@@ -92,7 +386,7 @@ class Token(BaseModel):
     token_type: str
     user: User
 
-# Category Models
+# Category Models (keeping existing)
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -112,39 +406,7 @@ class CategoryUpdate(BaseModel):
     icon: Optional[str] = None
     is_active: Optional[bool] = None
 
-# Company Models
-class CompanyBase(BaseModel):
-    name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = "Brasil"
-    website: Optional[str] = None
-    size: CompanySize = CompanySize.SMALL
-    notes: Optional[str] = None
-
-class CompanyCreate(CompanyBase):
-    pass
-
-class Company(CompanyBase, BaseEntity):
-    pass
-
-class CompanyUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
-    website: Optional[str] = None
-    size: Optional[CompanySize] = None
-    notes: Optional[str] = None
-    is_active: Optional[bool] = None
-
-# Product Models
+# Product Models (keeping existing)
 class ProductBase(BaseModel):
     name: str
     version: Optional[str] = "1.0"
@@ -172,7 +434,7 @@ class ProductUpdate(BaseModel):
     requirements: Optional[str] = None
     is_active: Optional[bool] = None
 
-# License Plan Models
+# License Plan Models (keeping existing)
 class LicensePlanBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -200,7 +462,7 @@ class LicensePlanUpdate(BaseModel):
     restrictions: Optional[List[str]] = None
     is_active: Optional[bool] = None
 
-# Enhanced License Models
+# Enhanced License Models (updated to use new client system)
 class LicenseBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -208,7 +470,8 @@ class LicenseBase(BaseModel):
     expires_at: Optional[datetime] = None
     features: List[str] = []
     category_id: Optional[str] = None
-    company_id: Optional[str] = None
+    client_pf_id: Optional[str] = None  # Link to Pessoa Física
+    client_pj_id: Optional[str] = None  # Link to Pessoa Jurídica
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
 
@@ -233,7 +496,8 @@ class LicenseUpdate(BaseModel):
     assigned_user_id: Optional[str] = None
     features: Optional[List[str]] = None
     category_id: Optional[str] = None
-    company_id: Optional[str] = None
+    client_pf_id: Optional[str] = None
+    client_pj_id: Optional[str] = None
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
 
@@ -282,10 +546,9 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
         )
     return current_user
 
-# Authentication Routes
+# Authentication Routes (keeping existing)
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
-    # Check if user already exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(
@@ -293,7 +556,6 @@ async def register(user_data: UserCreate):
             detail="Email already registered"
         )
     
-    # Hash password and create user
     hashed_password = get_password_hash(user_data.password)
     user_dict = user_data.dict(exclude={"password"})
     user_dict["password_hash"] = hashed_password
@@ -305,7 +567,6 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
-    # Find user
     user_doc = await db.users.find_one({"email": user_credentials.email})
     if not user_doc:
         raise HTTPException(
@@ -313,20 +574,17 @@ async def login(user_credentials: UserLogin):
             detail="Incorrect email or password"
         )
     
-    # Verify password
     if not verify_password(user_credentials.password, user_doc["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
     
-    # Update last login
     await db.users.update_one(
         {"email": user_credentials.email},
         {"$set": {"last_login": datetime.utcnow()}}
     )
     
-    # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user_credentials.email}, expires_delta=access_token_expires
@@ -339,7 +597,7 @@ async def login(user_credentials: UserLogin):
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-# User Management Routes (Admin only)
+# User Management Routes (keeping existing)
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user: User = Depends(get_current_admin_user)):
     users = await db.users.find().to_list(1000)
@@ -359,7 +617,145 @@ async def update_user_role(
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User role updated successfully"}
 
-# Category Management Routes
+# Pessoa Física Routes
+@api_router.post("/clientes-pf", response_model=PessoaFisica)
+async def create_pessoa_fisica(
+    client_data: PessoaFisicaCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    # Check if CPF already exists
+    existing_client = await db.clientes_pf.find_one({"cpf": client_data.cpf})
+    if existing_client:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CPF já cadastrado no sistema"
+        )
+    
+    client_dict = client_data.dict()
+    client_dict["created_by"] = current_user.id
+    
+    client = PessoaFisica(**client_dict)
+    await db.clientes_pf.insert_one(client.dict())
+    
+    return client
+
+@api_router.get("/clientes-pf", response_model=List[PessoaFisica])
+async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
+    clients = await db.clientes_pf.find().to_list(1000)
+    return [PessoaFisica(**client) for client in clients]
+
+@api_router.get("/clientes-pf/{client_id}", response_model=PessoaFisica)
+async def get_pessoa_fisica(client_id: str, current_user: User = Depends(get_current_user)):
+    client_doc = await db.clientes_pf.find_one({"id": client_id})
+    if not client_doc:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    return PessoaFisica(**client_doc)
+
+@api_router.put("/clientes-pf/{client_id}", response_model=PessoaFisica)
+async def update_pessoa_fisica(
+    client_id: str,
+    client_update: PessoaFisicaUpdate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    update_data = {k: v for k, v in client_update.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user.id
+    
+    result = await db.clientes_pf.update_one(
+        {"id": client_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    updated_client = await db.clientes_pf.find_one({"id": client_id})
+    return PessoaFisica(**updated_client)
+
+@api_router.delete("/clientes-pf/{client_id}")
+async def delete_pessoa_fisica(
+    client_id: str,
+    current_user: User = Depends(get_current_admin_user)
+):
+    result = await db.clientes_pf.update_one(
+        {"id": client_id},
+        {"$set": {"status": ClientStatus.INACTIVE, "updated_at": datetime.utcnow(), "updated_by": current_user.id}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    return {"message": "Cliente inativado com sucesso"}
+
+# Pessoa Jurídica Routes
+@api_router.post("/clientes-pj", response_model=PessoaJuridica)
+async def create_pessoa_juridica(
+    client_data: PessoaJuridicaCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    # Check if CNPJ already exists
+    existing_client = await db.clientes_pj.find_one({"cnpj": client_data.cnpj})
+    if existing_client:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CNPJ já cadastrado no sistema"
+        )
+    
+    client_dict = client_data.dict()
+    client_dict["created_by"] = current_user.id
+    
+    client = PessoaJuridica(**client_dict)
+    await db.clientes_pj.insert_one(client.dict())
+    
+    return client
+
+@api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
+async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
+    clients = await db.clientes_pj.find().to_list(1000)
+    return [PessoaJuridica(**client) for client in clients]
+
+@api_router.get("/clientes-pj/{client_id}", response_model=PessoaJuridica)
+async def get_pessoa_juridica(client_id: str, current_user: User = Depends(get_current_user)):
+    client_doc = await db.clientes_pj.find_one({"id": client_id})
+    if not client_doc:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    return PessoaJuridica(**client_doc)
+
+@api_router.put("/clientes-pj/{client_id}", response_model=PessoaJuridica)
+async def update_pessoa_juridica(
+    client_id: str,
+    client_update: PessoaJuridicaUpdate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    update_data = {k: v for k, v in client_update.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user.id
+    
+    result = await db.clientes_pj.update_one(
+        {"id": client_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    updated_client = await db.clientes_pj.find_one({"id": client_id})
+    return PessoaJuridica(**updated_client)
+
+@api_router.delete("/clientes-pj/{client_id}")
+async def delete_pessoa_juridica(
+    client_id: str,
+    current_user: User = Depends(get_current_admin_user)
+):
+    result = await db.clientes_pj.update_one(
+        {"id": client_id},
+        {"$set": {"status": ClientStatus.INACTIVE, "updated_at": datetime.utcnow(), "updated_by": current_user.id}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    return {"message": "Cliente inativado com sucesso"}
+
+# Category Management Routes (keeping existing)
 @api_router.post("/categories", response_model=Category)
 async def create_category(
     category_data: CategoryCreate,
@@ -406,7 +802,6 @@ async def delete_category(
     category_id: str,
     current_user: User = Depends(get_current_admin_user)
 ):
-    # Soft delete - just mark as inactive
     result = await db.categories.update_one(
         {"id": category_id},
         {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
@@ -416,63 +811,7 @@ async def delete_category(
     
     return {"message": "Category deleted successfully"}
 
-# Company Management Routes
-@api_router.post("/companies", response_model=Company)
-async def create_company(
-    company_data: CompanyCreate,
-    current_user: User = Depends(get_current_admin_user)
-):
-    company = Company(**company_data.dict())
-    await db.companies.insert_one(company.dict())
-    return company
-
-@api_router.get("/companies", response_model=List[Company])
-async def get_companies(current_user: User = Depends(get_current_user)):
-    companies = await db.companies.find({"is_active": True}).to_list(1000)
-    return [Company(**company) for company in companies]
-
-@api_router.get("/companies/{company_id}", response_model=Company)
-async def get_company(company_id: str, current_user: User = Depends(get_current_user)):
-    company_doc = await db.companies.find_one({"id": company_id})
-    if not company_doc:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return Company(**company_doc)
-
-@api_router.put("/companies/{company_id}", response_model=Company)
-async def update_company(
-    company_id: str,
-    company_update: CompanyUpdate,
-    current_user: User = Depends(get_current_admin_user)
-):
-    update_data = {k: v for k, v in company_update.dict().items() if v is not None}
-    update_data["updated_at"] = datetime.utcnow()
-    
-    result = await db.companies.update_one(
-        {"id": company_id},
-        {"$set": update_data}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Company not found")
-    
-    updated_company = await db.companies.find_one({"id": company_id})
-    return Company(**updated_company)
-
-@api_router.delete("/companies/{company_id}")
-async def delete_company(
-    company_id: str,
-    current_user: User = Depends(get_current_admin_user)
-):
-    result = await db.companies.update_one(
-        {"id": company_id},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
-    )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Company not found")
-    
-    return {"message": "Company deleted successfully"}
-
-# Product Management Routes
+# Product and License Plan routes (keeping existing with minor updates)
 @api_router.post("/products", response_model=Product)
 async def create_product(
     product_data: ProductCreate,
@@ -528,7 +867,7 @@ async def delete_product(
     
     return {"message": "Product deleted successfully"}
 
-# License Plan Management Routes
+# License Plan routes (keeping existing structure)
 @api_router.post("/license-plans", response_model=LicensePlan)
 async def create_license_plan(
     plan_data: LicensePlanCreate,
@@ -584,7 +923,7 @@ async def delete_license_plan(
     
     return {"message": "License plan deleted successfully"}
 
-# License Management Routes (Enhanced)
+# Enhanced License Management Routes (updated for new client system)
 @api_router.post("/licenses", response_model=License)
 async def create_license(
     license_data: LicenseCreate,
@@ -601,10 +940,8 @@ async def create_license(
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
-        # Admin can see all licenses
         licenses = await db.licenses.find().to_list(1000)
     else:
-        # Regular users can only see their assigned licenses
         licenses = await db.licenses.find({"assigned_user_id": current_user.id}).to_list(1000)
     
     return [License(**license) for license in licenses]
@@ -617,7 +954,6 @@ async def get_license(license_id: str, current_user: User = Depends(get_current_
     
     license = License(**license_doc)
     
-    # Check permissions
     if current_user.role != UserRole.ADMIN and license.assigned_user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -657,28 +993,31 @@ async def delete_license(
     
     return {"message": "License deleted successfully"}
 
-# Enhanced Dashboard Stats (Admin)
+# Enhanced Dashboard Stats
 @api_router.get("/stats")
 async def get_stats(current_user: User = Depends(get_current_admin_user)):
     total_licenses = await db.licenses.count_documents({})
     active_licenses = await db.licenses.count_documents({"status": LicenseStatus.ACTIVE})
     total_users = await db.users.count_documents({})
     expired_licenses = await db.licenses.count_documents({"status": LicenseStatus.EXPIRED})
-    total_companies = await db.companies.count_documents({"is_active": True})
-    total_products = await db.products.count_documents({"is_active": True})
     total_categories = await db.categories.count_documents({"is_active": True})
+    total_products = await db.products.count_documents({"is_active": True})
+    total_clientes_pf = await db.clientes_pf.count_documents({"status": {"$ne": ClientStatus.INACTIVE}})
+    total_clientes_pj = await db.clientes_pj.count_documents({"status": {"$ne": ClientStatus.INACTIVE}})
     
     return {
         "total_licenses": total_licenses,
         "active_licenses": active_licenses,
         "total_users": total_users,
         "expired_licenses": expired_licenses,
-        "total_companies": total_companies,
+        "total_categories": total_categories,
         "total_products": total_products,
-        "total_categories": total_categories
+        "total_clientes_pf": total_clientes_pf,
+        "total_clientes_pj": total_clientes_pj,
+        "total_clients": total_clientes_pf + total_clientes_pj
     }
 
-# Demo credentials endpoint
+# Demo credentials and health check (keeping existing)
 @api_router.get("/demo-credentials")
 async def get_demo_credentials():
     return {
@@ -692,10 +1031,9 @@ async def get_demo_credentials():
         }
     }
 
-# Health check
 @api_router.get("/")
 async def root():
-    return {"message": "License Management System API", "status": "running"}
+    return {"message": "Enhanced License Management System API", "status": "running", "version": "2.0"}
 
 @api_router.get("/health")
 async def health_check():
@@ -708,7 +1046,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=['*'],  # Allow all origins for development
+    allow_origins=['*'],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -717,9 +1055,7 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
-    logger.info(f"Request headers: {dict(request.headers)}")
     response = await call_next(request)
-    logger.info(f"Response status: {response.status_code}")
     return response
 
 # Configure logging
@@ -756,7 +1092,7 @@ async def startup_db_client():
         await db.users.insert_one(user_dict)
         logger.info("Demo regular user created")
         
-    # Create some demo data
+    # Create some demo categories
     categories_exist = await db.categories.count_documents({}) > 0
     if not categories_exist:
         demo_categories = [
