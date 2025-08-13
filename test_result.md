@@ -205,5 +205,7 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "Initialized testing data for PJ client management system. All backend models and frontend components have been implemented. Ready for comprehensive backend API testing focusing on CRUD operations and CNPJ validation."
+    - agent: "main"
+      message: "URGENT BUG FIX COMPLETED: Fixed Certificate icon import error in ClientsModule.js. Replaced non-existent 'Certificate' import with 'FileCheck' from lucide-react. Frontend now loads without errors and full functionality is restored."
     - agent: "testing"
       message: "✅ BACKEND TESTING COMPLETED: All high-priority PJ client backend tasks are working correctly. CNPJ validation, model implementation, and CRUD operations all pass comprehensive tests. Only minor issue found: certificado_digital date field has validation issue with ISO date format, but this doesn't affect core functionality. Backend API is ready for production use. Frontend testing can now proceed."
