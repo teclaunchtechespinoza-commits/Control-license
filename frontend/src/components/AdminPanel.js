@@ -97,13 +97,21 @@ const AdminPanel = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [licensesResponse, usersResponse] = await Promise.all([
+      const [licensesResponse, usersResponse, categoriesResponse, companiesResponse, productsResponse, plansResponse] = await Promise.all([
         axios.get('/licenses'),
-        axios.get('/users')
+        axios.get('/users'),
+        axios.get('/categories'),
+        axios.get('/companies'),
+        axios.get('/products'),
+        axios.get('/license-plans')
       ]);
       
       setLicenses(licensesResponse.data);
       setUsers(usersResponse.data);
+      setCategories(categoriesResponse.data);
+      setCompanies(companiesResponse.data);
+      setProducts(productsResponse.data);
+      setLicensePlans(plansResponse.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);
       toast.error('Erro ao carregar dados');
