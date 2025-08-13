@@ -234,6 +234,16 @@ const ClientsModule = () => {
     fetchEquipmentBrands();
   }, []);
 
+  // Debug: Track formData changes
+  useEffect(() => {
+    console.log('DEBUG: formData state changed:', {
+      razao_social: formData.razao_social,
+      cnpj: formData.cnpj,
+      email_principal: formData.email_principal,
+      client_type: formData.client_type
+    });
+  }, [formData.razao_social, formData.cnpj, formData.email_principal, formData.client_type]);
+
   const fetchAllClients = async () => {
     try {
       setLoading(true);
