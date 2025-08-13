@@ -1232,7 +1232,10 @@ const ClientsModule = () => {
                           <Input
                             name="cnpj"
                             value={formData.cnpj}
-                            onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
+                            onChange={(e) => {
+                              console.log('DEBUG: cnpj onChange fired, value:', e.target.value);
+                              setFormData({...formData, cnpj: e.target.value});
+                            }}
                             placeholder="00.000.000/0000-00"
                             required
                           />
