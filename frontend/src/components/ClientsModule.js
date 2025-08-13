@@ -251,6 +251,43 @@ const ClientsModule = () => {
     }
   };
 
+  // Equipment functions
+  const fetchEquipmentBrands = async () => {
+    try {
+      const response = await axios.get('/equipment-brands');
+      setEquipmentBrands(response.data);
+    } catch (error) {
+      console.error('Failed to fetch equipment brands:', error);
+    }
+  };
+
+  const fetchEquipmentModels = async (brandId = '') => {
+    try {
+      const url = brandId ? `/equipment-models?brand_id=${brandId}` : '/equipment-models';
+      const response = await axios.get(url);
+      setEquipmentModels(response.data);
+    } catch (error) {
+      console.error('Failed to fetch equipment models:', error);
+    }
+  };
+
+  const handleBrandChange = (brandId) => {
+    setSelectedBrandId(brandId);
+    setFormData(prev => ({
+      ...prev,
+      license_info: {
+        ...prev.license_info,
+        equipment_brand: brandId,
+        equipment_model: '' // Reset model when brand changes
+      }
+    }));
+    if (brandId) {
+      fetchEquipmentModels(brandId);
+    } else {
+      setEquipmentModels([]);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       client_type: activeTab === 'pf' ? 'pf' : 'pj',
