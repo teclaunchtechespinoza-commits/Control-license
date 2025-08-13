@@ -239,7 +239,8 @@ const AdminPanel = () => {
       expires_at: license.expires_at ? license.expires_at.split('T')[0] : '',
       assigned_user_id: license.assigned_user_id || null,
       category_id: license.category_id || null,
-      company_id: license.company_id || null,
+      client_pf_id: license.client_pf_id || null,
+      client_pj_id: license.client_pj_id || null,
       product_id: license.product_id || null,
       plan_id: license.plan_id || null,
       features: license.features || []
