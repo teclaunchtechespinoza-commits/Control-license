@@ -458,6 +458,8 @@ const ClientsModule = () => {
         } else if (cleanedData[key] === '' || cleanedData[key] === null) {
           delete cleanedData[key];
         }
+      });
+      
       // Debug logging for field mapping issue
       console.log('DEBUG: Original formData before cleaning:', formData);
       console.log('DEBUG: Required fields for', activeTab, ':', requiredFields);
