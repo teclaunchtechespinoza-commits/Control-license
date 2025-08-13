@@ -105,6 +105,21 @@
 user_problem_statement: "Complete License Management System with comprehensive PJ (Pessoa Jurídica) client management. The system needs secure authentication, multi-user functionality, and detailed client registration including CNPJ validation, company information, addresses, legal representatives, and integration with license management."
 
 backend:
+  - task: "Equipment Brands and Models Management"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented equipment brands and models endpoints with CRUD operations. Added EquipmentBrand and EquipmentModel models with proper validation and admin authentication."
+        - working: true
+          agent: "testing"
+          comment: "✅ Equipment management fully functional! Successfully tested all requested functionality: 1) Created 4 equipment brands (Dell, HP, Lenovo, Acer) ✅, 2) Created 8 equipment models (2 per brand) including OptiPlex 3080, Latitude 5520, ProDesk 400, EliteBook 840, ThinkPad X1, ThinkCentre M720, Aspire 5, Veriton X ✅, 3) GET /api/equipment-brands returns all brands correctly ✅, 4) GET /api/equipment-models returns all models correctly ✅, 5) GET /api/equipment-models?brand_id=[id] filtering works perfectly ✅, 6) Validation prevents duplicate brands and models ✅, 7) Admin authentication enforced correctly ✅. All 30 tests passed. Initial test data created successfully as requested."
+
   - task: "PJ Client Model Implementation"
     implemented: true
     working: true
