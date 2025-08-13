@@ -1142,7 +1142,7 @@ const ClientsModule = () => {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between border-b pb-2">
                           <div className="flex items-center space-x-2">
-                            <Certificate className="w-4 h-4" />
+                            <FileCheck className="w-4 h-4" />
                             <h3 className="font-medium">Alvarás e Inscrições Locais</h3>
                           </div>
                           <Button type="button" size="sm" onClick={addInscricaoLocal}>
