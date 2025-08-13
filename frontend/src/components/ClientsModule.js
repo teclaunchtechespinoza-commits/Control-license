@@ -1746,6 +1746,7 @@ const ClientsModule = () => {
                     <Label>Email Principal *</Label>
                     <Input
                       type="email"
+                      name="email_principal"
                       value={formData.email_principal}
                       onChange={(e) => setFormData({...formData, email_principal: e.target.value})}
                       required
