@@ -168,9 +168,9 @@ backend:
 frontend:
   - task: "ClientsModule Component"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/ClientsModule.js"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -192,6 +192,9 @@ frontend:
         - working: "NA"
           agent: "testing"
           comment: "✅ REACT ERROR FIX CONFIRMED: Comprehensive testing confirms that the critical React error 'Objects are not valid as a React child' has been successfully fixed! No React errors detected in console logs during extensive testing. ✅ EQUIPMENT FIELDS IMPLEMENTED: Code review confirms that new equipment fields have been properly implemented in ClientsModule.js (lines 1940-2020): 'Informações de Equipamento' section with Marca do Equipamento (dropdown), Modelo do Equipamento (dropdown), ID do Equipamento (input), and Número de Série (input). Backend endpoints for equipment brands and models are working correctly. ❌ LOGIN AUTHENTICATION ISSUE: Unable to complete full UI testing due to login authentication problem - user remains on login page after submitting correct credentials (admin@demo.com/admin123). Backend API authentication works correctly via curl, but frontend login flow has integration issues. This prevents testing the equipment fields in the UI, but code review confirms they are properly implemented."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL FIELD MAPPING ISSUE PERSISTS: Comprehensive testing after claimed fixes reveals that the critical field mapping issue is still present. SPECIFIC FINDINGS: 1) ✅ Login working correctly with admin@demo.com/admin123, 2) ✅ Navigation to Clientes module successful, 3) ✅ Both PF and PJ tabs accessible, 4) ✅ Client data displaying correctly (6 PF clients, 20 PJ clients visible), 5) ✅ Form dialogs open correctly for both PF and PJ, 6) ❌ CRITICAL ISSUE: PJ form submission shows console log 'Sending data to backend: {client_type: pj, status: active, email_principal: , contact_preference: email, nacionalidade: Brasileira}' - the email_principal field is EMPTY despite being filled in the UI, 7) ❌ Form shows validation error 'Preencha todos os campos obrigatórios: Razão Social, CNPJ e Email', 8) ❌ Dialog remains open indicating validation failure. The field mapping corrections mentioned in the review request have NOT been fully implemented. The same issue that was previously reported is still occurring - form field values are not being properly captured and sent to the backend API."
 
   - task: "AdminPanel Client Integration"
     implemented: true
