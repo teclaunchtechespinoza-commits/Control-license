@@ -195,7 +195,10 @@ const RegistryModule = () => {
       fetchAllData();
     } catch (error) {
       console.error(`Failed to create ${activeTab}:`, error);
-      toast.error(error.response?.data?.detail || `Erro ao criar ${activeTab}`);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : `Erro ao criar ${activeTab}`;
+      toast.error(errorMessage);
     }
   };
 
