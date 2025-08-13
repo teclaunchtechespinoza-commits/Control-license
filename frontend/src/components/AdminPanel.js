@@ -459,11 +459,11 @@ const AdminPanel = () => {
                           <div className="space-y-2">
                             <Label htmlFor="product">Produto (opcional)</Label>
                             <Select 
-                              value={licenseForm.product_id} 
-                              onValueChange={(value) => setLicenseForm({...licenseForm, product_id: value})}
+                              value={licenseForm.product_id || ''} 
+                              onValueChange={(value) => setLicenseForm({...licenseForm, product_id: value || null})}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecionar produto" />
+                                <SelectValue placeholder="Nenhum produto" />
                               </SelectTrigger>
                               <SelectContent>
                                 {products.map(product => (
