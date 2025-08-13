@@ -231,6 +231,7 @@ const ClientsModule = () => {
 
   useEffect(() => {
     fetchAllClients();
+    fetchEquipmentBrands();
   }, []);
 
   const fetchAllClients = async () => {
