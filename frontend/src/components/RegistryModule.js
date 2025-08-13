@@ -216,7 +216,10 @@ const RegistryModule = () => {
       fetchAllData();
     } catch (error) {
       console.error(`Failed to update ${activeTab}:`, error);
-      toast.error(error.response?.data?.detail || `Erro ao atualizar ${activeTab}`);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : `Erro ao atualizar ${activeTab}`;
+      toast.error(errorMessage);
     }
   };
 
