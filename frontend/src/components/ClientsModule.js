@@ -421,6 +421,17 @@ const ClientsModule = () => {
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
+      // CRITICAL FIX: Explicitly ensure required fields are included
+      if (activeTab === 'pj') {
+        cleanedData.razao_social = formData.razao_social;
+        cleanedData.cnpj = formData.cnpj;
+        cleanedData.email_principal = formData.email_principal;
+      } else if (activeTab === 'pf') {
+        cleanedData.nome_completo = formData.nome_completo;
+        cleanedData.cpf = formData.cpf;
+        cleanedData.email_principal = formData.email_principal;
+      }
+      
       // Fix enum values and field mappings
       if (cleanedData.porte_empresa === '') {
         delete cleanedData.porte_empresa;
