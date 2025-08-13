@@ -1006,6 +1006,7 @@ const ClientsModule = () => {
                       <div className="space-y-2">
                         <Label>Nome Completo *</Label>
                         <Input
+                          name="nome_completo"
                           value={formData.nome_completo}
                           onChange={(e) => setFormData({...formData, nome_completo: e.target.value})}
                           required
