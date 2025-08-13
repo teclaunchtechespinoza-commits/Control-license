@@ -827,18 +827,37 @@ const AdminPanel = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-company">Empresa</Label>
+                  <Label htmlFor="edit-client-pf">Cliente PF</Label>
                   <Select 
-                    value={licenseForm.company_id || ''} 
-                    onValueChange={(value) => setLicenseForm({...licenseForm, company_id: value || null})}
+                    value={licenseForm.client_pf_id || ''} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, client_pf_id: value || null, client_pj_id: null})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Nenhuma empresa" />
+                      <SelectValue placeholder="Nenhum cliente PF" />
                     </SelectTrigger>
                     <SelectContent>
-                      {companies.map(company => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
+                      {clientesPF.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.nome_completo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-client-pj">Cliente PJ</Label>
+                  <Select 
+                    value={licenseForm.client_pj_id || ''} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, client_pj_id: value || null, client_pf_id: null})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nenhum cliente PJ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientesPJ.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.razao_social}
                         </SelectItem>
                       ))}
                     </SelectContent>
