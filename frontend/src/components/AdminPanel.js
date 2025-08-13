@@ -235,7 +235,10 @@ const AdminPanel = () => {
       fetchData();
     } catch (error) {
       console.error('Failed to update user role:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao atualizar função do usuário');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao atualizar função do usuário';
+      toast.error(errorMessage);
     }
   };
 
