@@ -354,18 +354,25 @@ class PessoaJuridicaBase(ClientBase):
     aliquota_iss: Optional[float] = None
     serie_nfse: Optional[str] = None
     
-    @validator('cnpj', pre=True)
-    def process_cnpj(cls, v, values):
+    @validator('cnpj')
+    def validate_cnpj(cls, v):
         if v:
-            # Armazenar formato informado
-            values['cnpj_formato_informado'] = v
-            # Normalizar CNPJ (remover pontuação, manter alfanumérico)
+            # Remove formatting - prepare for future alphanumeric CNPJ
             normalized = re.sub(r'[^0-9A-Za-z]', '', str(v).upper())
             if len(normalized) != 14:
                 raise ValueError('CNPJ deve ter 14 caracteres')
-            values['cnpj_normalizado'] = normalized
             return normalized
         return v
+    
+    def __init__(self, **data):
+        if 'cnpj' in data and data['cnpj']:
+            # Store original format before validation
+            data['cnpj_formato_informado'] = data['cnpj']
+            # Normalize for storage
+            normalized = re.sub(r'[^0-9A-Za-z]', '', str(data['cnpj']).upper())
+            data['cnpj_normalizado'] = normalized
+            data['cnpj'] = normalized
+        super().__init__(**data)
 
 class PessoaJuridicaCreate(PessoaJuridicaBase):
     pass
