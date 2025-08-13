@@ -152,6 +152,13 @@ const AdminPanel = () => {
         delete formData.expires_at;
       }
 
+      // Remove null fields before sending
+      Object.keys(formData).forEach(key => {
+        if (formData[key] === null || formData[key] === '') {
+          delete formData[key];
+        }
+      });
+
       await axios.post('/licenses', formData);
       toast.success('Licença criada com sucesso!');
       
