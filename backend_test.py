@@ -839,24 +839,24 @@ class LicenseManagementAPITester:
 def main():
     tester = LicenseManagementAPITester()
     
-    # Run specific client creation tests as requested
-    print("🚀 Starting Specific Client Creation Tests (Review Request)")
+    # Run equipment management tests as requested in review
+    print("🚀 Starting Equipment Management Tests (Review Request)")
     print(f"Base URL: {tester.base_url}")
     
     # Only run essential tests for this specific review
     tester.test_health_check()
     tester.test_authentication()
-    tester.test_client_creation_specific()
+    tester.test_equipment_management()
     tester.cleanup_specific_tests()
     
     # Print final results
     print("\n" + "="*50)
-    print("SPECIFIC CLIENT CREATION TEST RESULTS")
+    print("EQUIPMENT MANAGEMENT TEST RESULTS")
     print("="*50)
     print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All specific client creation tests passed!")
+        print("🎉 All equipment management tests passed!")
         return 0
     else:
         print(f"❌ {tester.tests_run - tester.tests_passed} tests failed")
