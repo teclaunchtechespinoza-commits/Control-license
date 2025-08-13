@@ -537,7 +537,7 @@ class LicenseManagementAPITester:
         pf_minimal_data = {
             "client_type": "pf",
             "nome_completo": "João da Silva Teste",
-            "cpf": "12345678901",
+            "cpf": "11122233344",
             "email_principal": "joao.teste@email.com"
         }
         success, response = self.run_test("Create PF client (minimal)", "POST", "clientes-pf", 200, pf_minimal_data, self.admin_token)
