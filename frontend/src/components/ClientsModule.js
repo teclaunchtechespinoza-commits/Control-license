@@ -61,7 +61,6 @@ import {
   MapPin,
   CreditCard,
   Shield,
-  Monitor,
   FileText,
   Building,
   FileCheck,
