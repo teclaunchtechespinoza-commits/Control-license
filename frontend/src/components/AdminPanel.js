@@ -471,7 +471,6 @@ const AdminPanel = () => {
                                 <SelectValue placeholder="Selecionar plano" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">Nenhum plano</SelectItem>
                                 {licensePlans.map(plan => (
                                   <SelectItem key={plan.id} value={plan.id}>
                                     {plan.name}
