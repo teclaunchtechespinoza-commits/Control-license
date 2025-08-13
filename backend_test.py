@@ -393,7 +393,11 @@ class LicenseManagementAPITester:
         self.test_demo_credentials()
         self.test_authentication()
         self.test_user_management()
-        self.test_license_management()
+        self.test_categories_management()
+        self.test_companies_management()
+        self.test_products_management()
+        self.test_license_plans_management()
+        self.test_enhanced_license_management()
         self.test_admin_stats()
         self.test_cleanup()
         
