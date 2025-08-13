@@ -403,6 +403,12 @@ const ClientsModule = () => {
     try {
       const endpoint = activeTab === 'pf' ? '/clientes-pf' : '/clientes-pj';
       
+      console.log('=== DEBUG FORM SUBMISSION ===');
+      console.log('Active tab:', activeTab);
+      console.log('Raw formData before any processing:', formData);
+      console.log('Email principal value:', formData.email_principal);
+      console.log('==============================');
+      
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
