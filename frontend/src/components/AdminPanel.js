@@ -431,7 +431,6 @@ const AdminPanel = () => {
                                 <SelectValue placeholder="Selecionar empresa" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">Nenhuma empresa</SelectItem>
                                 {companies.map(company => (
                                   <SelectItem key={company.id} value={company.id}>
                                     {company.name}
