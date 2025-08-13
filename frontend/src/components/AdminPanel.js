@@ -68,7 +68,8 @@ const AdminPanel = () => {
   const [licenses, setLicenses] = useState([]);
   const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [companies, setCompanies] = useState([]);
+  const [clientesPF, setClientesPF] = useState([]);
+  const [clientesPJ, setClientesPJ] = useState([]);
   const [products, setProducts] = useState([]);
   const [licensePlans, setLicensePlans] = useState([]);
   const [loading, setLoading] = useState(true);
