@@ -1,0 +1,361 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../App';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from './ui/table';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import axios from 'axios';
+import { 
+  Search,
+  FileText, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  AlertTriangle,
+  Calendar,
+  Key,
+  Users,
+  Eye
+} from 'lucide-react';
+import LoadingSpinner from './LoadingSpinner';
+
+const UserLicenses = () => {
+  const { user } = useAuth();
+  const [licenses, setLicenses] = useState([]);
+  const [filteredLicenses, setFilteredLicenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    fetchLicenses();
+  }, []);
+
+  useEffect(() => {
+    filterLicenses();
+  }, [licenses, searchTerm, statusFilter]);
+
+  const fetchLicenses = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/licenses');
+      setLicenses(response.data);
+    } catch (error) {
+      console.error('Failed to fetch licenses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterLicenses = () => {
+    let filtered = [...licenses];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(license => 
+        license.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.license_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (license.description && license.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(license => license.status === statusFilter);
+    }
+
+    setFilteredLicenses(filtered);
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'expired':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'suspended':
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      active: 'default',
+      expired: 'destructive',
+      suspended: 'secondary',
+      pending: 'outline'
+    };
+    
+    const labels = {
+      active: 'Ativo',
+      expired: 'Expirado',
+      suspended: 'Suspenso',
+      pending: 'Pendente'
+    };
+
+    return (
+      <Badge variant={variants[status]}>
+        {labels[status]}
+      </Badge>
+    );
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Sem data limite';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const isExpiringSoon = (dateString) => {
+    if (!dateString) return false;
+    const expiryDate = new Date(dateString);
+    const today = new Date();
+    const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    // Could add toast notification here
+  };
+
+  if (loading) {
+    return <LoadingSpinner message="Carregando suas licenças..." />;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Minhas Licenças</h1>
+        <p className="text-gray-600 mt-2">
+          Visualize e gerencie todas as suas licenças atribuídas
+        </p>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar por nome, chave ou descrição..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="sm:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="expired">Expirado</SelectItem>
+                  <SelectItem value="suspended">Suspenso</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Licenses Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total</p>
+                <p className="text-2xl font-bold">{licenses.length}</p>
+              </div>
+              <FileText className="w-8 h-8 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-600">Ativas</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {licenses.filter(l => l.status === 'active').length}
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-600">Expiradas</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {licenses.filter(l => l.status === 'expired').length}
+                </p>
+              </div>
+              <XCircle className="w-8 h-8 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-yellow-600">Expirando</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {licenses.filter(l => isExpiringSoon(l.expires_at)).length}
+                </p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-yellow-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Licenses Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="w-5 h-5" />
+            <span>Lista de Licenças</span>
+            <span className="text-sm font-normal text-gray-500">
+              ({filteredLicenses.length} de {licenses.length})
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredLicenses.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Nenhuma licença encontrada
+              </h3>
+              <p className="text-gray-500">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'Tente ajustar os filtros de busca'
+                  : 'Você ainda não possui licenças atribuídas'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Chave da Licença</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Máx. Usuários</TableHead>
+                    <TableHead>Data de Criação</TableHead>
+                    <TableHead>Data de Expiração</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLicenses.map((license) => (
+                    <TableRow key={license.id}>
+                      <TableCell>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(license.status)}
+                            <span className="font-medium">{license.name}</span>
+                            {isExpiringSoon(license.expires_at) && (
+                              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                                Expirando
+                              </Badge>
+                            )}
+                          </div>
+                          {license.description && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {license.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                            {license.license_key}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyToClipboard(license.license_key)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Key className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(license.status)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          <span>{license.max_users}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(license.created_at)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <Calendar className="w-4 h-4" />
+                          <span className={isExpiringSoon(license.expires_at) ? 'text-yellow-600 font-medium' : ''}>
+                            {formatDate(license.expires_at)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="outline">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Detalhes
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default UserLicenses;
