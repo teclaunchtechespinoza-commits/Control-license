@@ -151,12 +151,20 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </Link>
                   {user?.role === 'admin' && (
-                    <Link to="/admin">
-                      <DropdownMenuItem>
-                        <UserCog className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
-                      </DropdownMenuItem>
-                    </Link>
+                    <>
+                      <Link to="/admin">
+                        <DropdownMenuItem>
+                          <UserCog className="mr-2 h-4 w-4" />
+                          <span>Admin Panel</span>
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link to="/cadastros">
+                        <DropdownMenuItem>
+                          <Tag className="mr-2 h-4 w-4" />
+                          <span>Cadastros</span>
+                        </DropdownMenuItem>
+                      </Link>
+                    </>
                   )}
                   <DropdownMenuSeparator />
                 </div>
