@@ -631,7 +631,7 @@ class LicenseManagementAPITester:
         pf_structured_data = {
             "client_type": "pf",
             "nome_completo": "Maria Santos Oliveira",
-            "cpf": "55566677788",
+            "cpf": "77788899900",
             "email_principal": "maria.santos@email.com",
             "telefone": "+55 11 3333-4444",
             "celular": "+55 11 99999-8888",
