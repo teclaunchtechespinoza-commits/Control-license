@@ -653,6 +653,7 @@ const ClientsModule = () => {
   const openCreateDialog = () => {
     resetForm();
     setFormData(prev => ({ ...prev, client_type: activeTab === 'pf' ? 'pf' : 'pj' }));
+    console.log('DEBUG: Dialog opened, formData reset for tab:', activeTab);
     setShowCreateDialog(true);
   };
 
