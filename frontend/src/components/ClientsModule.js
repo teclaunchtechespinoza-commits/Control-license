@@ -410,6 +410,11 @@ const ClientsModule = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     
+    console.log('DEBUG: handleCreate started, current formData:', formData);
+    console.log('DEBUG: handleCreate - razao_social:', formData.razao_social);
+    console.log('DEBUG: handleCreate - cnpj:', formData.cnpj);
+    console.log('DEBUG: handleCreate - email_principal:', formData.email_principal);
+    
     try {
       const endpoint = activeTab === 'pf' ? '/clientes-pf' : '/clientes-pj';
       
