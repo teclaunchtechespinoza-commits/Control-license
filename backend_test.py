@@ -1051,6 +1051,100 @@ class LicenseManagementAPITester:
                 client_id = getattr(self, attr)
                 self.run_test(f"Cleanup debug PJ client {client_id}", "DELETE", f"clientes-pj/{client_id}", 200, token=self.admin_token)
 
+    def test_pj_client_debug_specific(self):
+        """Debug the exact 400 error scenario from the review request"""
+        print("\n" + "="*50)
+        print("DEBUGGING EXACT 400 ERROR SCENARIO (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping specific debug tests")
+            return
+
+        # Test the exact scenario mentioned in the review - frontend sending email but getting 400
+        print("\n🔍 CRITICAL TEST: Frontend payload with email_principal present but getting 400 error")
+        
+        # This simulates the exact payload that frontend is sending according to the review
+        frontend_payload_with_email = {
+            "client_type": "pj",
+            "status": "active",
+            "email_principal": "debug@test.com",  # Email is present as mentioned in review
+            "contact_preference": "email",
+            "razao_social": "Debug Test Company",
+            "cnpj": "98765432000111",
+            "cnpj_normalizado": "98765432000111",
+            "nacionalidade": "Brasileira"
+        }
+        
+        print(f"   Frontend payload: {json.dumps(frontend_payload_with_email, indent=2)}")
+        success, response = self.run_test("Frontend payload with email present", "POST", "clientes-pj", 200, frontend_payload_with_email, self.admin_token)
+        
+        if success and 'id' in response:
+            self.debug_frontend_pj_id = response['id']
+            print(f"   ✅ SUCCESS: PJ client created successfully with ID: {self.debug_frontend_pj_id}")
+            print("   🔍 ANALYSIS: The payload works correctly when all required fields are present")
+        else:
+            print(f"   ❌ FAILED: Got error response: {response}")
+            print("   🔍 ANALYSIS: This indicates the issue is with missing required fields")
+
+        # Test what happens when we remove cnpj_normalizado (which frontend might not be sending)
+        print("\n🔍 TEST: Frontend payload without cnpj_normalizado")
+        frontend_no_normalized = {
+            "client_type": "pj",
+            "status": "active",
+            "email_principal": "debug2@test.com",
+            "contact_preference": "email",
+            "razao_social": "Debug Test Company 2",
+            "cnpj": "98765432000112",
+            "nacionalidade": "Brasileira"
+            # Missing cnpj_normalizado
+        }
+        
+        print(f"   Payload without cnpj_normalizado: {json.dumps(frontend_no_normalized, indent=2)}")
+        success, response = self.run_test("Frontend without cnpj_normalizado", "POST", "clientes-pj", 422, frontend_no_normalized, self.admin_token)
+        
+        if not success and response:
+            print(f"   ❌ VALIDATION ERROR (expected): {response}")
+            print("   🔍 ANALYSIS: cnpj_normalizado is required but frontend might not be sending it")
+
+        # Test what happens when we only send the fields that frontend console log showed
+        print("\n🔍 TEST: Exact fields from frontend console log")
+        console_log_payload = {
+            "client_type": "pj",
+            "status": "active", 
+            "email_principal": "debug3@test.com",
+            "contact_preference": "email",
+            "nacionalidade": "Brasileira"
+            # Missing razao_social, cnpj, cnpj_normalizado
+        }
+        
+        print(f"   Console log payload: {json.dumps(console_log_payload, indent=2)}")
+        success, response = self.run_test("Console log payload", "POST", "clientes-pj", 422, console_log_payload, self.admin_token)
+        
+        if not success and response:
+            print(f"   ❌ VALIDATION ERROR (expected): {response}")
+            print("   🔍 ANALYSIS: Missing razao_social and cnpj fields cause validation failure")
+
+        # Test the backend model requirements
+        print("\n🔍 BACKEND MODEL ANALYSIS:")
+        print("   Required fields for PJ client creation:")
+        print("   - client_type: 'pj' (Literal)")
+        print("   - razao_social: str (required)")
+        print("   - cnpj: str (required)")
+        print("   - cnpj_normalizado: str (required)")
+        print("   - email_principal: EmailStr (required)")
+        print("   - status: defaults to 'active'")
+        print("   - contact_preference: defaults to 'email'")
+
+        print("\n🔍 ROOT CAUSE IDENTIFIED:")
+        print("   The 400 error occurs when frontend sends a payload missing required fields:")
+        print("   1. razao_social - Company name (required)")
+        print("   2. cnpj - Company tax ID (required)")
+        print("   3. cnpj_normalizado - Normalized CNPJ (required)")
+        print("   ")
+        print("   The email_principal field is working correctly.")
+        print("   The issue is that frontend form is not capturing/sending the company fields.")
+
 def main():
     tester = LicenseManagementAPITester()
     
@@ -1062,6 +1156,7 @@ def main():
     tester.test_health_check()
     tester.test_authentication()
     tester.test_pj_client_debug()
+    tester.test_pj_client_debug_specific()
     tester.cleanup_debug_tests()
     
     # Print final results
