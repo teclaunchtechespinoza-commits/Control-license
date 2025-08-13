@@ -666,7 +666,7 @@ class LicenseManagementAPITester:
         pj_structured_data = {
             "client_type": "pj",
             "razao_social": "Empresa Estruturada LTDA",
-            "cnpj": "11222333000144",
+            "cnpj": "44455566000177",
             "email_principal": "contato@estruturada.com",
             "nome_fantasia": "Estruturada Corp",
             "telefone": "+55 11 4444-5555",
