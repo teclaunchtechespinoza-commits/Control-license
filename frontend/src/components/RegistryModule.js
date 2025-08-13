@@ -232,7 +232,10 @@ const RegistryModule = () => {
       fetchAllData();
     } catch (error) {
       console.error(`Failed to delete ${activeTab}:`, error);
-      toast.error(error.response?.data?.detail || `Erro ao excluir ${activeTab}`);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : `Erro ao excluir ${activeTab}`;
+      toast.error(errorMessage);
     }
   };
 
