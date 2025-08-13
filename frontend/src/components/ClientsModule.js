@@ -409,7 +409,7 @@ const ClientsModule = () => {
         }
       });
       
-      console.log('Form data after cleaning:', cleanedData);
+      console.log('Sending data to backend:', cleanedData);
       
       // Ensure required fields for PF
       if (activeTab === 'pf') {
