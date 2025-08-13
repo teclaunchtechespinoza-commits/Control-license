@@ -550,7 +550,7 @@ class LicenseManagementAPITester:
         pj_minimal_data = {
             "client_type": "pj", 
             "razao_social": "Empresa Teste LTDA",
-            "cnpj": "12345678000195",
+            "cnpj": "33344455000166",
             "email_principal": "empresa.teste@email.com"
         }
         success, response = self.run_test("Create PJ client (minimal)", "POST", "clientes-pj", 200, pj_minimal_data, self.admin_token)
