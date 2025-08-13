@@ -417,10 +417,14 @@ const ClientsModule = () => {
         delete cleanedData.origin_channel;
       }
       
-      // Fix address field mapping (endereco_matriz -> address)
+      // Fix address field mapping based on client type
       if (cleanedData.endereco_matriz) {
-        cleanedData.address = cleanedData.endereco_matriz;
-        delete cleanedData.endereco_matriz;
+        if (activeTab === 'pf') {
+          // PF uses 'address' field from ClientBase
+          cleanedData.address = cleanedData.endereco_matriz;
+          delete cleanedData.endereco_matriz;
+        }
+        // PJ keeps 'endereco_matriz' as is
       }
       
       // Clean empty nested objects and arrays
