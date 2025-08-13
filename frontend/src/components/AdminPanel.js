@@ -844,11 +844,11 @@ const AdminPanel = () => {
                 <div className="space-y-2">
                   <Label htmlFor="edit-plan">Plano</Label>
                   <Select 
-                    value={licenseForm.plan_id} 
-                    onValueChange={(value) => setLicenseForm({...licenseForm, plan_id: value})}
+                    value={licenseForm.plan_id || ''} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, plan_id: value || null})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar plano" />
+                      <SelectValue placeholder="Nenhum plano" />
                     </SelectTrigger>
                     <SelectContent>
                       {licensePlans.map(plan => (
