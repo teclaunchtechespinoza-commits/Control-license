@@ -1211,7 +1211,7 @@ const ClientsModule = () => {
                             value={formData.razao_social}
                             onChange={(e) => {
                               console.log('DEBUG: razao_social onChange fired, value:', e.target.value);
-                              setFormData({...formData, razao_social: e.target.value});
+                              setFormData(prev => ({...prev, razao_social: e.target.value}));
                             }}
                             required
                           />
