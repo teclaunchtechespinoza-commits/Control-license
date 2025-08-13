@@ -175,50 +175,122 @@ class LicenseManagementAPITester:
         if self.user_token:
             self.run_test("Create category (user) - should fail", "POST", "categories", 403, category_data, self.user_token)
 
-    def test_companies_management(self):
-        """Test companies CRUD endpoints"""
+    def test_clientes_pf_management(self):
+        """Test Pessoa Física (PF) client management endpoints"""
         print("\n" + "="*50)
-        print("TESTING COMPANIES MANAGEMENT")
+        print("TESTING PESSOA FÍSICA (PF) CLIENT MANAGEMENT")
         print("="*50)
         
         if not self.admin_token:
-            print("❌ No admin token available, skipping companies tests")
+            print("❌ No admin token available, skipping PF client tests")
             return
 
-        # Test get companies
-        self.run_test("Get companies", "GET", "companies", 200, token=self.admin_token)
+        # Test get PF clients
+        self.run_test("Get PF clients", "GET", "clientes-pf", 200, token=self.admin_token)
 
-        # Test create company
-        company_data = {
-            "name": "Test Company Ltd",
-            "email": "test@company.com",
-            "phone": "+55 11 99999-9999",
-            "address": "Test Street, 123",
-            "city": "São Paulo",
-            "state": "SP",
-            "country": "Brasil",
-            "website": "https://testcompany.com",
-            "size": "medium",
-            "notes": "Test company for API testing"
+        # Test create PF client
+        pf_data = {
+            "client_type": "pf",
+            "nome_completo": "João Silva Santos",
+            "cpf": "12345678901",
+            "email_principal": "joao.silva@email.com",
+            "telefone": "+55 11 98765-4321",
+            "celular": "+55 11 99999-8888",
+            "whatsapp": "+55 11 99999-8888",
+            "contact_preference": "whatsapp",
+            "origin_channel": "website",
+            "data_nascimento": "1985-03-15",
+            "rg_numero": "123456789",
+            "rg_orgao_emissor": "SSP",
+            "rg_uf": "SP",
+            "profissao": "Desenvolvedor",
+            "internal_notes": "Cliente teste para API"
         }
-        success, response = self.run_test("Create company", "POST", "companies", 200, company_data, self.admin_token)
+        success, response = self.run_test("Create PF client", "POST", "clientes-pf", 200, pf_data, self.admin_token)
         if success and 'id' in response:
-            self.created_company_id = response['id']
-            print(f"   Created company ID: {self.created_company_id}")
+            self.created_pf_id = response['id']
+            print(f"   Created PF client ID: {self.created_pf_id}")
 
-            # Test get specific company
-            self.run_test("Get specific company", "GET", f"companies/{self.created_company_id}", 200, token=self.admin_token)
+            # Test get specific PF client
+            self.run_test("Get specific PF client", "GET", f"clientes-pf/{self.created_pf_id}", 200, token=self.admin_token)
             
-            # Test update company
+            # Test update PF client
             update_data = {
-                "name": "Updated Test Company Ltd",
-                "size": "large"
+                "nome_completo": "João Silva Santos Junior",
+                "profissao": "Desenvolvedor Senior"
             }
-            self.run_test("Update company", "PUT", f"companies/{self.created_company_id}", 200, update_data, self.admin_token)
+            self.run_test("Update PF client", "PUT", f"clientes-pf/{self.created_pf_id}", 200, update_data, self.admin_token)
 
-        # Test create company (user) - should fail
+        # Test duplicate CPF (should fail)
+        duplicate_pf_data = pf_data.copy()
+        duplicate_pf_data["nome_completo"] = "Outro Nome"
+        duplicate_pf_data["email_principal"] = "outro@email.com"
+        self.run_test("Create duplicate CPF (should fail)", "POST", "clientes-pf", 400, duplicate_pf_data, self.admin_token)
+
+        # Test create PF client (user) - should fail
         if self.user_token:
-            self.run_test("Create company (user) - should fail", "POST", "companies", 403, company_data, self.user_token)
+            self.run_test("Create PF client (user) - should fail", "POST", "clientes-pf", 403, pf_data, self.user_token)
+
+    def test_clientes_pj_management(self):
+        """Test Pessoa Jurídica (PJ) client management endpoints"""
+        print("\n" + "="*50)
+        print("TESTING PESSOA JURÍDICA (PJ) CLIENT MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping PJ client tests")
+            return
+
+        # Test get PJ clients
+        self.run_test("Get PJ clients", "GET", "clientes-pj", 200, token=self.admin_token)
+
+        # Test create PJ client
+        pj_data = {
+            "client_type": "pj",
+            "cnpj": "12345678000195",
+            "razao_social": "Empresa Teste LTDA",
+            "nome_fantasia": "Teste Corp",
+            "email_principal": "contato@empresateste.com",
+            "telefone": "+55 11 3333-4444",
+            "celular": "+55 11 99999-7777",
+            "whatsapp": "+55 11 99999-7777",
+            "contact_preference": "email",
+            "origin_channel": "partner",
+            "regime_tributario": "simples",
+            "porte_empresa": "me",
+            "inscricao_estadual": "123456789",
+            "ie_situacao": "contribuinte",
+            "ie_uf": "SP",
+            "responsavel_legal_nome": "Maria Silva",
+            "responsavel_legal_cpf": "98765432100",
+            "responsavel_legal_email": "maria@empresateste.com",
+            "responsavel_legal_telefone": "+55 11 98888-7777",
+            "internal_notes": "Cliente PJ teste para API"
+        }
+        success, response = self.run_test("Create PJ client", "POST", "clientes-pj", 200, pj_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pj_id = response['id']
+            print(f"   Created PJ client ID: {self.created_pj_id}")
+
+            # Test get specific PJ client
+            self.run_test("Get specific PJ client", "GET", f"clientes-pj/{self.created_pj_id}", 200, token=self.admin_token)
+            
+            # Test update PJ client
+            update_data = {
+                "nome_fantasia": "Teste Corporation",
+                "porte_empresa": "epp"
+            }
+            self.run_test("Update PJ client", "PUT", f"clientes-pj/{self.created_pj_id}", 200, update_data, self.admin_token)
+
+        # Test duplicate CNPJ (should fail)
+        duplicate_pj_data = pj_data.copy()
+        duplicate_pj_data["razao_social"] = "Outra Empresa LTDA"
+        duplicate_pj_data["email_principal"] = "outro@empresa.com"
+        self.run_test("Create duplicate CNPJ (should fail)", "POST", "clientes-pj", 400, duplicate_pj_data, self.admin_token)
+
+        # Test create PJ client (user) - should fail
+        if self.user_token:
+            self.run_test("Create PJ client (user) - should fail", "POST", "clientes-pj", 403, pj_data, self.user_token)
 
     def test_products_management(self):
         """Test products CRUD endpoints"""
