@@ -19,7 +19,8 @@ import {
   LogOut, 
   Home, 
   FileText,
-  UserCog
+  UserCog,
+  Tag
 } from 'lucide-react';
 
 const Navbar = () => {
