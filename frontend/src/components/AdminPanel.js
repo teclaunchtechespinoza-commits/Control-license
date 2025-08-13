@@ -102,11 +102,12 @@ const AdminPanel = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [licensesResponse, usersResponse, categoriesResponse, companiesResponse, productsResponse, plansResponse] = await Promise.all([
+      const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
         axios.get('/licenses'),
         axios.get('/users'),
         axios.get('/categories'),
-        axios.get('/companies'),
+        axios.get('/clientes-pf'),
+        axios.get('/clientes-pj'),
         axios.get('/products'),
         axios.get('/license-plans')
       ]);
@@ -114,7 +115,8 @@ const AdminPanel = () => {
       setLicenses(licensesResponse.data);
       setUsers(usersResponse.data);
       setCategories(categoriesResponse.data);
-      setCompanies(companiesResponse.data);
+      setClientesPF(pfResponse.data);
+      setClientesPJ(pjResponse.data);
       setProducts(productsResponse.data);
       setLicensePlans(plansResponse.data);
     } catch (error) {
