@@ -778,7 +778,6 @@ const AdminPanel = () => {
                       <SelectValue placeholder="Selecionar categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma categoria</SelectItem>
                       {categories.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
