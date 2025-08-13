@@ -358,8 +358,6 @@ const ClientsModule = () => {
     try {
       const endpoint = activeTab === 'pf' ? '/clientes-pf' : '/clientes-pj';
       
-      console.log('Form data before cleaning:', formData);
-      
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
