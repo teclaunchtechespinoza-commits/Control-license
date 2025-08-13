@@ -520,7 +520,69 @@ const ClientsModule = () => {
     try {
       const endpoint = activeTab === 'pf' ? `/clientes-pf/${editingClient.id}` : `/clientes-pj/${editingClient.id}`;
       
-      await axios.put(endpoint, formData);
+      // Apply same data cleaning logic as in handleCreate
+      const cleanedData = { ...formData };
+      
+      // Fix enum values and field mappings
+      if (cleanedData.porte_empresa === '') {
+        delete cleanedData.porte_empresa;
+      }
+      if (cleanedData.regime_tributario === '') {
+        delete cleanedData.regime_tributario;
+      }
+      if (cleanedData.origin_channel === '') {
+        delete cleanedData.origin_channel;
+      }
+      
+      // Fix address field mapping based on client type
+      if (cleanedData.endereco_matriz) {
+        if (activeTab === 'pf') {
+          // PF uses 'address' field from ClientBase
+          cleanedData.address = cleanedData.endereco_matriz;
+          delete cleanedData.endereco_matriz;
+        }
+        // PJ keeps 'endereco_matriz' as is
+      }
+      
+      // Clean empty nested objects and arrays
+      Object.keys(cleanedData).forEach(key => {
+        if (Array.isArray(cleanedData[key]) && cleanedData[key].length === 0) {
+          delete cleanedData[key];
+        } else if (typeof cleanedData[key] === 'object' && cleanedData[key] !== null) {
+          // Check if object has any meaningful values
+          const hasValues = Object.values(cleanedData[key]).some(val => 
+            val !== '' && val !== null && val !== undefined && val !== false
+          );
+          if (!hasValues) {
+            delete cleanedData[key];
+          } else {
+            // Clean empty string values within objects
+            Object.keys(cleanedData[key]).forEach(nestedKey => {
+              if (cleanedData[key][nestedKey] === '' || cleanedData[key][nestedKey] === null) {
+                delete cleanedData[key][nestedKey];
+              }
+            });
+          }
+        } else if (cleanedData[key] === '' || cleanedData[key] === null) {
+          // Don't delete required fields even if empty
+          const requiredFields = activeTab === 'pf' 
+            ? ['nome_completo', 'cpf', 'email_principal']
+            : ['razao_social', 'cnpj', 'email_principal'];
+          
+          if (!requiredFields.includes(key)) {
+            delete cleanedData[key];
+          }
+        }
+      });
+      
+      // Add CNPJ normalization for PJ clients
+      if (activeTab === 'pj' && cleanedData.cnpj) {
+        cleanedData.cnpj_normalizado = cleanedData.cnpj.replace(/\D/g, '');
+      }
+      
+      console.log('Sending data to backend for edit:', cleanedData);
+      
+      await axios.put(endpoint, cleanedData);
       toast.success(`Cliente ${activeTab.toUpperCase()} atualizado com sucesso!`);
       
       setShowEditDialog(false);
