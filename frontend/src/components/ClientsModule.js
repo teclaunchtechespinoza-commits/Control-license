@@ -42,6 +42,7 @@ import {
 } from './ui/alert-dialog';
 import { Separator } from './ui/separator';
 import { Switch } from './ui/switch';
+import { ScrollArea } from './ui/scroll-area';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
@@ -61,7 +62,11 @@ import {
   CreditCard,
   Shield,
   Monitor,
-  FileText
+  FileText,
+  Building,
+  Certificate,
+  FileImage,
+  Minus
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -105,26 +110,64 @@ const ClientsModule = () => {
     nome_mae: '',
     profissao: '',
     
-    // PJ specific
+    // PJ specific - Expanded
     cnpj: '',
+    cnpj_formato_informado: '',
+    cnpj_normalizado: '',
     razao_social: '',
     nome_fantasia: '',
     data_abertura: '',
     natureza_juridica: '',
     cnae_principal: '',
+    cnaes_secundarios: [],
     regime_tributario: '',
     porte_empresa: '',
+    
+    // Inscrições expandidas
     inscricao_estadual: '',
     ie_situacao: '',
     ie_uf: '',
     inscricao_municipal: '',
+    inscricao_municipal_ccm: '',
+    inscricoes_locais: [], // Array de inscrições locais
+    
+    // Responsáveis expandidos
     responsavel_legal_nome: '',
     responsavel_legal_cpf: '',
     responsavel_legal_email: '',
     responsavel_legal_telefone: '',
     
+    // Procurador expandido
+    procurador_nome: '',
+    procurador_cpf: '',
+    procurador_contato: '',
+    procurador_email: '',
+    procurador_telefone: '',
+    procuracao_validade: '',
+    procuracao_numero: '',
+    
+    // Certificado digital expandido
+    certificado_digital: {
+      tipo: '',
+      numero_serie: '',
+      emissor: '',
+      validade: ''
+    },
+    
+    // Documentos societários
+    documentos_societarios: {
+      contrato_social_url: '',
+      estatuto_social_url: '',
+      ultima_alteracao_url: '',
+      ultima_alteracao_data: '',
+      observacoes: ''
+    },
+    
+    // Filiais expandidas
+    filiais: [],
+    
     // Address
-    address: {
+    endereco_matriz: {
       cep: '',
       logradouro: '',
       numero: '',
@@ -221,22 +264,48 @@ const ClientsModule = () => {
       nome_mae: '',
       profissao: '',
       cnpj: '',
+      cnpj_formato_informado: '',
+      cnpj_normalizado: '',
       razao_social: '',
       nome_fantasia: '',
       data_abertura: '',
       natureza_juridica: '',
       cnae_principal: '',
+      cnaes_secundarios: [],
       regime_tributario: '',
       porte_empresa: '',
       inscricao_estadual: '',
       ie_situacao: '',
       ie_uf: '',
       inscricao_municipal: '',
+      inscricao_municipal_ccm: '',
+      inscricoes_locais: [],
       responsavel_legal_nome: '',
       responsavel_legal_cpf: '',
       responsavel_legal_email: '',
       responsavel_legal_telefone: '',
-      address: {
+      procurador_nome: '',
+      procurador_cpf: '',
+      procurador_contato: '',
+      procurador_email: '',
+      procurador_telefone: '',
+      procuracao_validade: '',
+      procuracao_numero: '',
+      certificado_digital: {
+        tipo: '',
+        numero_serie: '',
+        emissor: '',
+        validade: ''
+      },
+      documentos_societarios: {
+        contrato_social_url: '',
+        estatuto_social_url: '',
+        ultima_alteracao_url: '',
+        ultima_alteracao_data: '',
+        observacoes: ''
+      },
+      filiais: [],
+      endereco_matriz: {
         cep: '',
         logradouro: '',
         numero: '',
@@ -291,18 +360,18 @@ const ClientsModule = () => {
       
       // Clean empty nested objects
       const cleanedData = { ...formData };
-      if (cleanedData.address && Object.values(cleanedData.address).every(v => !v || v === 'Brasil')) {
-        delete cleanedData.address;
-      }
-      if (cleanedData.billing_contact && Object.values(cleanedData.billing_contact).every(v => !v)) {
-        delete cleanedData.billing_contact;
-      }
-      if (cleanedData.technical_contact && Object.values(cleanedData.technical_contact).every(v => !v)) {
-        delete cleanedData.technical_contact;
-      }
-      if (cleanedData.remote_access && Object.values(cleanedData.remote_access).every(v => !v && v !== false)) {
-        delete cleanedData.remote_access;
-      }
+      
+      // Clean empty arrays and objects
+      Object.keys(cleanedData).forEach(key => {
+        if (Array.isArray(cleanedData[key]) && cleanedData[key].length === 0) {
+          delete cleanedData[key];
+        } else if (typeof cleanedData[key] === 'object' && cleanedData[key] !== null) {
+          const hasValues = Object.values(cleanedData[key]).some(val => val !== '' && val !== null && val !== false);
+          if (!hasValues) {
+            delete cleanedData[key];
+          }
+        }
+      });
       
       await axios.post(endpoint, cleanedData);
       toast.success(`Cliente ${activeTab.toUpperCase()} criado com sucesso!`);
@@ -358,7 +427,7 @@ const ClientsModule = () => {
     setEditingClient(client);
     setFormData({
       ...client,
-      address: client.address || {
+      endereco_matriz: client.endereco_matriz || {
         cep: '', logradouro: '', numero: '', complemento: '',
         bairro: '', municipio: '', uf: '', pais: 'Brasil'
       },
@@ -376,7 +445,16 @@ const ClientsModule = () => {
         base_legal: 'Execução de contrato',
         privacy_policy_accepted: false,
         marketing_opt_in: false
-      }
+      },
+      certificado_digital: client.certificado_digital || {
+        tipo: '', numero_serie: '', emissor: '', validade: ''
+      },
+      documentos_societarios: client.documentos_societarios || {
+        contrato_social_url: '', estatuto_social_url: '', ultima_alteracao_url: '',
+        ultima_alteracao_data: '', observacoes: ''
+      },
+      filiais: client.filiais || [],
+      inscricoes_locais: client.inscricoes_locais || []
     });
     setShowEditDialog(true);
   };
@@ -384,6 +462,67 @@ const ClientsModule = () => {
   const openViewDialog = (client) => {
     setViewingClient(client);
     setShowViewDialog(true);
+  };
+
+  // Helper functions for filiais and inscricoes
+  const addFilial = () => {
+    setFormData(prev => ({
+      ...prev,
+      filiais: [...prev.filiais, {
+        cnpj_filial: '',
+        ordem: '',
+        nome_fantasia: '',
+        endereco: {
+          cep: '', logradouro: '', numero: '', complemento: '',
+          bairro: '', municipio: '', uf: '', pais: 'Brasil'
+        },
+        is_active: true
+      }]
+    }));
+  };
+
+  const removeFilial = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      filiais: prev.filiais.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateFilial = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      filiais: prev.filiais.map((filial, i) => 
+        i === index ? { ...filial, [field]: value } : filial
+      )
+    }));
+  };
+
+  const addInscricaoLocal = () => {
+    setFormData(prev => ({
+      ...prev,
+      inscricoes_locais: [...prev.inscricoes_locais, {
+        numero: '',
+        municipio: '',
+        tipo: '',
+        validade: ''
+      }]
+    }));
+  };
+
+  const removeInscricaoLocal = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      inscricoes_locais: prev.inscricoes_locais.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateInscricaoLocal = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      inscricoes_locais: prev.inscricoes_locais.map((inscricao, i) => 
+        i === index ? { ...inscricao, [field]: value } : inscricao
+      )
+    }));
   };
 
   const getStatusBadge = (status) => {
@@ -644,6 +783,11 @@ const ClientsModule = () => {
                                     {client.nome_fantasia && (
                                       <div className="text-sm text-gray-500">{client.nome_fantasia}</div>
                                     )}
+                                    {client.regime_tributario && (
+                                      <Badge variant="outline" className="mt-1">
+                                        {client.regime_tributario.toUpperCase()}
+                                      </Badge>
+                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell>
@@ -712,7 +856,7 @@ const ClientsModule = () => {
         ))}
       </Tabs>
 
-      {/* Create/Edit Dialog - Due to complexity, I'll implement a simplified version */}
+      {/* Expanded Create/Edit Dialog for PJ */}
       <Dialog open={showCreateDialog || showEditDialog} onOpenChange={(open) => {
         if (!open) {
           setShowCreateDialog(false);
@@ -721,7 +865,7 @@ const ClientsModule = () => {
           resetForm();
         }
       }}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
               {showCreateDialog ? 'Novo' : 'Editar'} Cliente {activeTab.toUpperCase()}
@@ -731,339 +875,1002 @@ const ClientsModule = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={showCreateDialog ? handleCreate : handleEdit}>
-            <div className="grid gap-6 py-4">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b pb-2">
-                  <Users className="w-4 h-4" />
-                  <h3 className="font-medium">Informações Básicas</h3>
+          <ScrollArea className="h-[calc(90vh-200px)] pr-4">
+            <form onSubmit={showCreateDialog ? handleCreate : handleEdit}>
+              <div className="grid gap-6 py-4">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <Users className="w-4 h-4" />
+                    <h3 className="font-medium">Informações Básicas</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select 
+                        value={formData.status || ''} 
+                        onValueChange={(value) => setFormData({...formData, status: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Ativo</SelectItem>
+                          <SelectItem value="inactive">Inativo</SelectItem>
+                          <SelectItem value="pending_verification">Pendente Verificação</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Canal de Origem</Label>
+                      <Select 
+                        value={formData.origin_channel || ''} 
+                        onValueChange={(value) => setFormData({...formData, origin_channel: value || null})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Como chegou até nós" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="website">Website</SelectItem>
+                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                          <SelectItem value="partner">Parceiro</SelectItem>
+                          <SelectItem value="referral">Indicação</SelectItem>
+                          <SelectItem value="phone">Telefone</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {activeTab === 'pf' ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Nome Completo *</Label>
+                        <Input
+                          value={formData.nome_completo}
+                          onChange={(e) => setFormData({...formData, nome_completo: e.target.value})}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>CPF *</Label>
+                          <Input
+                            value={formData.cpf}
+                            onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                            placeholder="000.000.000-00"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Data de Nascimento</Label>
+                          <Input
+                            type="date"
+                            value={formData.data_nascimento}
+                            onChange={(e) => setFormData({...formData, data_nascimento: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Nacionalidade</Label>
+                          <Input
+                            value={formData.nacionalidade}
+                            onChange={(e) => setFormData({...formData, nacionalidade: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* EXPANDED PJ FORM */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Razão Social *</Label>
+                          <Input
+                            value={formData.razao_social}
+                            onChange={(e) => setFormData({...formData, razao_social: e.target.value})}
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Nome Fantasia</Label>
+                          <Input
+                            value={formData.nome_fantasia}
+                            onChange={(e) => setFormData({...formData, nome_fantasia: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>CNPJ *</Label>
+                          <Input
+                            value={formData.cnpj}
+                            onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
+                            placeholder="00.000.000/0000-00"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Data de Abertura</Label>
+                          <Input
+                            type="date"
+                            value={formData.data_abertura}
+                            onChange={(e) => setFormData({...formData, data_abertura: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Natureza Jurídica</Label>
+                          <Input
+                            value={formData.natureza_juridica}
+                            onChange={(e) => setFormData({...formData, natureza_juridica: e.target.value})}
+                            placeholder="Ex: LTDA, SA, etc."
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>CNAE Principal</Label>
+                          <Input
+                            value={formData.cnae_principal}
+                            onChange={(e) => setFormData({...formData, cnae_principal: e.target.value})}
+                            placeholder="0000-0/00"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>CNAEs Secundários</Label>
+                          <Input
+                            value={formData.cnaes_secundarios.join(', ')}
+                            onChange={(e) => setFormData({...formData, cnaes_secundarios: e.target.value.split(', ').filter(Boolean)})}
+                            placeholder="0000-0/00, 0000-0/00"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Regime Tributário</Label>
+                          <Select 
+                            value={formData.regime_tributario || ''} 
+                            onValueChange={(value) => setFormData({...formData, regime_tributario: value || null})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecionar regime" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="mei">MEI</SelectItem>
+                              <SelectItem value="simples">Simples Nacional</SelectItem>
+                              <SelectItem value="lucro_presumido">Lucro Presumido</SelectItem>
+                              <SelectItem value="lucro_real">Lucro Real</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Porte da Empresa</Label>
+                          <Select 
+                            value={formData.porte_empresa || ''} 
+                            onValueChange={(value) => setFormData({...formData, porte_empresa: value || null})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecionar porte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="mei">MEI</SelectItem>
+                              <SelectItem value="me">Microempresa (ME)</SelectItem>
+                              <SelectItem value="epp">Empresa de Pequeno Porte (EPP)</SelectItem>
+                              <SelectItem value="medio">Médio Porte</SelectItem>
+                              <SelectItem value="grande">Grande Porte</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Inscrições Expandidas */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <FileText className="w-4 h-4" />
+                          <h3 className="font-medium">Inscrições e Registros</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Inscrição Estadual (IE)</Label>
+                            <Input
+                              value={formData.inscricao_estadual}
+                              onChange={(e) => setFormData({...formData, inscricao_estadual: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Situação IE</Label>
+                            <Select 
+                              value={formData.ie_situacao || ''} 
+                              onValueChange={(value) => setFormData({...formData, ie_situacao: value || null})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Situação" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="contribuinte">Contribuinte</SelectItem>
+                                <SelectItem value="isento">Isento</SelectItem>
+                                <SelectItem value="nao_obrigado">Não Obrigado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>UF da IE</Label>
+                            <Input
+                              value={formData.ie_uf}
+                              onChange={(e) => setFormData({...formData, ie_uf: e.target.value})}
+                              placeholder="SP"
+                              maxLength={2}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Inscrição Municipal (IM)</Label>
+                            <Input
+                              value={formData.inscricao_municipal}
+                              onChange={(e) => setFormData({...formData, inscricao_municipal: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>CCM (Cadastro Contribuintes Mobiliários)</Label>
+                            <Input
+                              value={formData.inscricao_municipal_ccm}
+                              onChange={(e) => setFormData({...formData, inscricao_municipal_ccm: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Inscrições Locais Dinâmicas */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b pb-2">
+                          <div className="flex items-center space-x-2">
+                            <Certificate className="w-4 h-4" />
+                            <h3 className="font-medium">Alvarás e Inscrições Locais</h3>
+                          </div>
+                          <Button type="button" size="sm" onClick={addInscricaoLocal}>
+                            <Plus className="w-3 h-3 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                        
+                        {formData.inscricoes_locais?.map((inscricao, index) => (
+                          <div key={index} className="border rounded-lg p-4 relative">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute top-2 right-2 text-red-600"
+                              onClick={() => removeInscricaoLocal(index)}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            
+                            <div className="grid grid-cols-4 gap-4">
+                              <div className="space-y-2">
+                                <Label>Número</Label>
+                                <Input
+                                  value={inscricao.numero}
+                                  onChange={(e) => updateInscricaoLocal(index, 'numero', e.target.value)}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Município</Label>
+                                <Input
+                                  value={inscricao.municipio}
+                                  onChange={(e) => updateInscricaoLocal(index, 'municipio', e.target.value)}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Tipo</Label>
+                                <Input
+                                  value={inscricao.tipo}
+                                  onChange={(e) => updateInscricaoLocal(index, 'tipo', e.target.value)}
+                                  placeholder="Alvará, Licença, etc."
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Validade</Label>
+                                <Input
+                                  type="date"
+                                  value={inscricao.validade}
+                                  onChange={(e) => updateInscricaoLocal(index, 'validade', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Responsável Legal Expandido */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <UserCheck className="w-4 h-4" />
+                          <h3 className="font-medium">Responsável Legal</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nome Completo</Label>
+                            <Input
+                              value={formData.responsavel_legal_nome}
+                              onChange={(e) => setFormData({...formData, responsavel_legal_nome: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>CPF</Label>
+                            <Input
+                              value={formData.responsavel_legal_cpf}
+                              onChange={(e) => setFormData({...formData, responsavel_legal_cpf: e.target.value})}
+                              placeholder="000.000.000-00"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input
+                              type="email"
+                              value={formData.responsavel_legal_email}
+                              onChange={(e) => setFormData({...formData, responsavel_legal_email: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Telefone</Label>
+                            <Input
+                              value={formData.responsavel_legal_telefone}
+                              onChange={(e) => setFormData({...formData, responsavel_legal_telefone: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Procurador Expandido */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <Users className="w-4 h-4" />
+                          <h3 className="font-medium">Procurador/Representante (Opcional)</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nome</Label>
+                            <Input
+                              value={formData.procurador_nome}
+                              onChange={(e) => setFormData({...formData, procurador_nome: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>CPF</Label>
+                            <Input
+                              value={formData.procurador_cpf}
+                              onChange={(e) => setFormData({...formData, procurador_cpf: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Número da Procuração</Label>
+                            <Input
+                              value={formData.procuracao_numero}
+                              onChange={(e) => setFormData({...formData, procuracao_numero: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input
+                              type="email"
+                              value={formData.procurador_email}
+                              onChange={(e) => setFormData({...formData, procurador_email: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Telefone</Label>
+                            <Input
+                              value={formData.procurador_telefone}
+                              onChange={(e) => setFormData({...formData, procurador_telefone: e.target.value})}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Validade da Procuração</Label>
+                            <Input
+                              type="date"
+                              value={formData.procuracao_validade}
+                              onChange={(e) => setFormData({...formData, procuracao_validade: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Certificado Digital */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <Shield className="w-4 h-4" />
+                          <h3 className="font-medium">Certificado Digital para Integrações Fiscais</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-4 gap-4">
+                          <div className="space-y-2">
+                            <Label>Tipo</Label>
+                            <Select 
+                              value={formData.certificado_digital?.tipo || ''} 
+                              onValueChange={(value) => setFormData({
+                                ...formData, 
+                                certificado_digital: {...formData.certificado_digital, tipo: value}
+                              })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="A1">A1</SelectItem>
+                                <SelectItem value="A3">A3</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Número de Série</Label>
+                            <Input
+                              value={formData.certificado_digital?.numero_serie || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                certificado_digital: {...formData.certificado_digital, numero_serie: e.target.value}
+                              })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Emissor</Label>
+                            <Input
+                              value={formData.certificado_digital?.emissor || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                certificado_digital: {...formData.certificado_digital, emissor: e.target.value}
+                              })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Validade</Label>
+                            <Input
+                              type="date"
+                              value={formData.certificado_digital?.validade || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                certificado_digital: {...formData.certificado_digital, validade: e.target.value}
+                              })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Documentos Societários */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <FileImage className="w-4 h-4" />
+                          <h3 className="font-medium">Documentos Societários</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>URL Contrato Social</Label>
+                            <Input
+                              type="url"
+                              value={formData.documentos_societarios?.contrato_social_url || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                documentos_societarios: {...formData.documentos_societarios, contrato_social_url: e.target.value}
+                              })}
+                              placeholder="https://"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>URL Estatuto Social</Label>
+                            <Input
+                              type="url"
+                              value={formData.documentos_societarios?.estatuto_social_url || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                documentos_societarios: {...formData.documentos_societarios, estatuto_social_url: e.target.value}
+                              })}
+                              placeholder="https://"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>URL Última Alteração</Label>
+                            <Input
+                              type="url"
+                              value={formData.documentos_societarios?.ultima_alteracao_url || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                documentos_societarios: {...formData.documentos_societarios, ultima_alteracao_url: e.target.value}
+                              })}
+                              placeholder="https://"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Data Última Alteração</Label>
+                            <Input
+                              type="date"
+                              value={formData.documentos_societarios?.ultima_alteracao_data || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                documentos_societarios: {...formData.documentos_societarios, ultima_alteracao_data: e.target.value}
+                              })}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Observações sobre Documentos</Label>
+                          <Textarea
+                            value={formData.documentos_societarios?.observacoes || ''}
+                            onChange={(e) => setFormData({
+                              ...formData, 
+                              documentos_societarios: {...formData.documentos_societarios, observacoes: e.target.value}
+                            })}
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Filiais Dinâmicas */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b pb-2">
+                          <div className="flex items-center space-x-2">
+                            <Building className="w-4 h-4" />
+                            <h3 className="font-medium">Filiais</h3>
+                          </div>
+                          <Button type="button" size="sm" onClick={addFilial}>
+                            <Plus className="w-3 h-3 mr-1" />
+                            Adicionar Filial
+                          </Button>
+                        </div>
+                        
+                        {formData.filiais?.map((filial, index) => (
+                          <div key={index} className="border rounded-lg p-4 relative">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute top-2 right-2 text-red-600"
+                              onClick={() => removeFilial(index)}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <Label>CNPJ da Filial</Label>
+                                <Input
+                                  value={filial.cnpj_filial}
+                                  onChange={(e) => updateFilial(index, 'cnpj_filial', e.target.value)}
+                                  placeholder="00.000.000/0000-00"
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Ordem</Label>
+                                <Input
+                                  value={filial.ordem}
+                                  onChange={(e) => updateFilial(index, 'ordem', e.target.value)}
+                                  placeholder="001"
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Nome Fantasia</Label>
+                                <Input
+                                  value={filial.nome_fantasia}
+                                  onChange={(e) => updateFilial(index, 'nome_fantasia', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="space-y-2">
+                                <Label>CEP</Label>
+                                <Input
+                                  value={filial.endereco?.cep || ''}
+                                  onChange={(e) => updateFilial(index, 'endereco', {...filial.endereco, cep: e.target.value})}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Logradouro</Label>
+                                <Input
+                                  value={filial.endereco?.logradouro || ''}
+                                  onChange={(e) => updateFilial(index, 'endereco', {...filial.endereco, logradouro: e.target.value})}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>Número</Label>
+                                <Input
+                                  value={filial.endereco?.numero || ''}
+                                  onChange={(e) => updateFilial(index, 'endereco', {...filial.endereco, numero: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="space-y-2">
+                                <Label>Município</Label>
+                                <Input
+                                  value={filial.endereco?.municipio || ''}
+                                  onChange={(e) => updateFilial(index, 'endereco', {...filial.endereco, municipio: e.target.value})}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label>UF</Label>
+                                <Input
+                                  value={filial.endereco?.uf || ''}
+                                  onChange={(e) => updateFilial(index, 'endereco', {...filial.endereco, uf: e.target.value})}
+                                  maxLength={2}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Endereço da Matriz */}
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 border-b pb-2">
+                          <MapPin className="w-4 h-4" />
+                          <h3 className="font-medium">Endereço da Matriz</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>CEP</Label>
+                            <Input
+                              value={formData.endereco_matriz?.cep || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, cep: e.target.value}
+                              })}
+                              placeholder="00000-000"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Logradouro</Label>
+                            <Input
+                              value={formData.endereco_matriz?.logradouro || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, logradouro: e.target.value}
+                              })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Número</Label>
+                            <Input
+                              value={formData.endereco_matriz?.numero || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, numero: e.target.value}
+                              })}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Complemento</Label>
+                            <Input
+                              value={formData.endereco_matriz?.complemento || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, complemento: e.target.value}
+                              })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Bairro</Label>
+                            <Input
+                              value={formData.endereco_matriz?.bairro || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, bairro: e.target.value}
+                              })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Município</Label>
+                            <Input
+                              value={formData.endereco_matriz?.municipio || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, municipio: e.target.value}
+                              })}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>UF</Label>
+                            <Input
+                              value={formData.endereco_matriz?.uf || ''}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, uf: e.target.value}
+                              })}
+                              maxLength={2}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>País</Label>
+                            <Input
+                              value={formData.endereco_matriz?.pais || 'Brasil'}
+                              onChange={(e) => setFormData({
+                                ...formData, 
+                                endereco_matriz: {...formData.endereco_matriz, pais: e.target.value}
+                              })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select 
-                      value={formData.status || ''} 
-                      onValueChange={(value) => setFormData({...formData, status: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Ativo</SelectItem>
-                        <SelectItem value="inactive">Inativo</SelectItem>
-                        <SelectItem value="pending_verification">Pendente Verificação</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <Phone className="w-4 h-4" />
+                    <h3 className="font-medium">Contatos</h3>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Canal de Origem</Label>
+                    <Label>Email Principal *</Label>
+                    <Input
+                      type="email"
+                      value={formData.email_principal}
+                      onChange={(e) => setFormData({...formData, email_principal: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Telefone</Label>
+                      <Input
+                        value={formData.telefone}
+                        onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                        placeholder="(11) 3000-0000"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Celular</Label>
+                      <Input
+                        value={formData.celular}
+                        onChange={(e) => setFormData({...formData, celular: e.target.value})}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>WhatsApp</Label>
+                      <Input
+                        value={formData.whatsapp}
+                        onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Preferência de Contato</Label>
                     <Select 
-                      value={formData.origin_channel || ''} 
-                      onValueChange={(value) => setFormData({...formData, origin_channel: value || null})}
+                      value={formData.contact_preference} 
+                      onValueChange={(value) => setFormData({...formData, contact_preference: value})}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Como chegou até nós" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="website">Website</SelectItem>
-                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                        <SelectItem value="partner">Parceiro</SelectItem>
-                        <SelectItem value="referral">Indicação</SelectItem>
-                        <SelectItem value="phone">Telefone</SelectItem>
                         <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="phone">Telefone</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                
-                {activeTab === 'pf' ? (
-                  <>
+
+                {/* Remote Access Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <Monitor className="w-4 h-4" />
+                    <h3 className="font-medium">Acesso Remoto</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Nome Completo *</Label>
-                      <Input
-                        value={formData.nome_completo}
-                        onChange={(e) => setFormData({...formData, nome_completo: e.target.value})}
-                        required
-                      />
+                      <Label>Sistema de Acesso</Label>
+                      <Select 
+                        value={formData.remote_access?.system_type || ''} 
+                        onValueChange={(value) => setFormData({
+                          ...formData, 
+                          remote_access: {...formData.remote_access, system_type: value || null}
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar sistema" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="teamviewer">TeamViewer</SelectItem>
+                          <SelectItem value="anydesk">AnyDesk</SelectItem>
+                          <SelectItem value="chrome_remote">Chrome Remote Desktop</SelectItem>
+                          <SelectItem value="windows_remote">Windows Remote Desktop</SelectItem>
+                          <SelectItem value="vnc">VNC</SelectItem>
+                          <SelectItem value="other">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label>CPF *</Label>
-                        <Input
-                          value={formData.cpf}
-                          onChange={(e) => setFormData({...formData, cpf: e.target.value})}
-                          placeholder="000.000.000-00"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Data de Nascimento</Label>
-                        <Input
-                          type="date"
-                          value={formData.data_nascimento}
-                          onChange={(e) => setFormData({...formData, data_nascimento: e.target.value})}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Nacionalidade</Label>
-                        <Input
-                          value={formData.nacionalidade}
-                          onChange={(e) => setFormData({...formData, nacionalidade: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
                     <div className="space-y-2">
-                      <Label>Razão Social *</Label>
+                      <Label>ID do Acesso (TeamViewer, AnyDesk, etc.)</Label>
                       <Input
-                        value={formData.razao_social}
-                        onChange={(e) => setFormData({...formData, razao_social: e.target.value})}
-                        required
+                        value={formData.remote_access?.access_id || ''}
+                        onChange={(e) => setFormData({
+                          ...formData, 
+                          remote_access: {...formData.remote_access, access_id: e.target.value}
+                        })}
+                        placeholder="123 456 789"
                       />
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>CNPJ *</Label>
-                        <Input
-                          value={formData.cnpj}
-                          onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
-                          placeholder="00.000.000/0000-00"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Nome Fantasia</Label>
-                        <Input
-                          value={formData.nome_fantasia}
-                          onChange={(e) => setFormData({...formData, nome_fantasia: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Contact Information */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b pb-2">
-                  <Phone className="w-4 h-4" />
-                  <h3 className="font-medium">Contatos</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Email Principal *</Label>
-                  <Input
-                    type="email"
-                    value={formData.email_principal}
-                    onChange={(e) => setFormData({...formData, email_principal: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Telefone</Label>
-                    <Input
-                      value={formData.telefone}
-                      onChange={(e) => setFormData({...formData, telefone: e.target.value})}
-                      placeholder="(11) 3000-0000"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Celular</Label>
-                    <Input
-                      value={formData.celular}
-                      onChange={(e) => setFormData({...formData, celular: e.target.value})}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>WhatsApp</Label>
-                    <Input
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Preferência de Contato</Label>
-                  <Select 
-                    value={formData.contact_preference} 
-                    onValueChange={(value) => setFormData({...formData, contact_preference: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="phone">Telefone</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Remote Access Information */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b pb-2">
-                  <Monitor className="w-4 h-4" />
-                  <h3 className="font-medium">Acesso Remoto</h3>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Sistema de Acesso</Label>
-                    <Select 
-                      value={formData.remote_access?.system_type || ''} 
-                      onValueChange={(value) => setFormData({
-                        ...formData, 
-                        remote_access: {...formData.remote_access, system_type: value || null}
-                      })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar sistema" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="teamviewer">TeamViewer</SelectItem>
-                        <SelectItem value="anydesk">AnyDesk</SelectItem>
-                        <SelectItem value="chrome_remote">Chrome Remote Desktop</SelectItem>
-                        <SelectItem value="windows_remote">Windows Remote Desktop</SelectItem>
-                        <SelectItem value="vnc">VNC</SelectItem>
-                        <SelectItem value="other">Outro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>ID do Acesso (TeamViewer, AnyDesk, etc.)</Label>
-                    <Input
-                      value={formData.remote_access?.access_id || ''}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        remote_access: {...formData.remote_access, access_id: e.target.value}
-                      })}
-                      placeholder="123 456 789"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={formData.remote_access?.is_host || false}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData, 
-                      remote_access: {...formData.remote_access, is_host: checked}
-                    })}
-                  />
-                  <Label>É Host (permite conexões)</Label>
-                </div>
-              </div>
-
-              {/* LGPD Compliance */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b pb-2">
-                  <Shield className="w-4 h-4" />
-                  <h3 className="font-medium">LGPD / Conformidade</h3>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Finalidade do Tratamento</Label>
-                    <Input
-                      value={formData.lgpd_consent?.finalidade || ''}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        lgpd_consent: {...formData.lgpd_consent, finalidade: e.target.value}
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Base Legal</Label>
-                    <Input
-                      value={formData.lgpd_consent?.base_legal || ''}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        lgpd_consent: {...formData.lgpd_consent, base_legal: e.target.value}
-                      })}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={formData.lgpd_consent?.privacy_policy_accepted || false}
-                      onCheckedChange={(checked) => setFormData({
-                        ...formData, 
-                        lgpd_consent: {...formData.lgpd_consent, privacy_policy_accepted: checked}
-                      })}
-                    />
-                    <Label>Aceita Política de Privacidade</Label>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     <Switch
-                      checked={formData.lgpd_consent?.marketing_opt_in || false}
+                      checked={formData.remote_access?.is_host || false}
                       onCheckedChange={(checked) => setFormData({
                         ...formData, 
-                        lgpd_consent: {...formData.lgpd_consent, marketing_opt_in: checked}
+                        remote_access: {...formData.remote_access, is_host: checked}
                       })}
                     />
-                    <Label>Aceita receber comunicações de marketing</Label>
+                    <Label>É Host (permite conexões)</Label>
+                  </div>
+                </div>
+
+                {/* LGPD Compliance */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <Shield className="w-4 h-4" />
+                    <h3 className="font-medium">LGPD / Conformidade</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Finalidade do Tratamento</Label>
+                      <Input
+                        value={formData.lgpd_consent?.finalidade || ''}
+                        onChange={(e) => setFormData({
+                          ...formData, 
+                          lgpd_consent: {...formData.lgpd_consent, finalidade: e.target.value}
+                        })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Base Legal</Label>
+                      <Input
+                        value={formData.lgpd_consent?.base_legal || ''}
+                        onChange={(e) => setFormData({
+                          ...formData, 
+                          lgpd_consent: {...formData.lgpd_consent, base_legal: e.target.value}
+                        })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={formData.lgpd_consent?.privacy_policy_accepted || false}
+                        onCheckedChange={(checked) => setFormData({
+                          ...formData, 
+                          lgpd_consent: {...formData.lgpd_consent, privacy_policy_accepted: checked}
+                        })}
+                      />
+                      <Label>Aceita Política de Privacidade</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={formData.lgpd_consent?.marketing_opt_in || false}
+                        onCheckedChange={(checked) => setFormData({
+                          ...formData, 
+                          lgpd_consent: {...formData.lgpd_consent, marketing_opt_in: checked}
+                        })}
+                      />
+                      <Label>Aceita receber comunicações de marketing</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Internal Notes */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <FileText className="w-4 h-4" />
+                    <h3 className="font-medium">Observações Internas</h3>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Notas (visível apenas internamente)</Label>
+                    <Textarea
+                      value={formData.internal_notes}
+                      onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
+                      rows={3}
+                      placeholder="Observações, histórico, notas técnicas..."
+                    />
                   </div>
                 </div>
               </div>
-
-              {/* Internal Notes */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b pb-2">
-                  <FileText className="w-4 h-4" />
-                  <h3 className="font-medium">Observações Internas</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Notas (visível apenas internamente)</Label>
-                  <Textarea
-                    value={formData.internal_notes}
-                    onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
-                    rows={3}
-                    placeholder="Observações, histórico, notas técnicas..."
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
-                setShowCreateDialog(false);
-                setShowEditDialog(false);
-                setEditingClient(null);
-                resetForm();
-              }}>
-                <X className="w-4 h-4 mr-2" />
-                Cancelar
-              </Button>
-              <Button type="submit">
-                <Save className="w-4 h-4 mr-2" />
-                {showCreateDialog ? 'Criar Cliente' : 'Salvar Alterações'}
-              </Button>
-            </DialogFooter>
-          </form>
+            </form>
+          </ScrollArea>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => {
+              setShowCreateDialog(false);
+              setShowEditDialog(false);
+              setEditingClient(null);
+              resetForm();
+            }}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              onClick={showCreateDialog ? handleCreate : handleEdit}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {showCreateDialog ? 'Criar Cliente' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
