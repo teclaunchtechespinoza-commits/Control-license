@@ -458,19 +458,7 @@ const ClientsModule = () => {
         }
       });
       
-      // DEBUG: Check if fields exist after cleaning
-      console.log('After cleaning - razao_social exists:', 'razao_social' in cleanedData, 'value:', cleanedData.razao_social);
-      console.log('After cleaning - cnpj exists:', 'cnpj' in cleanedData, 'value:', cleanedData.cnpj);
-      
       console.log('Sending data to backend:', cleanedData);
-      
-      // DEBUG: Check specific fields
-      console.log('Debug PJ specific fields:', {
-        razao_social: cleanedData.razao_social,
-        cnpj: cleanedData.cnpj,
-        email_principal: cleanedData.email_principal,
-        activeTab: activeTab
-      });
       
       // Ensure required fields for PF
       if (activeTab === 'pf') {
