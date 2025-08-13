@@ -785,11 +785,11 @@ const AdminPanel = () => {
                 <div className="space-y-2">
                   <Label htmlFor="edit-category">Categoria</Label>
                   <Select 
-                    value={licenseForm.category_id} 
-                    onValueChange={(value) => setLicenseForm({...licenseForm, category_id: value})}
+                    value={licenseForm.category_id || ''} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, category_id: value || null})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar categoria" />
+                      <SelectValue placeholder="Nenhuma categoria" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map(category => (
