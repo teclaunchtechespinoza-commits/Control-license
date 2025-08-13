@@ -332,6 +332,10 @@ async def get_demo_credentials():
     }
 
 # Health check
+@api_router.get("/")
+async def root():
+    return {"message": "License Management System API", "status": "running"}
+
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
