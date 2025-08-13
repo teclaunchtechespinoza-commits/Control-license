@@ -153,39 +153,48 @@ backend:
 frontend:
   - task: "ClientsModule Component"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/ClientsModule.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Created comprehensive ClientsModule.js with detailed forms for PF and PJ client management. Includes all new PJ fields."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUES FOUND: 1) PF client registration fails with 422 error from backend API - validation issues with form data structure. 2) React error: 'Objects are not valid as a React child' - error handling is broken, trying to render error objects directly. 3) Form submission causes React component crash requiring error boundary. 4) PJ tab becomes unresponsive after PF form submission error. 5) No proper error messages displayed to user despite backend returning 422 validation errors. Frontend-backend integration is broken for client creation."
 
   - task: "AdminPanel Client Integration"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/components/AdminPanel.js"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Updated AdminPanel.js to replace companies with clients data in license forms. Need to test integration."
-
-  - task: "Navigation and Routing"
-    implemented: true
-    working: "NA"
-    file: "/app/frontend/src/App.js, /app/frontend/src/components/Navbar.js"
-    stuck_count: 0
     priority: "medium"
     needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
+          comment: "Updated AdminPanel.js to replace companies with clients data in license forms. Need to test integration."
+        - working: "NA"
+          agent: "testing"
+          comment: "Not tested due to critical issues in ClientsModule preventing proper testing flow. Requires ClientsModule to be fixed first."
+
+  - task: "Navigation and Routing"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/Navbar.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
           comment: "Added /clientes route and Clientes navigation link for accessing the new client management module."
+        - working: true
+          agent: "testing"
+          comment: "✅ Navigation working correctly. Login successful, redirect to dashboard works, Clientes link in navigation works, /clientes route loads properly with correct page title 'Cadastro de Clientes'. Both PF and PJ tabs are visible and clickable. Dialog modals open correctly for both client types."
 
 metadata:
   created_by: "main_agent"
