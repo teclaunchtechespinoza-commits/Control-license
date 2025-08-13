@@ -462,6 +462,10 @@ const ClientsModule = () => {
         }
       });
       
+      // DEBUG: Check if fields exist after cleaning
+      console.log('After cleaning - razao_social exists:', 'razao_social' in cleanedData, 'value:', cleanedData.razao_social);
+      console.log('After cleaning - cnpj exists:', 'cnpj' in cleanedData, 'value:', cleanedData.cnpj);
+      
       console.log('Sending data to backend:', cleanedData);
       
       // DEBUG: Check specific fields
