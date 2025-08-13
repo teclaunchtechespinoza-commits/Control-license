@@ -772,6 +772,90 @@ const AdminPanel = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">Categoria</Label>
+                  <Select 
+                    value={licenseForm.category_id} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, category_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhuma categoria</SelectItem>
+                      {categories.map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-company">Empresa</Label>
+                  <Select 
+                    value={licenseForm.company_id} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, company_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhuma empresa</SelectItem>
+                      {companies.map(company => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-product">Produto</Label>
+                  <Select 
+                    value={licenseForm.product_id} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, product_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar produto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum produto</SelectItem>
+                      {products.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} v{product.version}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-plan">Plano</Label>
+                  <Select 
+                    value={licenseForm.plan_id} 
+                    onValueChange={(value) => setLicenseForm({...licenseForm, plan_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar plano" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum plano</SelectItem>
+                      {licensePlans.map(plan => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowEditLicenseDialog(false)}>
