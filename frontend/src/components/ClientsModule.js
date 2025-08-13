@@ -205,6 +205,8 @@ const ClientsModule = () => {
       license_quantity: 1,
       equipment_brand: '',
       equipment_model: '',
+      equipment_id: '',
+      equipment_serial: '',
       billing_cycle: 'monthly',
       billing_day: 1,
       payment_method: 'boleto',
