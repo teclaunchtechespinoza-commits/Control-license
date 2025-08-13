@@ -216,7 +216,7 @@ class ClientBase(BaseModel):
 
 # Pessoa Física Model
 class PessoaFisicaBase(ClientBase):
-    client_type: ClientType = Field(default=ClientType.PF, const=True)
+    client_type: Literal[ClientType.PF] = ClientType.PF
     nome_completo: str
     cpf: str
     rg_numero: Optional[str] = None
