@@ -392,7 +392,6 @@ const AdminPanel = () => {
                               <SelectValue placeholder="Selecionar usuário" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Nenhum usuário</SelectItem>
                               {users.filter(u => u.role !== 'admin').map(user => (
                                 <SelectItem key={user.id} value={user.id}>
                                   {user.name} ({user.email})
