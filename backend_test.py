@@ -381,32 +381,50 @@ class LicenseManagementAPITester:
             self.run_test("Create license plan (user) - should fail", "POST", "license-plans", 403, plan_data, self.user_token)
 
     def test_enhanced_license_management(self):
-        """Test enhanced license management with associations"""
+        """Test enhanced license management with client associations"""
         print("\n" + "="*50)
-        print("TESTING ENHANCED LICENSE MANAGEMENT")
+        print("TESTING ENHANCED LICENSE MANAGEMENT WITH CLIENTS")
         print("="*50)
         
         if not self.admin_token:
             print("❌ No admin token available, skipping enhanced license management tests")
             return
 
-        # Test create enhanced license with associations
-        license_data = {
-            "name": "Enhanced Test License",
-            "description": "A test license with all associations",
+        # Test create enhanced license with PF client association
+        license_pf_data = {
+            "name": "License for PF Client",
+            "description": "A test license linked to PF client",
             "max_users": 5,
             "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat(),
             "features": ["feature1", "feature2"],
             "category_id": getattr(self, 'created_category_id', None),
-            "company_id": getattr(self, 'created_company_id', None),
+            "client_pf_id": getattr(self, 'created_pf_id', None),
             "product_id": getattr(self, 'created_product_id', None),
             "plan_id": getattr(self, 'created_plan_id', None),
             "assigned_user_id": None
         }
-        success, response = self.run_test("Create enhanced license", "POST", "licenses", 200, license_data, self.admin_token)
+        success, response = self.run_test("Create license with PF client", "POST", "licenses", 200, license_pf_data, self.admin_token)
         if success and 'id' in response:
-            self.created_license_id = response['id']
-            print(f"   Created enhanced license ID: {self.created_license_id}")
+            self.created_license_pf_id = response['id']
+            print(f"   Created PF license ID: {self.created_license_pf_id}")
+
+        # Test create enhanced license with PJ client association
+        license_pj_data = {
+            "name": "License for PJ Client",
+            "description": "A test license linked to PJ client",
+            "max_users": 10,
+            "expires_at": (datetime.utcnow() + timedelta(days=60)).isoformat(),
+            "features": ["feature1", "feature2", "feature3"],
+            "category_id": getattr(self, 'created_category_id', None),
+            "client_pj_id": getattr(self, 'created_pj_id', None),
+            "product_id": getattr(self, 'created_product_id', None),
+            "plan_id": getattr(self, 'created_plan_id', None),
+            "assigned_user_id": None
+        }
+        success, response = self.run_test("Create license with PJ client", "POST", "licenses", 200, license_pj_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_license_pj_id = response['id']
+            print(f"   Created PJ license ID: {self.created_license_pj_id}")
 
         # Test get all licenses (admin)
         self.run_test("Get all licenses (admin)", "GET", "licenses", 200, token=self.admin_token)
@@ -415,20 +433,23 @@ class LicenseManagementAPITester:
         if self.user_token:
             self.run_test("Get licenses (user)", "GET", "licenses", 200, token=self.user_token)
 
-        # Test get specific license
-        if self.created_license_id:
-            self.run_test("Get specific license (admin)", "GET", f"licenses/{self.created_license_id}", 200, token=self.admin_token)
+        # Test get specific licenses
+        if hasattr(self, 'created_license_pf_id'):
+            self.run_test("Get specific PF license", "GET", f"licenses/{self.created_license_pf_id}", 200, token=self.admin_token)
+            
+        if hasattr(self, 'created_license_pj_id'):
+            self.run_test("Get specific PJ license", "GET", f"licenses/{self.created_license_pj_id}", 200, token=self.admin_token)
             
             # Test update license
             update_data = {
-                "name": "Updated Enhanced Test License",
+                "name": "Updated PJ License",
                 "status": "active"
             }
-            self.run_test("Update license (admin)", "PUT", f"licenses/{self.created_license_id}", 200, update_data, self.admin_token)
+            self.run_test("Update PJ license", "PUT", f"licenses/{self.created_license_pj_id}", 200, update_data, self.admin_token)
 
         # Test create license (user) - should fail
         if self.user_token:
-            self.run_test("Create license (user) - should fail", "POST", "licenses", 403, license_data, self.user_token)
+            self.run_test("Create license (user) - should fail", "POST", "licenses", 403, license_pf_data, self.user_token)
 
     def test_admin_stats(self):
         """Test admin statistics endpoint"""
