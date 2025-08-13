@@ -427,8 +427,17 @@ const ClientsModule = () => {
         // PJ keeps 'endereco_matriz' as is
       }
       
-      // Clean empty nested objects and arrays
+      // Clean empty nested objects and arrays - but preserve required fields
+      const requiredFields = activeTab === 'pf' 
+        ? ['nome_completo', 'cpf', 'email_principal']
+        : ['razao_social', 'cnpj', 'email_principal'];
+        
       Object.keys(cleanedData).forEach(key => {
+        // Never touch required fields
+        if (requiredFields.includes(key)) {
+          return;
+        }
+        
         if (Array.isArray(cleanedData[key]) && cleanedData[key].length === 0) {
           delete cleanedData[key];
         } else if (typeof cleanedData[key] === 'object' && cleanedData[key] !== null) {
@@ -447,14 +456,7 @@ const ClientsModule = () => {
             });
           }
         } else if (cleanedData[key] === '' || cleanedData[key] === null) {
-          // Don't delete required fields even if empty
-          const requiredFields = activeTab === 'pf' 
-            ? ['nome_completo', 'cpf', 'email_principal']
-            : ['razao_social', 'cnpj', 'email_principal'];
-          
-          if (!requiredFields.includes(key)) {
-            delete cleanedData[key];
-          }
+          delete cleanedData[key];
         }
       });
       
