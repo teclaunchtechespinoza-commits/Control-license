@@ -266,7 +266,7 @@ class PessoaFisicaUpdate(BaseModel):
 
 # Pessoa Jurídica Model
 class PessoaJuridicaBase(ClientBase):
-    client_type: ClientType = Field(default=ClientType.PJ, const=True)
+    client_type: Literal[ClientType.PJ] = ClientType.PJ
     cnpj: str
     razao_social: str
     nome_fantasia: Optional[str] = None
