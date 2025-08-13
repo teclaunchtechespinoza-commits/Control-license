@@ -406,6 +406,10 @@ const ClientsModule = () => {
       // Create properly structured data for backend
       const cleanedData = { ...formData };
       
+      // DEBUG: Check if fields exist at start of cleaning
+      console.log('Before cleaning - razao_social exists:', 'razao_social' in cleanedData, 'value:', cleanedData.razao_social);
+      console.log('Before cleaning - cnpj exists:', 'cnpj' in cleanedData, 'value:', cleanedData.cnpj);
+      
       // Fix enum values and field mappings
       if (cleanedData.porte_empresa === '') {
         delete cleanedData.porte_empresa;
