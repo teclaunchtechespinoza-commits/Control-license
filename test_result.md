@@ -153,11 +153,11 @@ backend:
 frontend:
   - task: "ClientsModule Component"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/ClientsModule.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
@@ -168,6 +168,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ BACKEND CLIENT CREATION WORKING: Comprehensive testing confirms that backend APIs for both PF and PJ client creation are working correctly after frontend-backend integration fixes. All required field validations work properly (422 errors), CPF/CNPJ validation works correctly, email validation works, and structured data (address, contacts) is accepted properly. CNPJ formatting is handled correctly. The previous 422 validation errors have been resolved. Backend is ready for frontend integration."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL FRONTEND FORM DATA MAPPING ISSUE: Comprehensive testing reveals that while the UI forms work correctly (all fields can be filled, dialogs open/close properly), there is a critical data mapping issue. PF form: CPF field data is not being included in the request payload sent to backend, causing 400 errors. Only nome_completo, email_principal, status, client_type, and contact_preference are sent - CPF field is missing despite being filled in the UI. PJ form: Similar issue suspected - form fields are not properly mapped to the request payload. The frontend-backend integration is broken at the form data collection/submission level. Backend APIs are working correctly, but frontend is not sending complete required field data."
 
   - task: "AdminPanel Client Integration"
     implemented: true
