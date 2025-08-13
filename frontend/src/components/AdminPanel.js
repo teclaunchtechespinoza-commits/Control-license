@@ -206,7 +206,10 @@ const AdminPanel = () => {
       fetchData();
     } catch (error) {
       console.error('Failed to update license:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao atualizar licença');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao atualizar licença';
+      toast.error(errorMessage);
     }
   };
 
