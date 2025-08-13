@@ -509,7 +509,19 @@ const ClientsModule = () => {
       fetchAllClients();
     } catch (error) {
       console.error('Failed to delete client:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao inativar cliente');
+      
+      // Better error handling for delete
+      let errorMessage = 'Erro ao inativar cliente';
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else {
+          errorMessage = 'Erro ao processar solicitação. Tente novamente.';
+        }
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
