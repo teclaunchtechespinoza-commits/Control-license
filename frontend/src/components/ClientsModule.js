@@ -1209,7 +1209,10 @@ const ClientsModule = () => {
                           <Input
                             name="razao_social"
                             value={formData.razao_social}
-                            onChange={(e) => setFormData({...formData, razao_social: e.target.value})}
+                            onChange={(e) => {
+                              console.log('DEBUG: razao_social onChange fired, value:', e.target.value);
+                              setFormData({...formData, razao_social: e.target.value});
+                            }}
                             required
                           />
                         </div>
