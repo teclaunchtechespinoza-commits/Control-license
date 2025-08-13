@@ -769,8 +769,9 @@ async def create_pessoa_juridica(
     client_data: PessoaJuridicaCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    # Check if CNPJ already exists
-    existing_client = await db.clientes_pj.find_one({"cnpj": client_data.cnpj})
+    # Check if CNPJ already exists (use normalized format)
+    cnpj_normalized = client_data.cnpj_normalizado if hasattr(client_data, 'cnpj_normalizado') else client_data.cnpj
+    existing_client = await db.clientes_pj.find_one({"cnpj_normalizado": cnpj_normalized})
     if existing_client:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
