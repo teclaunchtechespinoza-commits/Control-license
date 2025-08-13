@@ -266,10 +266,10 @@ const RegistryModule = () => {
         return (
           <Select 
             value={formData[field.name] || ''} 
-            onValueChange={(value) => setFormData({...formData, [field.name]: value})}
+            onValueChange={(value) => setFormData({...formData, [field.name]: value || null})}
           >
             <SelectTrigger>
-              <SelectValue placeholder={`Selecionar ${field.label.toLowerCase()}`} />
+              <SelectValue placeholder={`Nenhum ${field.label.toLowerCase()} selecionado`} />
             </SelectTrigger>
             <SelectContent>
               {field.options?.map(option => (
