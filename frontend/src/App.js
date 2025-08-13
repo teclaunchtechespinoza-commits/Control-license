@@ -1,5 +1,5 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import AdminPanel from './components/AdminPanel';
 import UserLicenses from './components/UserLicenses';
+import RegistryModule from './components/RegistryModule';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 
