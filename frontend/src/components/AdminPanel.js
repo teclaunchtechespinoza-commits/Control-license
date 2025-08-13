@@ -89,7 +89,8 @@ const AdminPanel = () => {
     expires_at: '',
     assigned_user_id: null,
     category_id: null,
-    company_id: null,
+    client_pf_id: null,
+    client_pj_id: null,
     product_id: null,
     plan_id: null,
     features: []
