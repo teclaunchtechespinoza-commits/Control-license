@@ -165,6 +165,8 @@ class LicenseInfo(BaseModel):
     license_quantity: int = 1
     equipment_brand: Optional[str] = None
     equipment_model: Optional[str] = None
+    equipment_id: Optional[str] = None  # ID interno do equipamento
+    equipment_serial: Optional[str] = None  # Número de série
     authorized_serials: List[str] = []
     activation_keys: List[str] = []
     billing_cycle: BillingCycle = BillingCycle.MONTHLY
