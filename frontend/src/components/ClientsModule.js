@@ -1897,7 +1897,11 @@ const ClientsModule = () => {
                       type="email"
                       name="email_principal"
                       value={formData.email_principal}
-                      onChange={(e) => setFormData({...formData, email_principal: e.target.value})}
+                      onChange={(e) => {
+                        console.log('Email field onChange:', e.target.value);
+                        setFormData({...formData, email_principal: e.target.value});
+                        console.log('FormData after email change:', {...formData, email_principal: e.target.value});
+                      }}
                       required
                     />
                   </div>
