@@ -713,6 +713,110 @@ class LicenseManagementAPITester:
             self.created_pj_formatted_id = response['id']
             print(f"   ✅ PJ client with formatted CNPJ created successfully")
 
+    def test_equipment_management(self):
+        """Test equipment brands and models management as requested in review"""
+        print("\n" + "="*50)
+        print("TESTING EQUIPMENT MANAGEMENT (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping equipment management tests")
+            return
+
+        # Store created brand IDs for model creation
+        self.brand_ids = {}
+
+        # 1. Create equipment brands as requested
+        print("\n🔍 Test 1: Creating Equipment Brands")
+        
+        brands_data = [
+            {"name": "Dell", "description": "Computadores e servidores Dell"},
+            {"name": "HP", "description": "Equipamentos HP"},
+            {"name": "Lenovo", "description": "Computadores Lenovo"},
+            {"name": "Acer", "description": "Equipamentos Acer"}
+        ]
+        
+        for brand_data in brands_data:
+            success, response = self.run_test(f"Create brand {brand_data['name']}", "POST", "equipment-brands", 200, brand_data, self.admin_token)
+            if success and 'id' in response:
+                self.brand_ids[brand_data['name']] = response['id']
+                print(f"   ✅ {brand_data['name']} brand created with ID: {response['id']}")
+
+        # 2. Test GET equipment brands
+        print("\n🔍 Test 2: Get Equipment Brands")
+        success, response = self.run_test("Get equipment brands", "GET", "equipment-brands", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} equipment brands")
+            for brand in response:
+                print(f"      - {brand.get('name', 'Unknown')}: {brand.get('description', 'No description')}")
+
+        # 3. Create equipment models for each brand
+        print("\n🔍 Test 3: Creating Equipment Models")
+        
+        models_data = [
+            # Dell models
+            {"name": "OptiPlex 3080", "brand_id": self.brand_ids.get("Dell"), "description": "Desktop corporativo"},
+            {"name": "Latitude 5520", "brand_id": self.brand_ids.get("Dell"), "description": "Notebook empresarial"},
+            # HP models
+            {"name": "ProDesk 400", "brand_id": self.brand_ids.get("HP"), "description": "Desktop HP"},
+            {"name": "EliteBook 840", "brand_id": self.brand_ids.get("HP"), "description": "Notebook profissional"},
+            # Lenovo models
+            {"name": "ThinkPad X1", "brand_id": self.brand_ids.get("Lenovo"), "description": "Notebook empresarial premium"},
+            {"name": "ThinkCentre M720", "brand_id": self.brand_ids.get("Lenovo"), "description": "Desktop corporativo"},
+            # Acer models
+            {"name": "Aspire 5", "brand_id": self.brand_ids.get("Acer"), "description": "Notebook para uso geral"},
+            {"name": "Veriton X", "brand_id": self.brand_ids.get("Acer"), "description": "Desktop compacto"}
+        ]
+        
+        self.created_model_ids = []
+        for model_data in models_data:
+            if model_data["brand_id"]:  # Only create if brand exists
+                success, response = self.run_test(f"Create model {model_data['name']}", "POST", "equipment-models", 200, model_data, self.admin_token)
+                if success and 'id' in response:
+                    self.created_model_ids.append(response['id'])
+                    print(f"   ✅ {model_data['name']} model created with ID: {response['id']}")
+
+        # 4. Test GET equipment models (all)
+        print("\n🔍 Test 4: Get All Equipment Models")
+        success, response = self.run_test("Get all equipment models", "GET", "equipment-models", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} equipment models")
+            for model in response:
+                print(f"      - {model.get('name', 'Unknown')}: {model.get('description', 'No description')}")
+
+        # 5. Test GET equipment models filtered by brand
+        print("\n🔍 Test 5: Get Equipment Models Filtered by Brand")
+        for brand_name, brand_id in self.brand_ids.items():
+            if brand_id:
+                success, response = self.run_test(f"Get models for {brand_name}", "GET", "equipment-models", 200, token=self.admin_token, params={"brand_id": brand_id})
+                if success:
+                    print(f"   ✅ Retrieved {len(response)} models for {brand_name}")
+                    for model in response:
+                        print(f"      - {model.get('name', 'Unknown')}")
+
+        # 6. Test validation - duplicate brand name
+        print("\n🔍 Test 6: Validation Tests")
+        duplicate_brand = {"name": "Dell", "description": "Duplicate Dell brand"}
+        self.run_test("Create duplicate brand (should fail)", "POST", "equipment-brands", 400, duplicate_brand, self.admin_token)
+
+        # 7. Test validation - model for non-existent brand
+        invalid_model = {"name": "Invalid Model", "brand_id": "non-existent-id", "description": "Model for non-existent brand"}
+        self.run_test("Create model for non-existent brand (should fail)", "POST", "equipment-models", 400, invalid_model, self.admin_token)
+
+        # 8. Test validation - duplicate model name for same brand
+        if self.brand_ids.get("Dell"):
+            duplicate_model = {"name": "OptiPlex 3080", "brand_id": self.brand_ids["Dell"], "description": "Duplicate model"}
+            self.run_test("Create duplicate model for same brand (should fail)", "POST", "equipment-models", 400, duplicate_model, self.admin_token)
+
+        # 9. Test user permissions (should fail for non-admin)
+        print("\n🔍 Test 7: User Permission Tests")
+        if self.user_token:
+            test_brand = {"name": "User Brand", "description": "Should fail"}
+            self.run_test("Create brand as user (should fail)", "POST", "equipment-brands", 403, test_brand, self.user_token)
+            
+            test_model = {"name": "User Model", "brand_id": self.brand_ids.get("Dell", ""), "description": "Should fail"}
+            self.run_test("Create model as user (should fail)", "POST", "equipment-models", 403, test_model, self.user_token)
+
     def cleanup_specific_tests(self):
         """Clean up test data created in specific tests"""
         print("\n🔍 Cleaning up specific test data...")
