@@ -221,7 +221,10 @@ const AdminPanel = () => {
       fetchData();
     } catch (error) {
       console.error('Failed to delete license:', error);
-      toast.error(error.response?.data?.detail || 'Erro ao excluir licença');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao excluir licença';
+      toast.error(errorMessage);
     }
   };
 
