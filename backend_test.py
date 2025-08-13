@@ -134,29 +134,207 @@ class LicenseManagementAPITester:
         if self.user_token:
             self.run_test("Get users (user) - should fail", "GET", "users", 403, token=self.user_token)
 
-    def test_license_management(self):
-        """Test license management endpoints"""
+    def test_categories_management(self):
+        """Test categories CRUD endpoints"""
         print("\n" + "="*50)
-        print("TESTING LICENSE MANAGEMENT")
+        print("TESTING CATEGORIES MANAGEMENT")
         print("="*50)
         
         if not self.admin_token:
-            print("❌ No admin token available, skipping license management tests")
+            print("❌ No admin token available, skipping categories tests")
             return
 
-        # Test create license (admin)
+        # Test get categories (should show demo categories)
+        success, response = self.run_test("Get categories", "GET", "categories", 200, token=self.admin_token)
+        if success:
+            print(f"   Found {len(response)} categories")
+
+        # Test create category
+        category_data = {
+            "name": "Test Category",
+            "description": "A test category for API testing",
+            "color": "#FF5733",
+            "icon": "test"
+        }
+        success, response = self.run_test("Create category", "POST", "categories", 200, category_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_category_id = response['id']
+            print(f"   Created category ID: {self.created_category_id}")
+
+            # Test get specific category
+            self.run_test("Get specific category", "GET", f"categories/{self.created_category_id}", 200, token=self.admin_token)
+            
+            # Test update category
+            update_data = {
+                "name": "Updated Test Category",
+                "color": "#33FF57"
+            }
+            self.run_test("Update category", "PUT", f"categories/{self.created_category_id}", 200, update_data, self.admin_token)
+
+        # Test create category (user) - should fail
+        if self.user_token:
+            self.run_test("Create category (user) - should fail", "POST", "categories", 403, category_data, self.user_token)
+
+    def test_companies_management(self):
+        """Test companies CRUD endpoints"""
+        print("\n" + "="*50)
+        print("TESTING COMPANIES MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping companies tests")
+            return
+
+        # Test get companies
+        self.run_test("Get companies", "GET", "companies", 200, token=self.admin_token)
+
+        # Test create company
+        company_data = {
+            "name": "Test Company Ltd",
+            "email": "test@company.com",
+            "phone": "+55 11 99999-9999",
+            "address": "Test Street, 123",
+            "city": "São Paulo",
+            "state": "SP",
+            "country": "Brasil",
+            "website": "https://testcompany.com",
+            "size": "medium",
+            "notes": "Test company for API testing"
+        }
+        success, response = self.run_test("Create company", "POST", "companies", 200, company_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_company_id = response['id']
+            print(f"   Created company ID: {self.created_company_id}")
+
+            # Test get specific company
+            self.run_test("Get specific company", "GET", f"companies/{self.created_company_id}", 200, token=self.admin_token)
+            
+            # Test update company
+            update_data = {
+                "name": "Updated Test Company Ltd",
+                "size": "large"
+            }
+            self.run_test("Update company", "PUT", f"companies/{self.created_company_id}", 200, update_data, self.admin_token)
+
+        # Test create company (user) - should fail
+        if self.user_token:
+            self.run_test("Create company (user) - should fail", "POST", "companies", 403, company_data, self.user_token)
+
+    def test_products_management(self):
+        """Test products CRUD endpoints"""
+        print("\n" + "="*50)
+        print("TESTING PRODUCTS MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping products tests")
+            return
+
+        # Test get products
+        self.run_test("Get products", "GET", "products", 200, token=self.admin_token)
+
+        # Test create product
+        product_data = {
+            "name": "Test Product",
+            "version": "1.0.0",
+            "description": "A test product for API testing",
+            "category_id": getattr(self, 'created_category_id', None),
+            "price": 99.99,
+            "currency": "BRL",
+            "features": ["feature1", "feature2", "feature3"],
+            "requirements": "Windows 10 or higher"
+        }
+        success, response = self.run_test("Create product", "POST", "products", 200, product_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_product_id = response['id']
+            print(f"   Created product ID: {self.created_product_id}")
+
+            # Test get specific product
+            self.run_test("Get specific product", "GET", f"products/{self.created_product_id}", 200, token=self.admin_token)
+            
+            # Test update product
+            update_data = {
+                "name": "Updated Test Product",
+                "version": "1.1.0",
+                "price": 149.99
+            }
+            self.run_test("Update product", "PUT", f"products/{self.created_product_id}", 200, update_data, self.admin_token)
+
+        # Test create product (user) - should fail
+        if self.user_token:
+            self.run_test("Create product (user) - should fail", "POST", "products", 403, product_data, self.user_token)
+
+    def test_license_plans_management(self):
+        """Test license plans CRUD endpoints"""
+        print("\n" + "="*50)
+        print("TESTING LICENSE PLANS MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping license plans tests")
+            return
+
+        # Test get license plans
+        self.run_test("Get license plans", "GET", "license-plans", 200, token=self.admin_token)
+
+        # Test create license plan
+        plan_data = {
+            "name": "Test Plan",
+            "description": "A test license plan for API testing",
+            "max_users": 10,
+            "duration_days": 365,
+            "price": 299.99,
+            "currency": "BRL",
+            "features": ["unlimited_access", "priority_support", "advanced_features"],
+            "restrictions": ["no_resale", "single_organization"]
+        }
+        success, response = self.run_test("Create license plan", "POST", "license-plans", 200, plan_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_plan_id = response['id']
+            print(f"   Created license plan ID: {self.created_plan_id}")
+
+            # Test get specific license plan
+            self.run_test("Get specific license plan", "GET", f"license-plans/{self.created_plan_id}", 200, token=self.admin_token)
+            
+            # Test update license plan
+            update_data = {
+                "name": "Updated Test Plan",
+                "max_users": 20,
+                "price": 399.99
+            }
+            self.run_test("Update license plan", "PUT", f"license-plans/{self.created_plan_id}", 200, update_data, self.admin_token)
+
+        # Test create license plan (user) - should fail
+        if self.user_token:
+            self.run_test("Create license plan (user) - should fail", "POST", "license-plans", 403, plan_data, self.user_token)
+
+    def test_enhanced_license_management(self):
+        """Test enhanced license management with associations"""
+        print("\n" + "="*50)
+        print("TESTING ENHANCED LICENSE MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping enhanced license management tests")
+            return
+
+        # Test create enhanced license with associations
         license_data = {
-            "name": "Test License",
-            "description": "A test license for API testing",
+            "name": "Enhanced Test License",
+            "description": "A test license with all associations",
             "max_users": 5,
             "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat(),
             "features": ["feature1", "feature2"],
+            "category_id": getattr(self, 'created_category_id', None),
+            "company_id": getattr(self, 'created_company_id', None),
+            "product_id": getattr(self, 'created_product_id', None),
+            "plan_id": getattr(self, 'created_plan_id', None),
             "assigned_user_id": None
         }
-        success, response = self.run_test("Create license (admin)", "POST", "licenses", 200, license_data, self.admin_token)
+        success, response = self.run_test("Create enhanced license", "POST", "licenses", 200, license_data, self.admin_token)
         if success and 'id' in response:
             self.created_license_id = response['id']
-            print(f"   Created license ID: {self.created_license_id}")
+            print(f"   Created enhanced license ID: {self.created_license_id}")
 
         # Test get all licenses (admin)
         self.run_test("Get all licenses (admin)", "GET", "licenses", 200, token=self.admin_token)
@@ -171,7 +349,7 @@ class LicenseManagementAPITester:
             
             # Test update license
             update_data = {
-                "name": "Updated Test License",
+                "name": "Updated Enhanced Test License",
                 "status": "active"
             }
             self.run_test("Update license (admin)", "PUT", f"licenses/{self.created_license_id}", 200, update_data, self.admin_token)
