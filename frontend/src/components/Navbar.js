@@ -20,7 +20,8 @@ import {
   Home, 
   FileText,
   UserCog,
-  Tag
+  Tag,
+  Users
 } from 'lucide-react';
 
 const Navbar = () => {
