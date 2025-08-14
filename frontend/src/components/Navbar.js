@@ -21,7 +21,8 @@ import {
   FileText,
   UserCog,
   Tag,
-  Users
+  Users,
+  RotateCcw
 } from 'lucide-react';
 
 const Navbar = () => {
