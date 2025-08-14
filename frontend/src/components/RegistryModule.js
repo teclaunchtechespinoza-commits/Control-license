@@ -189,7 +189,13 @@ const RegistryModule = () => {
     
     try {
       const config = getTabConfig();
-      await axios.post(`/${config.endpoint}`, formData);
+      console.log('Creating item with config:', config);
+      console.log('Form data:', formData);
+      console.log('Endpoint URL:', `/${config.endpoint}`);
+      
+      const response = await axios.post(`/${config.endpoint}`, formData);
+      console.log('Create response:', response);
+      
       toast.success(`${config.title.slice(0, -1)} criado com sucesso!`);
       
       resetForm();
@@ -201,6 +207,7 @@ const RegistryModule = () => {
       }, 500);
     } catch (error) {
       console.error(`Failed to create ${activeTab}:`, error);
+      console.error('Error details:', error.response);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
         ? error.response.data.detail 
         : `Erro ao criar ${activeTab}`;
