@@ -322,7 +322,8 @@ metadata:
 test_plan:
   current_focus:
     - "Product Creation Backend Logging Issue"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Product Creation Backend Logging Issue"
   test_all: false
   test_priority: "high_first"
 
