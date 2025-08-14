@@ -1197,8 +1197,29 @@ async def create_product(
 
 @api_router.get("/products", response_model=List[Product])
 async def get_products(current_user: User = Depends(get_current_user)):
-    products = await db.products.find({"is_active": True}).to_list(1000)
-    return [Product(**product) for product in products]
+    try:
+        maint_logger.debug("products", "get_products_start", {
+            "user_id": current_user.id,
+            "user_email": current_user.email
+        })
+        
+        products = await db.products.find({"is_active": True}).to_list(1000)
+        
+        maint_logger.info("products", "get_products_success", {
+            "count": len(products),
+            "user_id": current_user.id
+        })
+        
+        return [Product(**product) for product in products]
+        
+    except Exception as e:
+        maint_logger.error("products", "get_products_exception", {
+            "user_id": current_user.id if current_user else "None"
+        }, str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao buscar produtos: {str(e)}"
+        )
 
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str, current_user: User = Depends(get_current_user)):
