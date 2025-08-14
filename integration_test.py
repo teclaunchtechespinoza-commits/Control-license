@@ -11,7 +11,7 @@ def test_license_integration():
         "password": "admin123"
     }
     
-    response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/auth/login", json=admin_credentials)
+    response = requests.post("https://licensepro-1.preview.emergentagent.com/api/auth/login", json=admin_credentials)
     token = response.json()['access_token']
     
     headers = {
@@ -34,7 +34,7 @@ def test_license_integration():
         "responsavel_legal_email": "joao@empresa.com"
     }
     
-    response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/clientes-pj", json=pj_data, headers=headers)
+    response = requests.post("https://licensepro-1.preview.emergentagent.com/api/clientes-pj", json=pj_data, headers=headers)
     if response.status_code != 200:
         print(f"❌ Failed to create PJ client: {response.text}")
         return False
@@ -52,7 +52,7 @@ def test_license_integration():
         "client_pj_id": pj_client_id
     }
     
-    response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/licenses", json=license_data, headers=headers)
+    response = requests.post("https://licensepro-1.preview.emergentagent.com/api/licenses", json=license_data, headers=headers)
     if response.status_code != 200:
         print(f"❌ Failed to create license: {response.text}")
         return False
@@ -61,7 +61,7 @@ def test_license_integration():
     print(f"✅ Created license linked to PJ client: {license_id}")
     
     # 3. Verify license contains client reference
-    response = requests.get(f"https://licensemaster-3.preview.emergentagent.com/api/licenses/{license_id}", headers=headers)
+    response = requests.get(f"https://licensepro-1.preview.emergentagent.com/api/licenses/{license_id}", headers=headers)
     if response.status_code != 200:
         print(f"❌ Failed to retrieve license: {response.text}")
         return False
@@ -74,7 +74,7 @@ def test_license_integration():
         return False
     
     # 4. Test stats endpoint includes PJ clients
-    response = requests.get("https://licensemaster-3.preview.emergentagent.com/api/stats", headers=headers)
+    response = requests.get("https://licensepro-1.preview.emergentagent.com/api/stats", headers=headers)
     if response.status_code != 200:
         print(f"❌ Failed to get stats: {response.text}")
         return False
@@ -84,8 +84,8 @@ def test_license_integration():
     print(f"✅ Total clients: {stats.get('total_clients', 0)}")
     
     # 5. Cleanup
-    requests.delete(f"https://licensemaster-3.preview.emergentagent.com/api/licenses/{license_id}", headers=headers)
-    requests.delete(f"https://licensemaster-3.preview.emergentagent.com/api/clientes-pj/{pj_client_id}", headers=headers)
+    requests.delete(f"https://licensepro-1.preview.emergentagent.com/api/licenses/{license_id}", headers=headers)
+    requests.delete(f"https://licensepro-1.preview.emergentagent.com/api/clientes-pj/{pj_client_id}", headers=headers)
     print("✅ Cleanup completed")
     
     return True

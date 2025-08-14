@@ -7,7 +7,7 @@ admin_credentials = {
     "password": "admin123"
 }
 
-response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/auth/login", json=admin_credentials)
+response = requests.post("https://licensepro-1.preview.emergentagent.com/api/auth/login", json=admin_credentials)
 token = response.json()['access_token']
 
 headers = {
@@ -32,14 +32,14 @@ test_data = {
     }
 }
 
-response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://licensepro-1.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with certificate {client_id}")
-    requests.delete(f"https://licensemaster-3.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://licensepro-1.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test with license info (check enum values)
 print("\n2. Testing with license info (check enums)...")
@@ -56,14 +56,14 @@ test_data = {
     }
 }
 
-response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://licensepro-1.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with license info {client_id}")
-    requests.delete(f"https://licensemaster-3.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://licensepro-1.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test with remote access
 print("\n3. Testing with remote access...")
@@ -79,13 +79,13 @@ test_data = {
     }
 }
 
-response = requests.post("https://licensemaster-3.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://licensepro-1.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with remote access {client_id}")
-    requests.delete(f"https://licensemaster-3.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://licensepro-1.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 print("\nDebug test completed.")
