@@ -273,9 +273,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RegistryModule Products Tab Navigation"
-  stuck_tasks:
-    - "RegistryModule Products Tab Navigation"
+    - "AdminPanel Client Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
