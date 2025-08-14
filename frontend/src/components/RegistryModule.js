@@ -192,7 +192,11 @@ const RegistryModule = () => {
       
       resetForm();
       setShowCreateDialog(false);
-      fetchAllData();
+      
+      // Add a small delay to ensure backend has processed the creation
+      setTimeout(() => {
+        fetchAllData();
+      }, 500);
     } catch (error) {
       console.error(`Failed to create ${activeTab}:`, error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
