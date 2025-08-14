@@ -506,7 +506,7 @@ class ProductCreate(ProductBase):
     pass
 
 class Product(ProductBase, BaseEntity):
-    pass
+    is_active: bool = True
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
