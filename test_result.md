@@ -120,6 +120,24 @@ backend:
           agent: "testing"
           comment: "✅ Equipment management fully functional! Successfully tested all requested functionality: 1) Created 4 equipment brands (Dell, HP, Lenovo, Acer) ✅, 2) Created 8 equipment models (2 per brand) including OptiPlex 3080, Latitude 5520, ProDesk 400, EliteBook 840, ThinkPad X1, ThinkCentre M720, Aspire 5, Veriton X ✅, 3) GET /api/equipment-brands returns all brands correctly ✅, 4) GET /api/equipment-models returns all models correctly ✅, 5) GET /api/equipment-models?brand_id=[id] filtering works perfectly ✅, 6) Validation prevents duplicate brands and models ✅, 7) Admin authentication enforced correctly ✅. All 30 tests passed. Initial test data created successfully as requested."
 
+  - task: "Category Management System"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "CRITICAL INVESTIGATION: User reported 'Gerenciar Categorias' not working. Investigated for issues similar to products (JSON serialization, is_active field)."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE IDENTIFIED: Category creation successful (HTTP 200) but categories not appearing in GET /api/categories list. Root cause: Category model missing 'is_active: bool = True' field, but GET endpoint filtering by {'is_active': True}. Identical to the issue previously fixed in products."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIX APPLIED AND VERIFIED: Added 'is_active: bool = True' to Category model in server.py. Comprehensive testing confirms complete resolution: 1) GET /api/categories working - returns 5 existing categories ✅, 2) POST /api/categories working - successfully creates categories with specific payload {'name': 'Categoria Teste Backend', 'description': 'Teste do backend de categorias', 'color': '#FF5733', 'icon': 'folder'} ✅, 3) Persistence verified - created categories appear in subsequent GET requests ✅, 4) No JSON serialization errors in maintenance logs ✅, 5) Full CRUD operations working (CREATE, READ, UPDATE, DELETE) ✅, 6) All validation working correctly ✅, 7) Admin authentication enforced ✅. All 19/19 tests passed. The 'Gerenciar Categorias' backend functionality is now fully operational. The issue was identical to the products issue and has been resolved with the same fix."
+
   - task: "PJ Client Model Implementation"
     implemented: true
     working: true
