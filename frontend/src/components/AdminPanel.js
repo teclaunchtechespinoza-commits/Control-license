@@ -975,7 +975,7 @@ const AdminPanel = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-danger hover:bg-danger/90 text-danger-foreground"
               onClick={() => handleDeleteLicense(deleteConfirmId)}
             >
               Excluir
