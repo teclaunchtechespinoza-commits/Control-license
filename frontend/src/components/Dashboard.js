@@ -140,10 +140,10 @@ const Dashboard = () => {
                 <CardTitle className="text-sm font-medium">
                   Licenças Ativas
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-success" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats.active_licenses}</div>
+                <div className="text-2xl font-bold text-success">{stats.active_licenses}</div>
                 <div className="text-xs text-muted-foreground flex items-center mt-1">
                   <Progress 
                     value={(stats.active_licenses / stats.total_licenses) * 100} 
