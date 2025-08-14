@@ -42,3 +42,5 @@
 [2025-08-14 03:12:12] [INFO] products - create_product_success: {"product_id": "eed0eb3e-f35a-457a-9588-31ccab6ad123", "product_name": "Produto Teste Persistencia", "insert_result": "689d540cf4ba45526abac8da"}
 [2025-08-14 03:12:12] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-14 03:12:12] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 16:15:27] [INFO] products - create_product_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com", "product_data": {"name": "Produto Teste Backend", "version": "1.0", "description": "Teste direto do backend", "category_id": null, "price": null, "currency": "BRL", "features": [], "requirements": null}}
+[2025-08-14 16:15:27] [ERROR] products - create_product_duplicate: {"product_name": "Produto Teste Backend", "existing_id": "ed970afc-690d-4af9-b935-5dd162fbc9a0"} ERROR: Product with same name already exists
