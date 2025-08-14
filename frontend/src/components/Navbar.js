@@ -115,6 +115,21 @@ const Navbar = () => {
                 </Link>
               </>
             )}
+            
+            {/* Global Refresh Button */}
+            <Button
+              onClick={() => {
+                console.log('Global refresh triggered');
+                window.location.reload();
+              }}
+              variant="ghost"
+              size="sm"
+              className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50"
+              title="Atualizar página e dados"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Atualizar</span>
+            </Button>
           </div>
 
           {/* User Menu */}
