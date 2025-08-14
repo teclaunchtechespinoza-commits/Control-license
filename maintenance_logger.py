@@ -30,6 +30,8 @@ class MaintenanceLogger:
             log_entry["error"] = error
             
         try:
+            # Use DateTimeEncoder for the entire log_entry, not just details
+            full_entry_json = json.dumps(log_entry, cls=DateTimeEncoder, ensure_ascii=False)
             details_json = json.dumps(details, cls=DateTimeEncoder, ensure_ascii=False)
         except Exception as e:
             details_json = f"{{serialization_error: {str(e)}}}"
