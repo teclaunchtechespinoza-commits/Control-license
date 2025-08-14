@@ -786,23 +786,44 @@ const ClientsModule = () => {
     }));
   };
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      active: 'default',
-      inactive: 'secondary',
-      pending_verification: 'outline'
-    };
-    
-    const labels = {
-      active: 'Ativo',
-      inactive: 'Inativo',
-      pending_verification: 'Pendente'
+  const getSemanticStatusBadge = (status) => {
+    // Sistema semântico WCAG para status de clientes
+    const statusConfig = {
+      'active': { 
+        variant: 'success', 
+        label: 'Ativo', 
+        icon: '✓',
+        ariaLabel: 'Cliente ativo - dados validados e funcionais'
+      },
+      'inactive': { 
+        variant: 'neutral', 
+        label: 'Inativo', 
+        icon: '○',
+        ariaLabel: 'Cliente inativo - desabilitado temporariamente'
+      },
+      'pending_verification': { 
+        variant: 'info', 
+        label: 'Pendente', 
+        icon: '●',
+        ariaLabel: 'Cliente pendente - aguardando verificação de dados'
+      },
+      'blocked': { 
+        variant: 'danger', 
+        label: 'Bloqueado', 
+        icon: '✕',
+        ariaLabel: 'Cliente bloqueado - acesso negado por problemas'
+      }
     };
 
+    const config = statusConfig[status] || statusConfig['inactive'];
     return (
-      <Badge variant={variants[status]}>
-        {labels[status]}
-      </Badge>
+      <CustomSemanticBadge
+        variant={config.variant}
+        label={config.label}
+        icon={config.icon}
+        ariaLabel={config.ariaLabel}
+        size="sm"
+      />
     );
   };
 
