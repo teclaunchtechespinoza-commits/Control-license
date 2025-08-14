@@ -223,7 +223,7 @@ const Dashboard = () => {
                 <div key={license.id}>
                   <div className="flex items-center justify-between p-4 rounded-lg border">
                     <div className="flex items-center space-x-4">
-                      {getStatusIcon(license.status)}
+                      {getSemanticStatusIcon(license.status)}
                       <div>
                         <h4 className="font-medium text-gray-900">
                           {license.name}
@@ -248,7 +248,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      {getStatusBadge(license.status)}
+                      {getSemanticStatusBadge(license.status)}
                       {license.max_users > 1 && (
                         <Badge variant="outline">
                           {license.max_users} usuários
