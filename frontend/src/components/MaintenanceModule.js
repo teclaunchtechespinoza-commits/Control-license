@@ -147,7 +147,7 @@ const MaintenanceModule = () => {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-green-600 flex items-center space-x-2">
+            <CardTitle className="text-success flex items-center space-x-2">
               <CheckCircle className="w-5 h-5" />
               <span>INFO</span>
             </CardTitle>
@@ -162,7 +162,7 @@ const MaintenanceModule = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-red-600 flex items-center space-x-2">
+            <CardTitle className="text-danger flex items-center space-x-2">
               <XCircle className="w-5 h-5" />
               <span>ERRO</span>
             </CardTitle>
