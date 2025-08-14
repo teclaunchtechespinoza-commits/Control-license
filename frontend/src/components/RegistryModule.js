@@ -190,12 +190,8 @@ const RegistryModule = () => {
     
     try {
       const config = getTabConfig();
-      console.log('Creating item with config:', config);
-      console.log('Form data:', formData);
-      console.log('Endpoint URL:', `/${config.endpoint}`);
       
       const response = await axios.post(`/${config.endpoint}`, formData);
-      console.log('Create response:', response);
       
       toast.success(`${config.title.slice(0, -1)} criado com sucesso!`);
       
