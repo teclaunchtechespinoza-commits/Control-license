@@ -45,6 +45,28 @@ code {
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
         --radius: 0.5rem;
+
+        /* Design Tokens - Sistema de Cores Semânticas WCAG */
+        /* Status → Semântica: OK → success, Atenção → warning, Crítico → danger, Pendente → info, Inativo → neutral */
+        
+        /* Cores base semânticas (contraste ≥ 4.5:1 com branco) */
+        --success: 140 70% 27%;      /* #2E7D32 - Verde escuro acessível */
+        --success-foreground: 0 0% 100%;
+        --warning: 36 90% 47%;       /* #ED6C02 - Laranja acessível */  
+        --warning-foreground: 0 0% 0%;
+        --danger: 0 70% 50%;         /* #D32F2F - Vermelho acessível */
+        --danger-foreground: 0 0% 100%;
+        --info: 199 89% 37%;         /* #0277BD - Azul acessível */
+        --info-foreground: 0 0% 100%;
+        --neutral: 220 9% 46%;       /* #6B7280 - Cinza neutro */
+        --neutral-foreground: 0 0% 100%;
+
+        /* Tons claros para badges/backgrounds (contraste ≥ 3:1) */
+        --success-light: 140 57% 91%;  /* #E8F5E9 - Fundo verde claro */
+        --warning-light: 36 100% 94%;  /* #FFF3E0 - Fundo laranja claro */
+        --danger-light: 0 100% 96%;    /* #FFEBEE - Fundo vermelho claro */
+        --info-light: 199 100% 94%;    /* #E1F5FE - Fundo azul claro */  
+        --neutral-light: 220 14% 96%;  /* #F3F4F6 - Fundo cinza claro */
     }
   .dark {
         --background: 0 0% 3.9%;
