@@ -83,39 +83,45 @@ const UserLicenses = () => {
     setFilteredLicenses(filtered);
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'expired':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'suspended':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
-    }
+  const getSemanticStatusIcon = (status) => {
+    // Ícones semânticos WCAG com cores acessíveis
+    const iconConfig = {
+      'active': { 
+        Icon: CheckCircle, 
+        className: "w-4 h-4 text-success", 
+        ariaLabel: "Licença ativa - funcionando normalmente" 
+      },
+      'expired': { 
+        Icon: XCircle, 
+        className: "w-4 h-4 text-danger", 
+        ariaLabel: "Licença expirada - renovação necessária" 
+      },
+      'suspended': { 
+        Icon: AlertTriangle, 
+        className: "w-4 h-4 text-warning", 
+        ariaLabel: "Licença suspensa - requer atenção" 
+      },
+      'pending': { 
+        Icon: Clock, 
+        className: "w-4 h-4 text-info", 
+        ariaLabel: "Licença pendente - aguardando processamento" 
+      },
+      'default': { 
+        Icon: Clock, 
+        className: "w-4 h-4 text-neutral", 
+        ariaLabel: "Status desconhecido" 
+      }
+    };
+
+    const config = iconConfig[status] || iconConfig['default'];
+    const { Icon, className, ariaLabel } = config;
+    
+    return <Icon className={className} aria-label={ariaLabel} />;
   };
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      active: 'default',
-      expired: 'destructive',
-      suspended: 'secondary',
-      pending: 'outline'
-    };
-    
-    const labels = {
-      active: 'Ativo',
-      expired: 'Expirado',
-      suspended: 'Suspenso',
-      pending: 'Pendente'
-    };
-
-    return (
-      <Badge variant={variants[status]}>
-        {labels[status]}
-      </Badge>
-    );
+  const getSemanticStatusBadge = (status) => {
+    // Badge semântico WCAG para licenças de usuário
+    return <LicenseStatusBadge status={status} size="sm" />;
   };
 
   const formatDate = (dateString) => {
