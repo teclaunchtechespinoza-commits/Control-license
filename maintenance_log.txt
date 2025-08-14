@@ -48,3 +48,15 @@
 [2025-08-14 21:28:37] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-14 21:28:37] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
 [2025-08-14 21:28:37] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:43:22] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:43:22] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:43:22] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:43:22] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:44:39] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:44:39] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:44:39] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:44:39] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:46:00] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:46:00] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 21:46:00] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 21:46:00] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
