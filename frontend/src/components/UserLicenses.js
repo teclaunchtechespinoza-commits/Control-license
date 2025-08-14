@@ -297,8 +297,8 @@ const UserLicenses = () => {
                             {getSemanticStatusIcon(license.status)}
                             <span className="font-medium">{license.name}</span>
                             {isExpiringSoon(license.expires_at) && (
-                              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                                Expirando
+                              <Badge variant="outline" className="text-warning border-warning/50 bg-warning-light">
+                                ⚠ Expirando
                               </Badge>
                             )}
                           </div>
