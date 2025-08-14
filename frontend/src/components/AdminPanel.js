@@ -740,9 +740,7 @@ const AdminPanel = () => {
                         </TableCell>
                         <TableCell>{userData.email}</TableCell>
                         <TableCell>
-                          <Badge variant={userData.role === 'admin' ? 'default' : 'secondary'}>
-                            {userData.role === 'admin' ? 'Admin' : 'Usuário'}
-                          </Badge>
+                          {getUserRoleBadge(userData.role)}
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-gray-500">
