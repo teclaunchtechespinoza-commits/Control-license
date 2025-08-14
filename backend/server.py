@@ -1142,9 +1142,58 @@ async def create_product(
     product_data: ProductCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    product = Product(**product_data.dict())
-    await db.products.insert_one(product.dict())
-    return product
+    try:
+        maint_logger.info("products", "create_product_start", {
+            "user_id": current_user.id,
+            "user_email": current_user.email,
+            "product_data": product_data.dict()
+        })
+        
+        # Check if product with same name already exists
+        existing_product = await db.products.find_one({"name": product_data.name})
+        if existing_product:
+            maint_logger.error("products", "create_product_duplicate", {
+                "product_name": product_data.name,
+                "existing_id": existing_product.get("id")
+            }, "Product with same name already exists")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Produto com o mesmo nome já existe"
+            )
+        
+        # Create product
+        product_dict = product_data.dict()
+        product_dict["created_by"] = current_user.id
+        product = Product(**product_dict)
+        
+        maint_logger.debug("products", "create_product_before_insert", {
+            "product_id": product.id,
+            "product_name": product.name,
+            "complete_product": product.dict()
+        })
+        
+        # Insert into database
+        result = await db.products.insert_one(product.dict())
+        
+        maint_logger.info("products", "create_product_success", {
+            "product_id": product.id,
+            "product_name": product.name,
+            "insert_result": str(result.inserted_id) if result else "None"
+        })
+        
+        return product
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        maint_logger.error("products", "create_product_exception", {
+            "product_data": product_data.dict() if product_data else "None",
+            "user_id": current_user.id if current_user else "None"
+        }, str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro interno do servidor: {str(e)}"
+        )
 
 @api_router.get("/products", response_model=List[Product])
 async def get_products(current_user: User = Depends(get_current_user)):
