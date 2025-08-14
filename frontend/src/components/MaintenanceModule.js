@@ -101,7 +101,7 @@ const MaintenanceModule = () => {
                 variant="outline"
                 size="sm"
                 disabled={loading}
-                className="text-red-600 hover:bg-red-50"
+                className="text-danger hover:bg-danger-light hover:border-danger/50"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Limpar Logs
