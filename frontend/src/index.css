@@ -125,3 +125,34 @@ code {
     @apply bg-background text-foreground;
     }
 }
+
+/* Utilidades para Design Tokens Semânticos WCAG */
+@layer utilities {
+  /* Cores semânticas de fundo */
+  .bg-success { background-color: hsl(var(--success)); }
+  .bg-warning { background-color: hsl(var(--warning)); }
+  .bg-danger { background-color: hsl(var(--danger)); }
+  .bg-info { background-color: hsl(var(--info)); }
+  .bg-neutral { background-color: hsl(var(--neutral)); }
+  
+  /* Cores semânticas de texto */
+  .text-success { color: hsl(var(--success)); }
+  .text-warning { color: hsl(var(--warning)); }
+  .text-danger { color: hsl(var(--danger)); }
+  .text-info { color: hsl(var(--info)); }
+  .text-neutral { color: hsl(var(--neutral)); }
+  
+  /* Backgrounds claros para badges/cards */
+  .bg-success-light { background-color: hsl(var(--success-light)); }
+  .bg-warning-light { background-color: hsl(var(--warning-light)); }
+  .bg-danger-light { background-color: hsl(var(--danger-light)); }
+  .bg-info-light { background-color: hsl(var(--info-light)); }
+  .bg-neutral-light { background-color: hsl(var(--neutral-light)); }
+  
+  /* Cores de texto sobre backgrounds claros */
+  .text-success-foreground { color: hsl(var(--success-foreground)); }
+  .text-warning-foreground { color: hsl(var(--warning-foreground)); }
+  .text-danger-foreground { color: hsl(var(--danger-foreground)); }
+  .text-info-foreground { color: hsl(var(--info-foreground)); }
+  .text-neutral-foreground { color: hsl(var(--neutral-foreground)); }
+}
