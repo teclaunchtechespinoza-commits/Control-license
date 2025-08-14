@@ -647,7 +647,7 @@ const AdminPanel = () => {
                         <TableRow key={license.id}>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              {getStatusIcon(license.status)}
+                              {getSemanticStatusIcon(license.status)}
                               <div>
                                 <div className="font-medium">{license.name}</div>
                                 {license.description && (
