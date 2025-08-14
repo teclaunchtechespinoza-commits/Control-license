@@ -2317,7 +2317,7 @@ const ClientsModule = () => {
               <div>
                 <Label className="text-sm font-medium text-gray-500">Status</Label>
                 <div className="mt-1">
-                  {getStatusBadge(viewingClient.status)}
+                  {getSemanticStatusBadge(viewingClient.status)}
                 </div>
               </div>
               
