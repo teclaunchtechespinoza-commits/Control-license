@@ -1170,19 +1170,50 @@ const ClientsModule = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Status</Label>
-                      <Select 
-                        value={formData.status || ''} 
-                        onValueChange={(value) => setFormData({...formData, status: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                          <SelectItem value="pending_verification">Pendente Verificação</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <Select 
+                          value={formData.status || ''} 
+                          onValueChange={(value) => setFormData({...formData, status: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-success">✓</span>
+                                <span>Ativo</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="inactive">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-neutral">○</span>
+                                <span>Inativo</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="pending_verification">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-info">●</span>
+                                <span>Pendente Verificação</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="blocked">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-danger">✕</span>
+                                <span>Bloqueado</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        {/* Preview do badge semântico */}
+                        {formData.status && (
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <span>Preview:</span>
+                            {getSemanticStatusBadge(formData.status)}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="space-y-2">
