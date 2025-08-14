@@ -513,18 +513,10 @@ const RegistryModule = () => {
         </p>
       </div>
 
-      {/* Debug Info */}
-      <div className="mb-4 p-2 bg-gray-100 rounded text-sm">
-        Debug: activeTab = {activeTab}
-      </div>
-
       {/* Tabs */}
       <Tabs 
         value={activeTab} 
-        onValueChange={(value) => {
-          console.log('Tab change:', value);
-          setActiveTab(value);
-        }}
+        onValueChange={setActiveTab}
       >
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="categories" className="flex items-center space-x-2">
