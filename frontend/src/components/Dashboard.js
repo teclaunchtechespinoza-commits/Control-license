@@ -174,10 +174,10 @@ const Dashboard = () => {
                 <CardTitle className="text-sm font-medium">
                   Licenças Expiradas
                 </CardTitle>
-                <XCircle className="h-4 w-4 text-red-500" />
+                <XCircle className="h-4 w-4 text-danger" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats.expired_licenses}</div>
+                <div className="text-2xl font-bold text-danger">{stats.expired_licenses}</div>
                 <p className="text-xs text-muted-foreground">
                   Necessitam renovação
                 </p>
