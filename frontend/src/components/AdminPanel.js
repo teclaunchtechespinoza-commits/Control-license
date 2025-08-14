@@ -694,7 +694,7 @@ const AdminPanel = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setDeleteConfirmId(license.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-danger hover:text-danger/80 hover:border-danger/50"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
