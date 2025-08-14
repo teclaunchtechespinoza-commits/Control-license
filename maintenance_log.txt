@@ -1,0 +1,10 @@
+[2025-08-14 02:53:32] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 02:53:32] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 02:53:32] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 02:53:32] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 02:53:40] [INFO] products - create_product_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com", "product_data": {"name": "Produto Monitor Test", "version": "1.0", "description": "Teste com sistema de logs", "category_id": null, "price": null, "currency": "BRL", "features": [], "requirements": null}}
+[2025-08-14 02:53:40] [ERROR] products - create_product_exception: {"product_data": {"name": "Produto Monitor Test", "version": "1.0", "description": "Teste com sistema de logs", "category_id": null, "price": null, "currency": "BRL", "features": [], "requirements": null}, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"} ERROR: Object of type datetime is not JSON serializable
+[2025-08-14 02:53:52] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 02:53:52] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 02:53:52] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 02:53:52] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
