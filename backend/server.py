@@ -1033,6 +1033,49 @@ async def delete_license_plan(plan_id: str, current_user: User = Depends(get_cur
     )
     return {"message": "Plano removido com sucesso"}
 
+# Maintenance and Logging Routes
+@api_router.get("/maintenance/logs")
+async def get_maintenance_logs(
+    lines: int = 100,
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get the latest maintenance logs"""
+    try:
+        log_file = "/app/maintenance_log.txt"
+        if not os.path.exists(log_file):
+            return {"logs": [], "message": "No logs found"}
+            
+        with open(log_file, "r", encoding="utf-8") as f:
+            all_lines = f.readlines()
+            
+        # Get the last 'lines' entries
+        recent_logs = all_lines[-lines:] if len(all_lines) > lines else all_lines
+        
+        return {
+            "logs": [line.strip() for line in recent_logs],
+            "total_lines": len(all_lines),
+            "showing": len(recent_logs)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao ler logs: {str(e)}"
+        )
+
+@api_router.post("/maintenance/clear-logs")
+async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_user)):
+    """Clear maintenance logs"""
+    try:
+        log_file = "/app/maintenance_log.txt"
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write("")
+        return {"message": "Logs limpos com sucesso"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao limpar logs: {str(e)}"
+        )
+
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
     clients = await db.clientes_pj.find().to_list(1000)
