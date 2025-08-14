@@ -1206,10 +1206,10 @@ const ClientsModule = () => {
                           </SelectContent>
                         </Select>
                         
-                        {/* Preview do badge semântico */}
+                        {/* Preview do badge semântico - otimizado */}
                         {formData.status && (
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <span>Preview:</span>
+                          <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md border">
+                            <span className="text-xs font-medium text-gray-500">Como aparecerá:</span>
                             {getSemanticStatusBadge(formData.status)}
                           </div>
                         )}
