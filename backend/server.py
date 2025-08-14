@@ -15,6 +15,12 @@ import logging
 import uuid
 import secrets
 import re
+import json
+
+# Import maintenance logger
+import sys
+sys.path.append('/app')
+from maintenance_logger import logger as maint_logger
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
