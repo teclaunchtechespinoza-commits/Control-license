@@ -197,6 +197,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/manutencao" 
+                element={
+                  <ProtectedRoute adminOnly>
+                    <MaintenanceModule />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
