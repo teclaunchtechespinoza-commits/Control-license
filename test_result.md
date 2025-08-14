@@ -235,6 +235,18 @@ frontend:
           agent: "testing"
           comment: "Not tested due to critical issues in ClientsModule preventing proper testing flow. Requires ClientsModule to be fixed first."
 
+  - task: "RegistryModule Products Tab Navigation"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/RegistryModule.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE: Products tab navigation completely broken in RegistryModule. Tab switching mechanism not working - clicking 'Produtos' tab does not activate it (remains data-state='inactive'). Always defaults to 'Categorias' tab regardless of user clicks. This prevents access to product creation/management functionality entirely. Users cannot create, edit, or manage products through the UI. Backend API works correctly (POST /api/products returns 200 OK), but frontend tab navigation is broken. The activeTab state is not updating when clicking different tabs. Root cause: Tab switching logic in RegistryModule.js not functioning correctly. IMPACT: 'Gerenciar Produtos' feature completely unusable - users cannot access product management interface at all."
+
   - task: "Navigation and Routing"
     implemented: true
     working: true
