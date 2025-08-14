@@ -324,9 +324,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Product Creation Backend Logging Issue"
-  stuck_tasks: 
-    - "Product Creation Backend Logging Issue"
+    - "AdminPanel Client Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
