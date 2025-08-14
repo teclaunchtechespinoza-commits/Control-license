@@ -514,7 +514,13 @@ const RegistryModule = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs 
+        value={activeTab} 
+        onValueChange={(value) => {
+          console.log('Tab change:', value);
+          setActiveTab(value);
+        }}
+      >
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="categories" className="flex items-center space-x-2">
             <FolderOpen className="w-4 h-4" />
