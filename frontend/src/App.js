@@ -11,6 +11,7 @@ import AdminPanel from './components/AdminPanel';
 import UserLicenses from './components/UserLicenses';
 import RegistryModule from './components/RegistryModule';
 import ClientsModule from './components/ClientsModule';
+import MaintenanceModule from './components/MaintenanceModule';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 
