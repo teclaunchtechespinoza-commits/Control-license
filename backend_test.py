@@ -1636,38 +1636,36 @@ class LicenseManagementAPITester:
 def main():
     tester = LicenseManagementAPITester()
     
-    # Run the specific direct backend test requested in review
-    print("🚀 Starting Direct Backend Test for Review Request")
+    # Run the critical categories investigation as requested in review
+    print("🚀 Starting Critical Categories Investigation")
     print(f"Base URL: {tester.base_url}")
-    print("🎯 TESTING: Direct backend product creation to isolate frontend vs backend issues")
+    print("🎯 TESTING: Investigar problema com 'Gerenciar Categorias' reportado pelo usuário")
     
     # Essential tests for this review request
     tester.test_health_check()
     tester.test_authentication()
     
     # The main test requested in the review
-    backend_success = tester.test_direct_backend_product_creation()
+    categories_success = tester.test_categories_critical_investigation()
     
     # Clean up test data
-    if hasattr(tester, 'direct_product_id'):
-        print(f"\n🔍 Cleaning up test product {tester.direct_product_id}")
-        tester.run_test("Cleanup direct test product", "DELETE", f"products/{tester.direct_product_id}", 200, token=tester.admin_token)
+    tester.cleanup_categories_test_data()
     
     # Print final results
     print("\n" + "="*50)
-    print("DIRECT BACKEND TEST RESULTS")
+    print("RESULTADO FINAL DA INVESTIGAÇÃO CRÍTICA DE CATEGORIAS")
     print("="*50)
     print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     
-    if backend_success:
-        print("🎉 CONCLUSION: Backend works when called directly!")
-        print("✅ Problem is in the frontend, not the backend")
-        print("📋 RECOMMENDATION: Check frontend form submission and data mapping")
+    if categories_success:
+        print("🎉 CONCLUSÃO: Gerenciar Categorias está funcionando corretamente!")
+        print("✅ Backend de categorias não tem problemas similares aos de produtos")
+        print("📋 RECOMENDAÇÃO: Verificar frontend ou problemas específicos do usuário")
         return 0
     else:
-        print("❌ CONCLUSION: Backend has issues")
-        print("🔍 Problem is in the backend logging or product creation logic")
-        print("📋 RECOMMENDATION: Fix backend logging serialization issues")
+        print("❌ CONCLUSÃO: Problemas identificados em Gerenciar Categorias")
+        print("🔍 Problemas similares aos que foram corrigidos em produtos")
+        print("📋 RECOMENDAÇÃO: Aplicar correções similares às feitas em produtos")
         return 1
 
 if __name__ == "__main__":
