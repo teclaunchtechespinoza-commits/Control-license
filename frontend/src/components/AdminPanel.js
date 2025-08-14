@@ -664,7 +664,7 @@ const AdminPanel = () => {
                             </code>
                           </TableCell>
                           <TableCell>
-                            {getStatusBadge(license.status)}
+                            {getSemanticStatusBadge(license.status)}
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">
