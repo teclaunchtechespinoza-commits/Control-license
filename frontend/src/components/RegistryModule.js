@@ -513,6 +513,11 @@ const RegistryModule = () => {
         </p>
       </div>
 
+      {/* Debug Info */}
+      <div className="mb-4 p-2 bg-gray-100 rounded text-sm">
+        Debug: activeTab = {activeTab}
+      </div>
+
       {/* Tabs */}
       <Tabs 
         value={activeTab} 
