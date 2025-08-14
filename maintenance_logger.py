@@ -3,6 +3,14 @@ import json
 import datetime
 from typing import Dict, Any, Optional
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+        return super().default(obj)
+
 class MaintenanceLogger:
     def __init__(self):
         self.log_file = "/app/maintenance_log.txt"
@@ -21,14 +29,22 @@ class MaintenanceLogger:
         if error:
             log_entry["error"] = error
             
-        log_line = f"[{timestamp}] [{level}] {module} - {action}: {json.dumps(details)}"
+        try:
+            details_json = json.dumps(details, cls=DateTimeEncoder, ensure_ascii=False)
+        except Exception as e:
+            details_json = f"{{serialization_error: {str(e)}}}"
+            
+        log_line = f"[{timestamp}] [{level}] {module} - {action}: {details_json}"
         if error:
             log_line += f" ERROR: {error}"
         log_line += "\n"
         
         # Write to file
-        with open(self.log_file, "a", encoding="utf-8") as f:
-            f.write(log_line)
+        try:
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                f.write(log_line)
+        except Exception:
+            pass  # Don't let logging errors break the main functionality
             
         # Also print to console
         print(log_line.strip())
