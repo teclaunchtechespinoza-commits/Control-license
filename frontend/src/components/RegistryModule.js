@@ -217,7 +217,11 @@ const RegistryModule = () => {
       setShowEditDialog(false);
       setEditingItem(null);
       resetForm();
-      fetchAllData();
+      
+      // Add a small delay to ensure backend has processed the update
+      setTimeout(() => {
+        fetchAllData();
+      }, 500);
     } catch (error) {
       console.error(`Failed to update ${activeTab}:`, error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
