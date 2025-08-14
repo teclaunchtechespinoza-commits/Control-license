@@ -881,6 +881,152 @@ async def create_pessoa_juridica(
     
     return client
 
+# Company/Organization Management Routes (for Registry Module)
+class CompanyBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    is_active: bool = True
+
+class CompanyCreate(CompanyBase):
+    pass
+
+class CompanyUpdate(CompanyBase):
+    pass
+
+class Company(CompanyBase, BaseEntity):
+    pass
+
+@api_router.get("/companies", response_model=List[Company])
+async def get_companies(current_user: User = Depends(get_current_user)):
+    companies = await db.companies.find({"is_active": True}).to_list(1000)
+    return [Company(**company) for company in companies]
+
+@api_router.post("/companies", response_model=Company)
+async def create_company(
+    company_data: CompanyCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    existing_company = await db.companies.find_one({"name": company_data.name})
+    if existing_company:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Empresa já cadastrada"
+        )
+    
+    company_dict = company_data.dict()
+    company_dict["created_by"] = current_user.id
+    
+    company = Company(**company_dict)
+    await db.companies.insert_one(company.dict())
+    
+    return company
+
+@api_router.put("/companies/{company_id}", response_model=Company)
+async def update_company(
+    company_id: str,
+    company_data: CompanyUpdate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    company_dict = company_data.dict()
+    company_dict["updated_at"] = datetime.utcnow()
+    
+    result = await db.companies.update_one(
+        {"id": company_id}, 
+        {"$set": company_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Empresa não encontrada"
+        )
+    
+    company_doc = await db.companies.find_one({"id": company_id})
+    return Company(**company_doc)
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: User = Depends(get_current_admin_user)):
+    await db.companies.update_one(
+        {"id": company_id}, 
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    return {"message": "Empresa removida com sucesso"}
+
+# License Plans Management Routes  
+class LicensePlanBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float = 0.0
+    duration_days: int = 30
+    max_users: int = 1
+    features: List[str] = []
+    is_active: bool = True
+
+class LicensePlanCreate(LicensePlanBase):
+    pass
+
+class LicensePlanUpdate(LicensePlanBase):
+    pass
+
+class LicensePlan(LicensePlanBase, BaseEntity):
+    pass
+
+@api_router.get("/license-plans", response_model=List[LicensePlan])
+async def get_license_plans(current_user: User = Depends(get_current_user)):
+    plans = await db.license_plans.find({"is_active": True}).to_list(1000)
+    return [LicensePlan(**plan) for plan in plans]
+
+@api_router.post("/license-plans", response_model=LicensePlan)
+async def create_license_plan(
+    plan_data: LicensePlanCreate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    existing_plan = await db.license_plans.find_one({"name": plan_data.name})
+    if existing_plan:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Plano já cadastrado"
+        )
+    
+    plan_dict = plan_data.dict()
+    plan_dict["created_by"] = current_user.id
+    
+    plan = LicensePlan(**plan_dict)
+    await db.license_plans.insert_one(plan.dict())
+    
+    return plan
+
+@api_router.put("/license-plans/{plan_id}", response_model=LicensePlan)
+async def update_license_plan(
+    plan_id: str,
+    plan_data: LicensePlanUpdate,
+    current_user: User = Depends(get_current_admin_user)
+):
+    plan_dict = plan_data.dict()
+    plan_dict["updated_at"] = datetime.utcnow()
+    
+    result = await db.license_plans.update_one(
+        {"id": plan_id}, 
+        {"$set": plan_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Plano não encontrado"
+        )
+    
+    plan_doc = await db.license_plans.find_one({"id": plan_id})
+    return LicensePlan(**plan_doc)
+
+@api_router.delete("/license-plans/{plan_id}")
+async def delete_license_plan(plan_id: str, current_user: User = Depends(get_current_admin_user)):
+    await db.license_plans.update_one(
+        {"id": plan_id}, 
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    return {"message": "Plano removido com sucesso"}
+
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
     clients = await db.clientes_pj.find().to_list(1000)
