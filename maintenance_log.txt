@@ -12,3 +12,7 @@
 [2025-08-14 02:59:37] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-14 02:59:37] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
 [2025-08-14 02:59:37] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 03:00:22] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 03:00:22] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 03:00:22] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 03:00:22] [INFO] products - get_products_success: {"count": 0, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
