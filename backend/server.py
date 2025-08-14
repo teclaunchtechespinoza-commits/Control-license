@@ -482,7 +482,7 @@ class CategoryCreate(CategoryBase):
     pass
 
 class Category(CategoryBase, BaseEntity):
-    pass
+    is_active: bool = True
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
