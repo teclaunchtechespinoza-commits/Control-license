@@ -294,7 +294,7 @@ const UserLicenses = () => {
                       <TableCell>
                         <div>
                           <div className="flex items-center space-x-2">
-                            {getStatusIcon(license.status)}
+                            {getSemanticStatusIcon(license.status)}
                             <span className="font-medium">{license.name}</span>
                             {isExpiringSoon(license.expires_at) && (
                               <Badge variant="outline" className="text-yellow-600 border-yellow-600">
