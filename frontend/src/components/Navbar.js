@@ -114,6 +114,17 @@ const Navbar = () => {
                     <span>Cadastros</span>
                   </Button>
                 </Link>
+                
+                <Link to="/manutencao">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Manutenção</span>
+                  </Button>
+                </Link>
               </>
             )}
             
