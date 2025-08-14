@@ -59,3 +59,7 @@
 [2025-08-14 16:17:07] [INFO] products - create_product_success: {"product_id": "0a78741f-cfa3-45a2-b888-d9d1a511ae11", "product_name": "Final Test Product", "insert_result": "689e0c03026c136b377bce05"}
 [2025-08-14 16:17:13] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-14 16:17:13] [INFO] products - get_products_success: {"count": 2, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 17:14:09] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 17:14:09] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-14 17:14:09] [INFO] products - get_products_success: {"count": 2, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-14 17:14:09] [INFO] products - get_products_success: {"count": 2, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
