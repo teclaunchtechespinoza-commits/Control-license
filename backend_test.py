@@ -1244,6 +1244,103 @@ class LicenseManagementAPITester:
         else:
             print("   ❌ GET /api/products failed")
 
+    def test_direct_backend_product_creation(self):
+        """Test direct backend product creation as requested in review"""
+        print("\n" + "="*50)
+        print("TESTE DIRETO DO BACKEND - PRODUCT CREATION (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping direct backend test")
+            return
+
+        print("🎯 OBJECTIVE: Test backend directly to isolate frontend vs backend issues")
+        print("   Testing if backend works when called directly")
+        
+        # Test 1: Direct POST /api/products with exact payload from review request
+        print("\n🔍 Test 1: POST /api/products with exact review payload")
+        product_payload = {
+            "name": "Produto Teste Backend",
+            "version": "1.0", 
+            "description": "Teste direto do backend",
+            "category_id": None,
+            "price": None,
+            "currency": "BRL",
+            "features": [],
+            "requirements": None
+        }
+        
+        print(f"   Payload: {json.dumps(product_payload, indent=2)}")
+        success, response = self.run_test("Direct backend product creation", "POST", "products", 200, product_payload, self.admin_token)
+        
+        if success and 'id' in response:
+            self.direct_product_id = response['id']
+            print(f"   ✅ SUCCESS: Product created directly via backend with ID: {self.direct_product_id}")
+            print(f"   Product details: {response.get('name')} v{response.get('version')}")
+            print("   🔍 ANALYSIS: Backend works when called directly!")
+        else:
+            print(f"   ❌ FAILED: Backend product creation failed: {response}")
+            print("   🔍 ANALYSIS: Problem is in the backend, not frontend")
+            return False
+        
+        # Test 2: Verify product appears in GET /api/products
+        print("\n🔍 Test 2: Verify product appears in product list")
+        success, response = self.run_test("Get products after creation", "GET", "products", 200, token=self.admin_token)
+        
+        if success:
+            product_found = False
+            for product in response:
+                if product.get('id') == self.direct_product_id:
+                    product_found = True
+                    print(f"   ✅ SUCCESS: Product found in list - {product.get('name')} v{product.get('version')}")
+                    break
+            
+            if not product_found:
+                print(f"   ❌ FAILED: Product with ID {self.direct_product_id} not found in product list")
+                print("   🔍 ANALYSIS: Product creation may have failed or database issue")
+            else:
+                print("   🔍 ANALYSIS: Product persistence working correctly")
+        else:
+            print("   ❌ FAILED: Could not retrieve product list")
+        
+        # Test 3: Analyze maintenance logs
+        print("\n🔍 Test 3: Analyze maintenance logs for product creation")
+        success, response = self.run_test("Get maintenance logs", "GET", "maintenance/logs", 200, token=self.admin_token)
+        
+        if success and 'logs' in response:
+            logs = response['logs']
+            print(f"   ✅ Retrieved {len(logs)} log entries")
+            
+            # Look for product-related logs
+            product_logs = []
+            for log in logs:
+                if 'product' in log.lower() or 'create_product' in log.lower():
+                    product_logs.append(log)
+            
+            if product_logs:
+                print(f"   📋 Found {len(product_logs)} product-related log entries:")
+                for i, log in enumerate(product_logs[-10:]):  # Show last 10
+                    print(f"      {i+1}. {log}")
+                
+                # Check for specific error patterns
+                error_logs = [log for log in product_logs if 'error' in log.lower() or 'exception' in log.lower()]
+                if error_logs:
+                    print(f"   ⚠️  Found {len(error_logs)} error logs:")
+                    for error_log in error_logs[-5:]:  # Show last 5 errors
+                        print(f"      ❌ {error_log}")
+                    print("   🔍 ANALYSIS: Backend logging system has errors that may affect product creation")
+                else:
+                    print("   ✅ No error logs found in product creation process")
+                    print("   🔍 ANALYSIS: Logging system working correctly")
+            else:
+                print("   ⚠️  No product-related logs found")
+                print("   🔍 ANALYSIS: Logging system may not be capturing product operations")
+        else:
+            print("   ❌ FAILED: Could not retrieve maintenance logs")
+            print("   🔍 ANALYSIS: Maintenance logging system may be down")
+        
+        return success
+
     def test_review_request_quick_test(self):
         """Quick test as requested in review to verify new endpoints"""
         print("\n" + "="*50)
