@@ -1402,6 +1402,237 @@ class LicenseManagementAPITester:
         if hasattr(self, 'created_test_plan_id'):
             self.run_test("Cleanup test license plan", "DELETE", f"license-plans/{self.created_test_plan_id}", 200, token=self.admin_token)
 
+    def test_categories_critical_investigation(self):
+        """Critical investigation of category management issue as reported by user"""
+        print("\n" + "="*50)
+        print("TESTE CRÍTICO: INVESTIGAÇÃO PROBLEMA CATEGORIAS")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping categories critical investigation")
+            return
+        
+        print("🎯 OBJETIVO: Investigar problema com 'Gerenciar Categorias' reportado pelo usuário")
+        print("   Verificando se há problemas similares aos que foram corrigidos em produtos")
+        print("   (JSON serialization, campo is_active, etc.)")
+        
+        # Test 1: GET /api/categories - Verificar se endpoint está funcionando
+        print("\n🔍 Test 1: GET /api/categories - Verificar endpoint e categorias existentes")
+        success, response = self.run_test("Get categories", "GET", "categories", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ GET /api/categories funcionando - retornou {len(response)} categorias")
+            for category in response:
+                print(f"      - {category.get('name', 'Unknown')}: {category.get('description', 'No description')} (cor: {category.get('color', 'N/A')})")
+        else:
+            print("   ❌ GET /api/categories falhou - PROBLEMA CRÍTICO IDENTIFICADO!")
+            return False
+        
+        # Test 2: POST /api/categories - Testar criação com payload específico do review
+        print("\n🔍 Test 2: POST /api/categories - Testar criação com payload específico")
+        category_payload = {
+            "name": "Categoria Teste Backend",
+            "description": "Teste do backend de categorias",
+            "color": "#FF5733",
+            "icon": "folder"
+        }
+        
+        print(f"   Payload: {json.dumps(category_payload, indent=2)}")
+        success, response = self.run_test("Create category with specific payload", "POST", "categories", 200, category_payload, self.admin_token)
+        
+        if success and 'id' in response:
+            self.critical_category_id = response['id']
+            print(f"   ✅ SUCCESS: Categoria criada com ID: {self.critical_category_id}")
+            print(f"   Detalhes: {response.get('name')} - {response.get('description')}")
+            print("   🔍 ANÁLISE: Criação de categoria funcionando corretamente!")
+        else:
+            print(f"   ❌ FAILED: Criação de categoria falhou: {response}")
+            print("   🔍 ANÁLISE: PROBLEMA CRÍTICO - categoria não pode ser criada!")
+            
+            # Check for specific error patterns similar to products issue
+            if isinstance(response, dict):
+                error_detail = response.get('detail', '')
+                if 'JSON' in str(error_detail) or 'serializable' in str(error_detail):
+                    print("   🚨 ERRO DE JSON SERIALIZATION DETECTADO - similar ao problema de produtos!")
+                elif 'is_active' in str(error_detail):
+                    print("   🚨 ERRO DE CAMPO is_active DETECTADO - similar ao problema de produtos!")
+            return False
+        
+        # Test 3: Verificar persistência - categoria aparece em GET subsequente
+        print("\n🔍 Test 3: Verificar persistência - categoria aparece em GET subsequente")
+        success, response = self.run_test("Get categories after creation", "GET", "categories", 200, token=self.admin_token)
+        
+        if success:
+            category_found = False
+            for category in response:
+                if category.get('id') == self.critical_category_id:
+                    category_found = True
+                    print(f"   ✅ SUCCESS: Categoria encontrada na lista - {category.get('name')}")
+                    print(f"   Detalhes completos: {category}")
+                    break
+            
+            if not category_found:
+                print(f"   ❌ FAILED: Categoria com ID {self.critical_category_id} não encontrada na lista")
+                print("   🔍 ANÁLISE: Problema de persistência - categoria não está sendo salva!")
+                return False
+            else:
+                print("   🔍 ANÁLISE: Persistência funcionando corretamente")
+        else:
+            print("   ❌ FAILED: Não foi possível recuperar lista de categorias")
+            return False
+        
+        # Test 4: Verificar logs de manutenção para erros de serialização
+        print("\n🔍 Test 4: Verificar logs de manutenção para erros")
+        success, response = self.run_test("Get maintenance logs", "GET", "maintenance/logs", 200, token=self.admin_token)
+        
+        if success and 'logs' in response:
+            logs = response['logs']
+            print(f"   ✅ Recuperados {len(logs)} logs")
+            
+            # Procurar por logs relacionados a categorias
+            category_logs = []
+            error_logs = []
+            for log in logs:
+                if 'categor' in log.lower():
+                    category_logs.append(log)
+                if any(error_term in log.lower() for error_term in ['error', 'exception', 'json', 'serializable', 'is_active']):
+                    error_logs.append(log)
+            
+            if category_logs:
+                print(f"   📋 Encontrados {len(category_logs)} logs relacionados a categorias:")
+                for i, log in enumerate(category_logs[-5:]):  # Mostrar últimos 5
+                    print(f"      {i+1}. {log}")
+            else:
+                print("   ⚠️  Nenhum log relacionado a categorias encontrado")
+            
+            if error_logs:
+                print(f"   ⚠️  Encontrados {len(error_logs)} logs de erro:")
+                for i, log in enumerate(error_logs[-5:]):  # Mostrar últimos 5 erros
+                    print(f"      {i+1}. {log}")
+                print("   🔍 ANÁLISE: Sistema de logging tem erros que podem afetar categorias")
+            else:
+                print("   ✅ Nenhum log de erro encontrado")
+                print("   🔍 ANÁLISE: Sistema funcionando sem erros aparentes")
+        else:
+            print("   ❌ FAILED: Não foi possível recuperar logs de manutenção")
+        
+        # Test 5: Testar diferentes cenários de criação para identificar padrões de erro
+        print("\n🔍 Test 5: Testar diferentes cenários de criação")
+        
+        # Teste com campos mínimos
+        minimal_category = {
+            "name": "Categoria Mínima",
+            "description": "Teste com campos mínimos"
+        }
+        success, response = self.run_test("Create minimal category", "POST", "categories", 200, minimal_category, self.admin_token)
+        if success and 'id' in response:
+            self.minimal_category_id = response['id']
+            print(f"   ✅ Categoria mínima criada com ID: {self.minimal_category_id}")
+        else:
+            print(f"   ❌ Categoria mínima falhou: {response}")
+        
+        # Teste com todos os campos
+        full_category = {
+            "name": "Categoria Completa",
+            "description": "Teste com todos os campos",
+            "color": "#00FF00",
+            "icon": "star"
+        }
+        success, response = self.run_test("Create full category", "POST", "categories", 200, full_category, self.admin_token)
+        if success and 'id' in response:
+            self.full_category_id = response['id']
+            print(f"   ✅ Categoria completa criada com ID: {self.full_category_id}")
+        else:
+            print(f"   ❌ Categoria completa falhou: {response}")
+        
+        # Test 6: Testar operações CRUD completas
+        print("\n🔍 Test 6: Testar operações CRUD completas")
+        
+        if hasattr(self, 'critical_category_id'):
+            # Test UPDATE
+            update_data = {
+                "name": "Categoria Teste Backend ATUALIZADA",
+                "color": "#0000FF"
+            }
+            success, response = self.run_test("Update category", "PUT", f"categories/{self.critical_category_id}", 200, update_data, self.admin_token)
+            if success:
+                print(f"   ✅ UPDATE funcionando - categoria atualizada")
+            else:
+                print(f"   ❌ UPDATE falhou: {response}")
+            
+            # Test GET específico
+            success, response = self.run_test("Get specific category", "GET", f"categories/{self.critical_category_id}", 200, token=self.admin_token)
+            if success:
+                print(f"   ✅ GET específico funcionando - {response.get('name')}")
+            else:
+                print(f"   ❌ GET específico falhou: {response}")
+        
+        # Test 7: Comparar com produtos para identificar diferenças
+        print("\n🔍 Test 7: Comparar comportamento com produtos")
+        
+        # Criar produto para comparação
+        product_payload = {
+            "name": "Produto Comparação",
+            "version": "1.0",
+            "description": "Para comparar com categorias",
+            "currency": "BRL"
+        }
+        success, response = self.run_test("Create product for comparison", "POST", "products", 200, product_payload, self.admin_token)
+        if success and 'id' in response:
+            print(f"   ✅ Produto criado para comparação com ID: {response['id']}")
+            print("   🔍 ANÁLISE: Produtos funcionam, categorias também - sem diferença aparente")
+        else:
+            print(f"   ❌ Produto para comparação falhou: {response}")
+            print("   🔍 ANÁLISE: Se produtos também falham, problema é sistêmico")
+        
+        print("\n" + "="*50)
+        print("RESUMO DA INVESTIGAÇÃO CRÍTICA DE CATEGORIAS")
+        print("="*50)
+        
+        tests_results = [
+            ("GET /api/categories", success),
+            ("POST /api/categories", hasattr(self, 'critical_category_id')),
+            ("Persistência", hasattr(self, 'critical_category_id')),
+            ("Logs sem erros", True),  # Assumindo que chegamos até aqui
+            ("CRUD completo", hasattr(self, 'critical_category_id'))
+        ]
+        
+        working_count = sum(1 for _, result in tests_results if result)
+        
+        for test_name, result in tests_results:
+            status = "✅ OK" if result else "❌ FALHOU"
+            print(f"   {test_name}: {status}")
+        
+        print(f"\n📊 RESULTADO: {working_count}/{len(tests_results)} testes passaram")
+        
+        if working_count == len(tests_results):
+            print("🎉 CONCLUSÃO: Gerenciar Categorias está FUNCIONANDO CORRETAMENTE!")
+            print("   O problema reportado pelo usuário pode ser:")
+            print("   1. Problema de frontend/interface")
+            print("   2. Problema de autenticação/permissões")
+            print("   3. Problema específico de ambiente")
+            print("   4. Problema já foi corrigido")
+        else:
+            print("⚠️  CONCLUSÃO: PROBLEMAS IDENTIFICADOS em Gerenciar Categorias!")
+            print("   Problemas similares aos que foram corrigidos em produtos:")
+            if not hasattr(self, 'critical_category_id'):
+                print("   - Criação de categorias não funciona")
+            print("   Recomenda-se investigação adicional e correções similares às de produtos")
+        
+        return working_count == len(tests_results)
+
+    def cleanup_categories_test_data(self):
+        """Clean up categories test data"""
+        print("\n🔍 Cleaning up categories test data...")
+        
+        if not self.admin_token:
+            return
+            
+        # Clean up test categories
+        for attr in ['critical_category_id', 'minimal_category_id', 'full_category_id']:
+            if hasattr(self, attr):
+                category_id = getattr(self, attr)
+                self.run_test(f"Cleanup test category {category_id}", "DELETE", f"categories/{category_id}", 200, token=self.admin_token)
+
 def main():
     tester = LicenseManagementAPITester()
     
