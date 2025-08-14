@@ -52,17 +52,19 @@ const MaintenanceModule = () => {
   }, []);
 
   const getLogIcon = (line) => {
-    if (line.includes('[ERROR]')) return <XCircle className="w-4 h-4 text-red-500" />;
-    if (line.includes('[INFO]')) return <CheckCircle className="w-4 h-4 text-green-500" />;
-    if (line.includes('[DEBUG]')) return <FileText className="w-4 h-4 text-blue-500" />;
-    return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+    // Ícones semânticos WCAG para tipos de log
+    if (line.includes('[ERROR]')) return <XCircle className="w-4 h-4 text-danger" aria-label="Erro crítico" />;
+    if (line.includes('[INFO]')) return <CheckCircle className="w-4 h-4 text-success" aria-label="Informação" />;
+    if (line.includes('[DEBUG]')) return <FileText className="w-4 h-4 text-info" aria-label="Debug" />;
+    return <AlertTriangle className="w-4 h-4 text-warning" aria-label="Aviso" />;
   };
 
   const getLogColorClass = (line) => {
-    if (line.includes('[ERROR]')) return 'text-red-600 bg-red-50';
-    if (line.includes('[INFO]')) return 'text-green-600 bg-green-50';
-    if (line.includes('[DEBUG]')) return 'text-blue-600 bg-blue-50';
-    return 'text-gray-600 bg-gray-50';
+    // Classes semânticas WCAG com contraste adequado
+    if (line.includes('[ERROR]')) return 'text-danger bg-danger-light';
+    if (line.includes('[INFO]')) return 'text-success bg-success-light';
+    if (line.includes('[DEBUG]')) return 'text-info bg-info-light';
+    return 'text-neutral bg-neutral-light';
   };
 
   return (
