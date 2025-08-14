@@ -1405,29 +1405,38 @@ class LicenseManagementAPITester:
 def main():
     tester = LicenseManagementAPITester()
     
-    # Run the specific quick test requested in review
-    print("🚀 Starting Quick Test for Review Request")
+    # Run the specific direct backend test requested in review
+    print("🚀 Starting Direct Backend Test for Review Request")
     print(f"Base URL: {tester.base_url}")
-    print("🎯 TESTING: /api/companies and /api/license-plans endpoints")
+    print("🎯 TESTING: Direct backend product creation to isolate frontend vs backend issues")
     
     # Essential tests for this review request
     tester.test_health_check()
     tester.test_authentication()
-    tester.test_review_request_quick_test()
-    tester.cleanup_review_test_data()
+    
+    # The main test requested in the review
+    backend_success = tester.test_direct_backend_product_creation()
+    
+    # Clean up test data
+    if hasattr(tester, 'direct_product_id'):
+        print(f"\n🔍 Cleaning up test product {tester.direct_product_id}")
+        tester.run_test("Cleanup direct test product", "DELETE", f"products/{tester.direct_product_id}", 200, token=tester.admin_token)
     
     # Print final results
     print("\n" + "="*50)
-    print("REVIEW REQUEST TEST RESULTS")
+    print("DIRECT BACKEND TEST RESULTS")
     print("="*50)
     print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     
-    if tester.tests_passed >= (tester.tests_run - 2):  # Allow minor failures
-        print("🎉 Review request tests completed successfully!")
-        print("✅ New endpoints /api/companies and /api/license-plans are working")
+    if backend_success:
+        print("🎉 CONCLUSION: Backend works when called directly!")
+        print("✅ Problem is in the frontend, not the backend")
+        print("📋 RECOMMENDATION: Check frontend form submission and data mapping")
         return 0
     else:
-        print(f"❌ {tester.tests_run - tester.tests_passed} tests failed")
+        print("❌ CONCLUSION: Backend has issues")
+        print("🔍 Problem is in the backend logging or product creation logic")
+        print("📋 RECOMMENDATION: Fix backend logging serialization issues")
         return 1
 
 if __name__ == "__main__":
