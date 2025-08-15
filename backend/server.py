@@ -17,6 +17,69 @@ import secrets
 import re
 import json
 
+# Utilitário para mascaramento de dados sensíveis
+def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
+    """
+    Mascara dados sensíveis mostrando apenas os primeiros/últimos caracteres
+    """
+    if not data or len(data) <= visible_chars:
+        return mask_char * 8  # Retorna máscara padrão
+    
+    if len(data) <= visible_chars * 2:
+        # Para strings pequenas, mostra início e fim
+        visible_start = visible_chars // 2
+        visible_end = visible_chars // 2
+        return data[:visible_start] + mask_char * 6 + data[-visible_end:]
+    else:
+        # Para strings maiores, mostra mais caracteres
+        return data[:visible_chars] + mask_char * 6 + data[-visible_chars:]
+
+def generate_license_reference(client_data: dict, license_key: Optional[str] = None) -> str:
+    """
+    Gera uma referência única baseada na chave de licença para mascaramento
+    """
+    if license_key:
+        # Usar parte da chave de licença como referência
+        return f"LIC-{license_key[:8].upper()}"
+    
+    # Fallback: gerar referência baseada em dados do cliente
+    client_id = client_data.get('id', 'UNKNOWN')[:8]
+    client_type = client_data.get('client_type', 'XX')
+    return f"REF-{client_type.upper()}{client_id}"
+
+def apply_data_masking(client_data: dict, user_role: str, license_reference: str) -> dict:
+    """
+    Aplica mascaramento baseado no role do usuário
+    """
+    # Roles que podem ver dados sensíveis
+    privileged_roles = ['admin', 'super_admin', 'technical_lead']
+    
+    if user_role in privileged_roles:
+        # Usuário privilegiado: dados reais
+        return client_data
+    
+    # Usuário comum: dados mascarados
+    masked_data = client_data.copy()
+    
+    if 'sensitive_data' in masked_data and masked_data['sensitive_data']:
+        sensitive = masked_data['sensitive_data']
+        
+        # Mascarar campos sensíveis
+        for field_name, field_value in sensitive.items():
+            if isinstance(field_value, str) and field_value:
+                if field_name in ['admin_password', 'service_password', 'wifi_password']:
+                    # Senhas: mascaramento total com referência
+                    masked_data['sensitive_data'][field_name] = f"[PROTEGIDO-{license_reference}]"
+                elif field_name in ['internal_equipment_id', 'serial_number', 'mac_address', 'hardware_key']:
+                    # IDs: mascaramento parcial
+                    masked_data['sensitive_data'][field_name] = mask_sensitive_data(field_value)
+                elif field_name in ['api_keys', 'recovery_codes', 'encryption_keys']:
+                    # Arrays: mascarar conteúdo
+                    if isinstance(field_value, list):
+                        masked_data['sensitive_data'][field_name] = [f"[PROTEGIDO-{license_reference}-{i+1}]" for i in range(len(field_value))]
+    
+    return masked_data
+
 # Import maintenance logger
 import sys
 sys.path.append('/app')
