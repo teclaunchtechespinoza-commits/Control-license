@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { SensitiveDataSection, SensitiveDataEditor } from './SensitiveDataManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { 
   AlertDialog,
