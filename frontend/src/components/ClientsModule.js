@@ -787,44 +787,20 @@ const ClientsModule = () => {
   };
 
   const getSemanticStatusBadge = (status) => {
-    // Sistema semântico WCAG para status de clientes
-    const statusConfig = {
-      'active': { 
-        variant: 'success', 
-        label: 'Ativo', 
-        icon: '✓',
-        ariaLabel: 'Cliente ativo - dados validados e funcionais'
-      },
-      'inactive': { 
-        variant: 'neutral', 
-        label: 'Inativo', 
-        icon: '○',
-        ariaLabel: 'Cliente inativo - desabilitado temporariamente'
-      },
-      'pending_verification': { 
-        variant: 'info', 
-        label: 'Pendente', 
-        icon: '●',
-        ariaLabel: 'Cliente pendente - aguardando verificação de dados'
-      },
-      'blocked': { 
-        variant: 'danger', 
-        label: 'Bloqueado', 
-        icon: '✕',
-        ariaLabel: 'Cliente bloqueado - acesso negado por problemas'
-      }
-    };
-
-    const config = statusConfig[status] || statusConfig['inactive'];
-    return (
-      <CustomSemanticBadge
-        variant={config.variant}
-        label={config.label}
-        icon={config.icon}
-        ariaLabel={config.ariaLabel}
-        size="sm"
-      />
-    );
+    // Usar diretamente o LicenseStatusBadge para consistência
+    // Mapeamento direto para evitar conflitos
+    switch(status) {
+      case 'active':
+        return <LicenseStatusBadge status="active" size="sm" />;
+      case 'inactive':
+        return <LicenseStatusBadge status="inactive" size="sm" />;
+      case 'pending_verification':
+        return <LicenseStatusBadge status="pending" size="sm" />;
+      case 'blocked':
+        return <LicenseStatusBadge status="blocked" size="sm" />;
+      default:
+        return <LicenseStatusBadge status="inactive" size="sm" />;
+    }
   };
 
   const formatDate = (dateString) => {
