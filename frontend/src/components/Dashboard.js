@@ -292,6 +292,11 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
+      
+      {/* Informações de Versão para Administradores */}
+      {user?.role === 'admin' && (
+        <AdminVersionInfo />
+      )}
     </div>
   );
 };
