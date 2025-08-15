@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 
 class LicenseManagementAPITester:
-    def __init__(self, base_url="https://licensepro-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://e3712ae9-4d7f-4e3b-8159-d15c1277ab75.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.user_token = None
