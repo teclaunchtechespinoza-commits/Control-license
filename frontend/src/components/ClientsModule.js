@@ -1155,37 +1155,17 @@ const ClientsModule = () => {
                             <SelectValue placeholder="Selecionar status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-success">✓</span>
-                                <span>Ativo</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="inactive">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-neutral">○</span>
-                                <span>Inativo</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="pending_verification">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-info">●</span>
-                                <span>Pendente Verificação</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="blocked">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-danger">✕</span>
-                                <span>Bloqueado</span>
-                              </div>
-                            </SelectItem>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="pending_verification">Pendente Verificação</SelectItem>
+                            <SelectItem value="blocked">Bloqueado</SelectItem>
                           </SelectContent>
                         </Select>
                         
-                        {/* Preview do badge semântico - otimizado */}
+                        {/* Preview do badge semântico - sem redundância */}
                         {formData.status && (
-                          <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md border">
-                            <span className="text-xs font-medium text-gray-500">Como aparecerá:</span>
+                          <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-md border">
+                            <span className="text-xs font-medium text-gray-500">Como aparecerá na lista:</span>
                             {getSemanticStatusBadge(formData.status)}
                           </div>
                         )}
