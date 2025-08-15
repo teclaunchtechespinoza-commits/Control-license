@@ -126,6 +126,16 @@ const UserLicenses = () => {
     return <LicenseStatusBadge status={status} size="sm" />;
   };
 
+  const openDetailsDialog = (license) => {
+    setSelectedLicense(license);
+    setShowDetailsDialog(true);
+  };
+
+  const closeDetailsDialog = () => {
+    setSelectedLicense(null);
+    setShowDetailsDialog(false);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Sem data limite';
     return new Date(dateString).toLocaleDateString('pt-BR');
