@@ -2144,6 +2144,124 @@ const ClientsModule = () => {
                   </div>
                 </div>
 
+                {/* Seção de Dados Sensíveis - Apenas para Administradores */}
+                {user?.role === 'admin' && (
+                  <div className="space-y-4 border-l-4 border-red-200 pl-4">
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <div className="flex items-center space-x-2">
+                        <Shield className="w-4 h-4 text-red-600" />
+                        <h3 className="font-medium text-red-700">Dados Sensíveis (Confidencial)</h3>
+                        <Badge className="bg-red-50 text-red-700 border-red-200">
+                          <Lock className="w-3 h-3 mr-1" />
+                          Acesso Restrito
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-red-50 rounded-md">
+                      <div className="space-y-2">
+                        <Label className="text-red-700">ID Interno do Equipamento</Label>
+                        <Input
+                          value={formData.sensitive_data?.internal_equipment_id || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              internal_equipment_id: e.target.value
+                            }
+                          })}
+                          placeholder="ID confidencial interno"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-red-700">Endereço MAC</Label>
+                        <Input
+                          value={formData.sensitive_data?.mac_address || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              mac_address: e.target.value
+                            }
+                          })}
+                          placeholder="00:00:00:00:00:00"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-red-700">Usuário Admin</Label>
+                        <Input
+                          value={formData.sensitive_data?.admin_username || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              admin_username: e.target.value
+                            }
+                          })}
+                          placeholder="Usuário administrador"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-red-700">Senha Admin</Label>
+                        <Input
+                          type="password"
+                          value={formData.sensitive_data?.admin_password || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              admin_password: e.target.value
+                            }
+                          })}
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-red-700">Senha WiFi</Label>
+                        <Input
+                          type="password"
+                          value={formData.sensitive_data?.wifi_password || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              wifi_password: e.target.value
+                            }
+                          })}
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-red-700">Chave de Hardware</Label>
+                        <Input
+                          value={formData.sensitive_data?.hardware_key || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            sensitive_data: {
+                              ...formData.sensitive_data,
+                              hardware_key: e.target.value
+                            }
+                          })}
+                          placeholder="Chave de hardware"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      <p className="text-xs text-amber-700">
+                        <strong>Atenção:</strong> Dados sensíveis serão mascarados para usuários sem permissão adequada.
+                        Use a referência de licença para suporte técnico.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* LGPD Compliance */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 border-b pb-2">
