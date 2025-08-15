@@ -110,7 +110,7 @@ const semanticBadgeVariants = cva(
         warning: "bg-warning-light text-warning border border-warning/20",
         
         // Danger: Vermelho acessível (contraste ≥ 4.5:1)
-        danger: "bg-danger-light text-danger border border-danger/20",
+        danger: "bg-danger-light text-danger border border-red-200",
         
         // Info: Azul acessível (contraste ≥ 4.5:1)
         info: "bg-info-light text-info border border-info/20",
