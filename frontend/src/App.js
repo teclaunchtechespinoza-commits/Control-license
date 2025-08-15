@@ -1,8 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { Toaster } from 'sonner';
-import { toast } from 'sonner';
+import { FooterVersion } from './components/VersionControl';
 
 // Components
 import LoginPage from './components/LoginPage';
