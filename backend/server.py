@@ -250,6 +250,9 @@ class ClientBase(BaseModel):
     # Remote access
     remote_access: Optional[RemoteAccessInfo] = None
     
+    # Sensitive data (dados mascaráveis)
+    sensitive_data: Optional[SensitiveEquipmentData] = None
+    
     # Verification
     verification: Optional[VerificationControls] = None
 
