@@ -369,6 +369,8 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "testing"
+      message: "🎉 TESTE CRÍTICO CONCLUÍDO COM SUCESSO ABSOLUTO! Executed comprehensive testing of the blocked status validation fix as specifically requested in review. CRITICAL VERIFICATION RESULTS: 1) ✅ PF client creation with status 'blocked' successful (HTTP 200) - payload: {'client_type': 'pf', 'status': 'blocked', 'nome_completo': 'Teste Cliente Bloqueado', 'cpf': '12345678901', 'email_principal': 'teste.bloqueado@exemplo.com', 'telefone': '11999887766'}, 2) ✅ Client created successfully with ID: 7cc38bc6-88a4-489c-87ca-a33b01531136, 3) ✅ Status 'blocked' persistido corretamente no banco, 4) ✅ All 4 valid statuses working: 'active', 'inactive', 'pending_verification', 'blocked', 5) ✅ Invalid status properly rejected with updated validation message: 'Input should be 'active', 'inactive', 'pending_verification' or 'blocked'', 6) ✅ PJ client creation with status 'blocked' also working correctly. CONCLUSION: The user-reported validation error 'body.status should be 'active', 'inactive' or 'pending_verification'' has been COMPLETELY RESOLVED. The enum ClientStatus now includes BLOCKED = 'blocked' and POST /api/clientes-pf accepts 'blocked' as a valid status. The fix implemented by main agent is working perfectly."
     - agent: "main"
       message: "Initialized testing data for PJ client management system. All backend models and frontend components have been implemented. Ready for comprehensive backend API testing focusing on CRUD operations and CNPJ validation."
     - agent: "main"
