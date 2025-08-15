@@ -42,6 +42,8 @@ const UserLicenses = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState(null);
 
   useEffect(() => {
     fetchLicenses();
