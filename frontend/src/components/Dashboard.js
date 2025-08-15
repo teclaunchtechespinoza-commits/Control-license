@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Calendar
 } from 'lucide-react';
+import { AdminVersionInfo } from './VersionControl';
 import LoadingSpinner from './LoadingSpinner';
 
 const Dashboard = () => {
