@@ -64,6 +64,7 @@ class ClientStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     PENDING_VERIFICATION = "pending_verification"
+    BLOCKED = "blocked"
 
 class ContactPreference(str, Enum):
     EMAIL = "email"
