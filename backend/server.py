@@ -159,6 +159,36 @@ class Document(BaseModel):
     file_url: Optional[str] = None
 
 # Remote Access Info
+# Sensitive Data Model - Dados Sensíveis Mascaráveis
+class SensitiveEquipmentData(BaseModel):
+    # IDs e números confidenciais
+    internal_equipment_id: Optional[str] = None  # ID interno confidencial
+    serial_number: Optional[str] = None  # Número de série
+    mac_address: Optional[str] = None  # Endereço MAC
+    hardware_key: Optional[str] = None  # Chave de hardware
+    
+    # Credenciais de acesso
+    admin_username: Optional[str] = None  # Usuário administrador
+    admin_password: Optional[str] = None  # Senha administrador
+    service_password: Optional[str] = None  # Senha de serviço
+    wifi_password: Optional[str] = None  # Senha WiFi
+    
+    # Outros dados sensíveis
+    security_questions: Optional[Dict[str, str]] = None  # Perguntas de segurança
+    recovery_codes: Optional[List[str]] = None  # Códigos de recuperação
+    api_keys: Optional[List[str]] = None  # Chaves de API
+    encryption_keys: Optional[List[str]] = None  # Chaves de criptografia
+    
+    # Configurações de acesso
+    vpn_config: Optional[str] = None  # Configuração VPN
+    network_settings: Optional[Dict[str, str]] = None  # Configurações de rede
+    
+    # Metadados de segurança
+    data_classification: str = "confidential"  # Classificação dos dados
+    access_level: str = "admin_only"  # Nível de acesso necessário
+    last_updated: Optional[datetime] = None
+    updated_by: Optional[str] = None
+
 class RemoteAccessInfo(BaseModel):
     system_type: RemoteAccessType
     access_id: Optional[str] = None  # TeamViewer ID, AnyDesk ID, etc.
