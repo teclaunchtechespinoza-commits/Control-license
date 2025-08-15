@@ -2313,6 +2313,15 @@ const ClientsModule = () => {
                 <Label className="text-sm font-medium text-gray-500">Criado em</Label>
                 <p>{formatDate(viewingClient.created_at)}</p>
               </div>
+              
+              <Separator />
+              
+              {/* Seção de Dados Sensíveis */}
+              <SensitiveDataSection 
+                sensitiveData={viewingClient.sensitive_data}
+                clientId={viewingClient.id}
+                licenseReference={`LIC-${viewingClient.id?.substring(0, 8).toUpperCase() || 'UNKNOWN'}`}
+              />
             </div>
           )}
           <DialogFooter>
