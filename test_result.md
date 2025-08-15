@@ -105,6 +105,21 @@
 user_problem_statement: "Complete License Management System with comprehensive PJ (Pessoa Jurídica) client management. The system needs secure authentication, multi-user functionality, and detailed client registration including CNPJ validation, company information, addresses, legal representatives, and integration with license management."
 
 backend:
+  - task: "ClientStatus Enum 'blocked' Validation Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added BLOCKED = 'blocked' to ClientStatus enum to fix validation error 'body.status should be 'active', 'inactive' or 'pending_verification'' when users try to use status 'blocked'."
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTE CRÍTICO APROVADO COM SUCESSO ABSOLUTO! Comprehensive testing confirms that the blocked status validation fix is working perfectly. SPECIFIC RESULTS: 1) ✅ PF client creation with status 'blocked' successful (HTTP 200) - Created client ID: 7cc38bc6-88a4-489c-87ca-a33b01531136, 2) ✅ Status 'blocked' persistido corretamente no banco, 3) ✅ All valid statuses working: 'active', 'inactive', 'pending_verification', 'blocked', 4) ✅ Invalid status properly rejected with updated error message: 'Input should be 'active', 'inactive', 'pending_verification' or 'blocked'', 5) ✅ PJ client creation with status 'blocked' also working correctly. CONCLUSION: The user-reported validation error has been COMPLETELY RESOLVED. The enum ClientStatus now includes BLOCKED = 'blocked' and the backend accepts this status without any validation errors. The fix is working as intended."
+
   - task: "Equipment Brands and Models Management"
     implemented: true
     working: true
