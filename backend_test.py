@@ -1535,6 +1535,52 @@ class LicenseManagementAPITester:
             print("⚠️  WARNING: Some critical endpoints are still failing")
             print("   Registration modules may still have issues.")
 
+    def cleanup_blocked_status_test_data(self):
+        """Clean up test data created in blocked status tests"""
+        print("\n🔍 Cleaning up blocked status test data...")
+        
+        if not self.admin_token:
+            return
+            
+        # Clean up blocked status test clients
+        test_ids = ['blocked_pf_id', 'blocked_pj_id', 'status_test_active_id', 
+                   'status_test_inactive_id', 'status_test_pending_verification_id', 'status_test_blocked_id']
+        
+        for attr in test_ids:
+            if hasattr(self, attr):
+                client_id = getattr(self, attr)
+                endpoint = "clientes-pf" if "pf" in attr else "clientes-pj"
+                self.run_test(f"Cleanup {attr}", "DELETE", f"{endpoint}/{client_id}", 200, token=self.admin_token)
+
+    def run_blocked_status_test_only(self):
+        """Run only the blocked status validation test"""
+        print("🚀 Starting Blocked Status Validation Test")
+        print(f"Base URL: {self.base_url}")
+        
+        self.test_health_check()
+        self.test_authentication()
+        
+        if self.admin_token:
+            result = self.test_blocked_status_validation()
+            self.cleanup_blocked_status_test_data()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("RESULTADO FINAL DO TESTE CRÍTICO")
+            print("="*50)
+            
+            if result:
+                print("🎉 TESTE APROVADO: Status 'blocked' funcionando corretamente!")
+                print("   O erro de validação foi corrigido com sucesso.")
+                return 0
+            else:
+                print("❌ TESTE REPROVADO: Status 'blocked' ainda não funciona.")
+                print("   O erro de validação ainda persiste.")
+                return 1
+        else:
+            print("❌ Não foi possível obter token de admin para executar o teste")
+            return 1
+
     def cleanup_review_test_data(self):
         """Clean up test data created during review request testing"""
         print("\n🔍 Cleaning up review test data...")
