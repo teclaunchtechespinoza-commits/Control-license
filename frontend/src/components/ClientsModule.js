@@ -68,6 +68,8 @@ import {
   FileCheck,
   Monitor,
   FileImage,
+  AlertTriangle,
+  Lock,
   Minus
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
