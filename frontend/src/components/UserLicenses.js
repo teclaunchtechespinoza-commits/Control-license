@@ -385,6 +385,162 @@ const UserLicenses = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Modal de Detalhes da Licença */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              <span>Detalhes da Licença</span>
+            </DialogTitle>
+            <DialogDescription>
+              Informações completas e detalhadas da licença selecionada
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLicense && (
+            <div className="grid gap-6 py-4">
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 border-b pb-2">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <h3 className="font-medium">Informações Básicas</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Nome da Licença</label>
+                    <p className="font-medium">{selectedLicense.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <div className="mt-1">
+                      {getSemanticStatusBadge(selectedLicense.status)}
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Descrição</label>
+                  <p>{selectedLicense.description || 'Sem descrição'}</p>
+                </div>
+              </div>
+
+              {/* Informações da Licença */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 border-b pb-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <h3 className="font-medium">Informações da Licença</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Chave da Licença</label>
+                    <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md border">
+                      <code className="font-mono text-sm">{selectedLicense.license_key}</code>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigator.clipboard.writeText(selectedLicense.license_key)}
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Máximo de Usuários</label>
+                      <p className="font-medium">{selectedLicense.max_users || 'Ilimitado'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Usuários Ativos</label>
+                      <p className="font-medium">{selectedLicense.active_users || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Datas Importantes */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 border-b pb-2">
+                  <Calendar className="w-4 h-4 text-purple-600" />
+                  <h3 className="font-medium">Datas Importantes</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Data de Criação</label>
+                    <p>{formatDate(selectedLicense.created_at)}</p>
+                  </div>
+                  {selectedLicense.expires_at && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Data de Expiração</label>
+                      <div className="flex items-center space-x-2">
+                        <p className={isExpiringSoon(selectedLicense.expires_at) ? 'text-warning font-medium' : ''}>
+                          {formatDate(selectedLicense.expires_at)}
+                        </p>
+                        {isExpiringSoon(selectedLicense.expires_at) && (
+                          <Badge variant="outline" className="text-warning border-warning/50 bg-warning-light">
+                            ⚠ Expirando
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {selectedLicense.updated_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Última Atualização</label>
+                    <p>{formatDate(selectedLicense.updated_at)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Informações Adicionais */}
+              {(selectedLicense.metadata || selectedLicense.features) && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 border-b pb-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                    <h3 className="font-medium">Informações Adicionais</h3>
+                  </div>
+                  
+                  {selectedLicense.features && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Recursos Incluídos</label>
+                      <div className="mt-1 space-y-1">
+                        {selectedLicense.features.map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <CheckCircle className="w-3 h-3 text-green-500" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedLicense.metadata && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Metadados</label>
+                      <pre className="mt-1 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
+                        {JSON.stringify(selectedLicense.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDetailsDialog}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
