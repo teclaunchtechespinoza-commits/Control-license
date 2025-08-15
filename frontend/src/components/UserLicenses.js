@@ -368,7 +368,11 @@ const UserLicenses = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => openDetailsDialog(license)}
+                        >
                           <Eye className="w-4 h-4 mr-1" />
                           Detalhes
                         </Button>
