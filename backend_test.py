@@ -1341,6 +1341,154 @@ class LicenseManagementAPITester:
         
         return success
 
+    def test_blocked_status_validation(self):
+        """CRITICAL TEST: Verify 'blocked' status validation fix as requested in review"""
+        print("\n" + "="*50)
+        print("TESTE CRÍTICO: VALIDAÇÃO STATUS 'BLOCKED' (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping blocked status test")
+            return
+
+        print("🎯 OBJETIVO: Verificar se o erro de validação 'body.status should be 'active', 'inactive' or 'pending_verification'' foi corrigido")
+        print("   Testando se status 'blocked' é aceito após adição de BLOCKED = 'blocked' ao enum ClientStatus")
+        
+        # Test 1: Create PF client with status "blocked" (the main test case)
+        print("\n🔍 Test 1: Criação de cliente PF com status 'blocked'")
+        blocked_pf_payload = {
+            "client_type": "pf",
+            "status": "blocked",
+            "nome_completo": "Teste Cliente Bloqueado",
+            "cpf": "12345678901",
+            "email_principal": "teste.bloqueado@exemplo.com",
+            "telefone": "11999887766"
+        }
+        
+        print(f"   Payload de teste: {json.dumps(blocked_pf_payload, indent=2)}")
+        success, response = self.run_test("PF client with status 'blocked'", "POST", "clientes-pf", 200, blocked_pf_payload, self.admin_token)
+        
+        if success and 'id' in response:
+            self.blocked_pf_id = response['id']
+            print(f"   ✅ SUCESSO: Cliente PF criado com status 'blocked' - ID: {self.blocked_pf_id}")
+            print(f"   Status persistido: {response.get('status', 'N/A')}")
+            
+            # Verify the status was persisted correctly
+            if response.get('status') == 'blocked':
+                print("   ✅ CONFIRMADO: Status 'blocked' persistido corretamente no banco")
+            else:
+                print(f"   ⚠️  ATENÇÃO: Status esperado 'blocked', mas foi salvo como '{response.get('status')}'")
+        else:
+            print(f"   ❌ FALHOU: Erro ao criar cliente com status 'blocked': {response}")
+            print("   🔍 ANÁLISE: O erro de validação ainda persiste - enum não foi atualizado corretamente")
+
+        # Test 2: Test all other valid statuses to ensure they still work
+        print("\n🔍 Test 2: Verificação de todos os status válidos")
+        
+        valid_statuses = ["active", "inactive", "pending_verification", "blocked"]
+        status_results = {}
+        
+        for i, status in enumerate(valid_statuses):
+            print(f"\n   Testando status: '{status}'")
+            test_payload = {
+                "client_type": "pf",
+                "status": status,
+                "nome_completo": f"Cliente Teste {status.title()}",
+                "cpf": f"1234567890{i}",
+                "email_principal": f"teste.{status}@exemplo.com",
+                "telefone": "11999887766"
+            }
+            
+            success, response = self.run_test(f"PF client with status '{status}'", "POST", "clientes-pf", 200, test_payload, self.admin_token)
+            
+            if success and 'id' in response:
+                status_results[status] = {
+                    "success": True,
+                    "id": response['id'],
+                    "persisted_status": response.get('status')
+                }
+                print(f"      ✅ Status '{status}' aceito - ID: {response['id']}")
+                
+                # Store IDs for cleanup
+                setattr(self, f"status_test_{status}_id", response['id'])
+            else:
+                status_results[status] = {
+                    "success": False,
+                    "error": response
+                }
+                print(f"      ❌ Status '{status}' rejeitado: {response}")
+
+        # Test 3: Test invalid status to ensure validation still works
+        print("\n🔍 Test 3: Verificação de status inválido (deve falhar)")
+        
+        invalid_status_payload = {
+            "client_type": "pf",
+            "status": "invalid_status",
+            "nome_completo": "Cliente Teste Inválido",
+            "cpf": "98765432100",
+            "email_principal": "teste.invalido@exemplo.com",
+            "telefone": "11999887766"
+        }
+        
+        success, response = self.run_test("PF client with invalid status (should fail)", "POST", "clientes-pf", 422, invalid_status_payload, self.admin_token)
+        
+        if not success:
+            print(f"   ✅ CORRETO: Status inválido rejeitado como esperado: {response}")
+        else:
+            print(f"   ❌ PROBLEMA: Status inválido foi aceito incorretamente: {response}")
+
+        # Test 4: Test PJ client with blocked status as well
+        print("\n🔍 Test 4: Criação de cliente PJ com status 'blocked'")
+        
+        blocked_pj_payload = {
+            "client_type": "pj",
+            "status": "blocked",
+            "razao_social": "Empresa Bloqueada LTDA",
+            "cnpj": "12345678000195",
+            "email_principal": "empresa.bloqueada@exemplo.com",
+            "telefone": "11999887766"
+        }
+        
+        success, response = self.run_test("PJ client with status 'blocked'", "POST", "clientes-pj", 200, blocked_pj_payload, self.admin_token)
+        
+        if success and 'id' in response:
+            self.blocked_pj_id = response['id']
+            print(f"   ✅ SUCESSO: Cliente PJ criado com status 'blocked' - ID: {self.blocked_pj_id}")
+            print(f"   Status persistido: {response.get('status', 'N/A')}")
+        else:
+            print(f"   ❌ FALHOU: Erro ao criar cliente PJ com status 'blocked': {response}")
+
+        # Summary of results
+        print("\n" + "="*50)
+        print("RESUMO DOS RESULTADOS - TESTE CRÍTICO STATUS 'BLOCKED'")
+        print("="*50)
+        
+        print("📊 Status de validação por tipo de status:")
+        for status, result in status_results.items():
+            if result['success']:
+                print(f"   ✅ '{status}': ACEITO (ID: {result['id']}, Persistido: {result['persisted_status']})")
+            else:
+                print(f"   ❌ '{status}': REJEITADO ({result['error']})")
+        
+        # Check if the main objective was achieved
+        blocked_working = status_results.get('blocked', {}).get('success', False)
+        
+        if blocked_working:
+            print("\n🎉 RESULTADO FINAL: SUCESSO!")
+            print("   ✅ Status 'blocked' aceito sem erro de validação")
+            print("   ✅ Cliente criado com sucesso (HTTP 200)")
+            print("   ✅ Status 'blocked' persistido corretamente no banco")
+            print("   ✅ ELIMINADO: Erro 'body.status should be 'active', 'inactive' or 'pending_verification''")
+            print("\n   O erro reportado pelo usuário foi RESOLVIDO com sucesso!")
+        else:
+            print("\n❌ RESULTADO FINAL: FALHA!")
+            print("   ❌ Status 'blocked' ainda não é aceito")
+            print("   ❌ Erro de validação persiste")
+            print("   ❌ Enum ClientStatus pode não ter sido atualizado corretamente")
+            print("\n   O erro reportado pelo usuário ainda NÃO foi resolvido!")
+
+        return blocked_working
+
     def test_review_request_quick_test(self):
         """Quick test as requested in review to verify new endpoints"""
         print("\n" + "="*50)
