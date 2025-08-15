@@ -208,6 +208,17 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
+          
+          {/* Rodapé com Controle de Versão */}
+          <footer className="bg-white border-t border-gray-200 py-3 px-4 mt-auto">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                © 2025 License Manager. Todos os direitos reservados.
+              </div>
+              <FooterVersion />
+            </div>
+          </footer>
+          
           <Toaster position="top-right" richColors />
         </AuthProvider>
       </Router>
