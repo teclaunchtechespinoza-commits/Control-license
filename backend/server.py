@@ -1192,14 +1192,30 @@ async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
     clients = await db.clientes_pj.find().to_list(1000)
-    return [PessoaJuridica(**client) for client in clients]
+    
+    # Aplicar mascaramento baseado no role do usuário
+    masked_clients = []
+    for client in clients:
+        # Gerar referência de licença para mascaramento
+        license_reference = generate_license_reference(client)
+        
+        # Aplicar mascaramento
+        masked_client = apply_data_masking(client, current_user.role, license_reference)
+        masked_clients.append(PessoaJuridica(**masked_client))
+    
+    return masked_clients
 
 @api_router.get("/clientes-pj/{client_id}", response_model=PessoaJuridica)
 async def get_pessoa_juridica(client_id: str, current_user: User = Depends(get_current_user)):
     client_doc = await db.clientes_pj.find_one({"id": client_id})
     if not client_doc:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
-    return PessoaJuridica(**client_doc)
+    
+    # Aplicar mascaramento baseado no role do usuário
+    license_reference = generate_license_reference(client_doc)
+    masked_client = apply_data_masking(client_doc, current_user.role, license_reference)
+    
+    return PessoaJuridica(**masked_client)
 
 @api_router.put("/clientes-pj/{client_id}", response_model=PessoaJuridica)
 async def update_pessoa_juridica(
