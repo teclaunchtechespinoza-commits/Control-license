@@ -2511,7 +2511,8 @@ async def startup_db_client():
         admin_user = User(
             email="admin@demo.com",
             name="Demo Admin",
-            role=UserRole.ADMIN
+            role=UserRole.ADMIN,
+            tenant_id="default"
         )
         admin_dict = admin_user.dict()
         admin_dict["password_hash"] = get_password_hash("admin123")
@@ -2523,7 +2524,8 @@ async def startup_db_client():
         demo_user = User(
             email="user@demo.com",
             name="Demo User",
-            role=UserRole.USER
+            role=UserRole.USER,
+            tenant_id="default"
         )
         user_dict = demo_user.dict()
         user_dict["password_hash"] = get_password_hash("user123")
