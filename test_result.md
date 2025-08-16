@@ -408,7 +408,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AdminPanel Client Integration"
+    - "RBAC Management Interface Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
