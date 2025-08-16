@@ -2131,7 +2131,10 @@ async def startup_db_client():
             await db.categories.insert_one(category.dict())
         logger.info("Demo categories created")
     
-    # Debug endpoint para testar permissões do usuário
+    # Initialize RBAC system
+    await initialize_rbac_system()
+
+# Debug endpoint para testar permissões do usuário
 @api_router.get("/debug/user-permissions")
 async def debug_user_permissions(current_user: User = Depends(get_current_user)):
     try:
@@ -2158,8 +2161,6 @@ async def debug_user_permissions(current_user: User = Depends(get_current_user))
         }
     except Exception as e:
         return {"error": str(e)}
-
-    # Initialize RBAC system
     await initialize_rbac_system()
 
 @app.on_event("shutdown")
