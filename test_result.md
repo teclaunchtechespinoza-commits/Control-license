@@ -424,7 +424,8 @@ metadata:
 test_plan:
   current_focus:
     - "RBAC Management Interface Implementation"
-  stuck_tasks: []
+  stuck_tasks:
+    - "RBAC Management Interface Implementation"
   test_all: false
   test_priority: "high_first"
 
