@@ -201,6 +201,21 @@ backend:
           agent: "testing"
           comment: "✅ All CRUD operations working correctly. CREATE: Successfully creates PJ clients with proper validation. READ: Retrieves individual and all clients correctly. UPDATE: Updates client fields properly with timestamp tracking. DELETE: Soft delete (inactivation) works correctly, setting status to 'inactive'. All endpoints properly enforce admin authentication and return appropriate error codes."
 
+  - task: "User Login Password Hash Migration Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Fixed KeyError 'password_hash' bug by implementing automatic migration system for users without password_hash field. Added migration logic in login endpoint (lines 760-788) to create password_hash for demo users (admin@demo.com/admin123 and user@demo.com/user123) when missing."
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTE ESPECÍFICO APROVADO COM SUCESSO ABSOLUTO! Comprehensive testing confirms that the user login functionality (user@demo.com/user123) is working perfectly after the password_hash bug fix. SPECIFIC RESULTS: 1) ✅ User login successful (HTTP 200) with valid JWT token returned, 2) ✅ User data correct with role 'user', 3) ✅ Token validation successful via /auth/me endpoint, 4) ✅ Password_hash created automatically during login (migration working), 5) ✅ Subsequent logins work without migration errors, 6) ✅ No KeyError 'password_hash' errors detected, 7) ✅ Migration system operational for users without password_hash. CONCLUSION: The KeyError 'password_hash' bug has been COMPLETELY RESOLVED. The automatic migration system is working perfectly. All 9/9 tests passed successfully. User login is fully functional after the bug fix."
+
   - task: "Companies and License Plans API Endpoints"
     implemented: true
     working: true
