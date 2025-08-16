@@ -1862,7 +1862,9 @@ async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_
 
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
-    clients = await db.clientes_pj.find().to_list(1000)
+    # Aplicar filtro de tenant
+    query_filter = add_tenant_filter({})
+    clients = await db.clientes_pj.find(query_filter).to_list(1000)
     
     # Aplicar mascaramento baseado no role do usuário
     masked_clients = []
