@@ -1,11 +1,12 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from starlette.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, Response
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials  
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import BaseModel, Field, validator, EmailStr
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union
 from datetime import datetime, timedelta, date
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -16,6 +17,17 @@ import uuid
 import secrets
 import re
 import json
+import asyncio
+import bcrypt
+import sys
+
+# Import tenant system
+from tenant_system import (
+    Tenant, TenantCreate, TenantUpdate, TenantStatus, TenantPlan,
+    TenantMixin, tenant_context, get_current_tenant_id, is_super_admin,
+    add_tenant_filter, add_tenant_to_document, require_tenant,
+    get_plan_config, apply_plan_limits
+)
 
 # Utilitário para mascaramento de dados sensíveis
 def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
