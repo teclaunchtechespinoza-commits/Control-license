@@ -2137,34 +2137,17 @@ class LicenseManagementAPITester:
 def main():
     tester = LicenseManagementAPITester()
     
-    # Run the specific test requested in the review
-    print("🚀 EXECUTANDO TESTE ESPECÍFICO SOLICITADO NA REVISÃO")
+    # Run the critical test requested in the review
+    print("🚀 EXECUTANDO TESTE CRÍTICO SOLICITADO NA REVISÃO")
     print("="*60)
-    print("🎯 TESTE: Verificar login do usuário comum (user@demo.com/user123) após correção do bug password_hash")
+    print("🎯 TESTE: Verificar se novos usuários cadastrados conseguem fazer login após correção do bug")
+    print("📋 CONTEXTO: User reportou erro 'Account needs password reset - contact administrator'")
+    print("🔧 CORREÇÃO: Sistema agora cria password_hash para qualquer usuário durante login")
     
-    # First get admin token for any admin-required operations
-    tester.test_authentication()
+    # Run the critical test
+    result = tester.run_critical_test()
     
-    # Run the specific user login test
-    success = tester.test_user_login_password_hash_migration()
-    
-    # Print final results
-    print("\n" + "="*50)
-    print("RESULTADO FINAL DO TESTE ESPECÍFICO")
-    print("="*50)
-    print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
-    
-    if success:
-        print("🎉 TESTE ESPECÍFICO CONCLUÍDO COM SUCESSO!")
-        print("✅ O login do usuário comum está funcionando após a correção do bug password_hash")
-        print("✅ Sistema de migração automática para password_hash operacional")
-        print("✅ Sem mais erros 500 de KeyError 'password_hash'")
-        return 0
-    else:
-        print("❌ TESTE ESPECÍFICO FALHOU!")
-        print("❌ O login do usuário comum ainda apresenta problemas")
-        print("🔍 Verificar se a correção do bug password_hash foi aplicada corretamente")
-        return 1
+    return result
 
 if __name__ == "__main__":
     sys.exit(main())
