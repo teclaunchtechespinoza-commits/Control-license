@@ -1947,6 +1947,149 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def initialize_rbac_system():
+    """Initialize RBAC system with default permissions and roles"""
+    try:
+        # Verificar se sistema RBAC já foi inicializado
+        existing_permissions = await db.permissions.count_documents({})
+        if existing_permissions > 0:
+            logger.info("RBAC system already initialized")
+            return
+        
+        logger.info("Initializing RBAC system...")
+        
+        # Criar permissões padrão
+        default_permissions = [
+            {"name": "users.read", "description": "Visualizar usuários", "resource": "users", "action": "read"},
+            {"name": "users.create", "description": "Criar usuários", "resource": "users", "action": "create"},
+            {"name": "users.update", "description": "Editar usuários", "resource": "users", "action": "update"},
+            {"name": "users.delete", "description": "Excluir usuários", "resource": "users", "action": "delete"},
+            {"name": "users.manage", "description": "Gerenciar usuários (todas ações)", "resource": "users", "action": "manage"},
+            
+            {"name": "licenses.read", "description": "Visualizar licenças", "resource": "licenses", "action": "read"},
+            {"name": "licenses.create", "description": "Criar licenças", "resource": "licenses", "action": "create"},
+            {"name": "licenses.update", "description": "Editar licenças", "resource": "licenses", "action": "update"},
+            {"name": "licenses.delete", "description": "Excluir licenças", "resource": "licenses", "action": "delete"},
+            {"name": "licenses.manage", "description": "Gerenciar licenças (todas ações)", "resource": "licenses", "action": "manage"},
+            
+            {"name": "clients.read", "description": "Visualizar clientes", "resource": "clients", "action": "read"},
+            {"name": "clients.create", "description": "Criar clientes", "resource": "clients", "action": "create"},
+            {"name": "clients.update", "description": "Editar clientes", "resource": "clients", "action": "update"},
+            {"name": "clients.delete", "description": "Excluir clientes", "resource": "clients", "action": "delete"},
+            {"name": "clients.manage", "description": "Gerenciar clientes (todas ações)", "resource": "clients", "action": "manage"},
+            
+            {"name": "reports.read", "description": "Visualizar relatórios", "resource": "reports", "action": "read"},
+            {"name": "reports.create", "description": "Criar relatórios", "resource": "reports", "action": "create"},
+            {"name": "reports.export", "description": "Exportar relatórios", "resource": "reports", "action": "export"},
+            
+            {"name": "rbac.read", "description": "Visualizar sistema RBAC", "resource": "rbac", "action": "read"},
+            {"name": "rbac.manage", "description": "Gerenciar sistema RBAC", "resource": "rbac", "action": "manage"},
+            
+            {"name": "maintenance.read", "description": "Visualizar manutenção", "resource": "maintenance", "action": "read"},
+            {"name": "maintenance.manage", "description": "Gerenciar manutenção", "resource": "maintenance", "action": "manage"},
+            
+            {"name": "*", "description": "Super Admin - Todas as permissões", "resource": "*", "action": "*"}
+        ]
+        
+        # Inserir permissões
+        permissions_to_insert = []
+        for perm_data in default_permissions:
+            permission = Permission(**perm_data)
+            permissions_to_insert.append(permission.dict())
+        
+        await db.permissions.insert_many(permissions_to_insert)
+        logger.info(f"Created {len(permissions_to_insert)} default permissions")
+        
+        # Buscar IDs das permissões criadas
+        all_permissions = await db.permissions.find().to_list(1000)
+        permission_map = {p["name"]: p["id"] for p in all_permissions}
+        
+        # Criar roles padrão
+        default_roles = [
+            {
+                "name": "Super Admin",
+                "description": "Acesso completo ao sistema",
+                "permissions": [permission_map["*"]],
+                "is_system": True
+            },
+            {
+                "name": "Admin",
+                "description": "Administrador com acesso a usuários e licenças",
+                "permissions": [
+                    permission_map["users.manage"],
+                    permission_map["licenses.manage"],
+                    permission_map["clients.manage"],
+                    permission_map["reports.read"],
+                    permission_map["maintenance.read"]
+                ],
+                "is_system": True
+            },
+            {
+                "name": "Manager", 
+                "description": "Gerente com acesso a licenças e relatórios",
+                "permissions": [
+                    permission_map["licenses.manage"],
+                    permission_map["clients.read"],
+                    permission_map["clients.create"],
+                    permission_map["clients.update"],
+                    permission_map["reports.read"],
+                    permission_map["reports.export"]
+                ],
+                "is_system": False
+            },
+            {
+                "name": "Sales",
+                "description": "Vendedor com acesso a clientes e criação de licenças",
+                "permissions": [
+                    permission_map["clients.manage"],
+                    permission_map["licenses.create"],
+                    permission_map["licenses.read"],
+                    permission_map["reports.read"]
+                ],
+                "is_system": False
+            },
+            {
+                "name": "Viewer",
+                "description": "Usuário com acesso apenas para visualização",
+                "permissions": [
+                    permission_map["licenses.read"],
+                    permission_map["clients.read"],
+                    permission_map["users.read"]
+                ],
+                "is_system": False
+            }
+        ]
+        
+        # Inserir roles
+        roles_to_insert = []
+        for role_data in default_roles:
+            role = Role(**role_data)
+            roles_to_insert.append(role.dict())
+        
+        await db.roles.insert_many(roles_to_insert)
+        logger.info(f"Created {len(roles_to_insert)} default roles")
+        
+        # Atribuir Super Admin role ao usuário admin existente
+        admin_user = await db.users.find_one({"email": "admin@demo.com"})
+        if admin_user:
+            super_admin_role = next(r for r in roles_to_insert if r["name"] == "Super Admin")
+            await db.users.update_one(
+                {"email": "admin@demo.com"},
+                {
+                    "$set": {
+                        "rbac.roles": [super_admin_role["id"]],
+                        "rbac.is_active": True,
+                        "rbac.last_permission_update": datetime.utcnow()
+                    }
+                }
+            )
+            logger.info("Assigned Super Admin role to admin@demo.com")
+        
+        logger.info("RBAC system initialization completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize RBAC system: {e}")
+
 @app.on_event("startup")
 async def startup_db_client():
     # Create demo users on startup if they don't exist
