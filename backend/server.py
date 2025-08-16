@@ -302,9 +302,10 @@ class RemoteAccessType(str, Enum):
     VNC = "vnc"
     OTHER = "other"
 
-# Base Models
+# Base Models with Multi-tenancy support
 class BaseEntity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str = Field(..., description="ID do tenant proprietário dos dados")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     created_by: Optional[str] = None
