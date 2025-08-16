@@ -70,3 +70,10 @@
 [2025-08-16 22:22:15] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
 [2025-08-16 22:22:15] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-16 22:22:15] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-16 23:25:59] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-16 23:25:59] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-16 23:25:59] [INFO] products - create_product_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com", "product_data": {"name": "Test Product", "version": "1.0.0", "description": "A test product for API testing", "category_id": null, "price": 99.99, "currency": "BRL", "features": ["feature1", "feature2", "feature3"], "requirements": "Windows 10 or higher"}}
+[2025-08-16 23:25:59] [ERROR] products - create_product_exception: {"product_data": {"name": "Test Product", "version": "1.0.0", "description": "A test product for API testing", "category_id": null, "price": 99.99, "currency": "BRL", "features": ["feature1", "feature2", "feature3"], "requirements": "Windows 10 or higher"}, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"} ERROR: 1 validation error for Product
+tenant_id
+  Field required [type=missing, input_value={'name': 'Test Product', ...4f5d-9f38-7d145ba46026'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
