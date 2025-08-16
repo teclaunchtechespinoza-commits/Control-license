@@ -2845,6 +2845,10 @@ async def startup_db_client():
     
     # Initialize RBAC system
     await initialize_rbac_system()
+    
+    # Start notification background jobs
+    await start_notification_jobs(db)
+    logger.info("Notification jobs started")
 
     await initialize_rbac_system()
 
