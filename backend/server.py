@@ -1931,15 +1931,17 @@ async def create_category(
     category_data: CategoryCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    # Criar categoria e adicionar tenant_id automaticamente
-    category = Category(**category_data.dict())
-    category_dict = category.dict()
+    # Criar dict da categoria e adicionar tenant_id automaticamente
+    category_dict = category_data.dict()
     
     # Usar helper de tenant para adicionar tenant_id
     category_dict = add_tenant_to_document(category_dict)
     
+    # Criar categoria com tenant_id
+    category = Category(**category_dict)
+    
     await db.categories.insert_one(category_dict)
-    return Category(**category_dict)
+    return category
 
 @api_router.get("/categories", response_model=List[Category])
 async def get_categories(current_user: User = Depends(get_current_user)):
