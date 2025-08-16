@@ -2436,6 +2436,68 @@ async def initialize_rbac_system():
     except Exception as e:
         logger.error(f"Failed to initialize RBAC system: {e}")
 
+async def initialize_default_tenant():
+    """
+    Inicializar tenant padrão para dados existentes
+    """
+    logger.info("Checking default tenant...")
+    
+    # Verificar se tenant padrão já existe
+    default_tenant = await db.tenants.find_one({"id": "default"})
+    
+    if not default_tenant:
+        # Criar tenant padrão
+        tenant_data = {
+            "id": "default",
+            "name": "Sistema Padrão",
+            "subdomain": "default",
+            "contact_email": "admin@sistema.com",
+            "status": TenantStatus.ACTIVE,
+            "plan": TenantPlan.ENTERPRISE,
+            "max_users": -1,  # Ilimitado
+            "max_licenses": -1,  # Ilimitado
+            "max_clients": -1,  # Ilimitado
+            "features": {
+                "api_access": True,
+                "webhooks": True,
+                "advanced_reports": True,
+                "white_label": True,
+                "priority_support": True,
+                "audit_logs": True,
+                "sso": True
+            },
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "is_active": True,
+            "current_users": 0,
+            "current_licenses": 0,
+            "current_clients": 0
+        }
+        
+        await db.tenants.insert_one(tenant_data)
+        logger.info("Default tenant created")
+        
+        # Migrar dados existentes para o tenant padrão
+        collections_to_migrate = [
+            "users", "categories", "products", "licenses", 
+            "clients_pf", "clients_pj", "roles", "permissions"
+        ]
+        
+        for collection_name in collections_to_migrate:
+            collection = getattr(db, collection_name)
+            
+            # Adicionar tenant_id aos documentos que não têm
+            result = await collection.update_many(
+                {"tenant_id": {"$exists": False}},
+                {"$set": {"tenant_id": "default"}}
+            )
+            
+            if result.modified_count > 0:
+                logger.info(f"Migrated {result.modified_count} documents in {collection_name} to default tenant")
+        
+    else:
+        logger.info("Default tenant already exists")
+
 @app.on_event("startup")
 async def startup_db_client():
     # Create demo users on startup if they don't exist
