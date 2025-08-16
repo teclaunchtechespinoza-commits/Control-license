@@ -1990,8 +1990,9 @@ async def create_product(
             "product_data": product_data.dict()
         })
         
-        # Check if product with same name already exists
-        existing_product = await db.products.find_one({"name": product_data.name})
+        # Check if product with same name already exists in same tenant
+        query_filter = add_tenant_filter({"name": product_data.name})
+        existing_product = await db.products.find_one(query_filter)
         if existing_product:
             maint_logger.error("products", "create_product_duplicate", {
                 "product_name": product_data.name,
