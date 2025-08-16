@@ -109,6 +109,121 @@ app = FastAPI(title="License Management System", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # Enums
+# RBAC Models - Sistema de Controle de Acesso Baseado em Papéis
+class Permission(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # ex: "users.create", "licenses.read", "reports.delete"
+    description: str  # Descrição amigável da permissão
+    resource: str  # Recurso que a permissão afeta (users, licenses, clients, etc)
+    action: str  # Ação permitida (create, read, update, delete, manage)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Role(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # ex: "Admin", "Manager", "Viewer", "Sales"
+    description: str  # Descrição do papel
+    permissions: List[str] = []  # Lista de IDs de permissões
+    is_system: bool = False  # True para roles do sistema (não editáveis)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Estender o modelo User existente com RBAC
+class UserRBACInfo(BaseModel):
+    roles: List[str] = []  # Lista de IDs de roles
+    direct_permissions: List[str] = []  # Permissões diretas (além das do role)
+    is_active: bool = True  # Flag para ativar/desativar usuário
+    last_permission_update: datetime = Field(default_factory=datetime.utcnow)
+
+# Request models para RBAC
+class AssignRoleRequest(BaseModel):
+    user_id: str
+    role_ids: List[str]
+
+class AssignPermissionRequest(BaseModel):
+    user_id: str
+    permission_ids: List[str]
+
+class CreateRoleRequest(BaseModel):
+    name: str
+    description: str
+    permissions: List[str] = []
+
+class UpdateRoleRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None  
+    permissions: Optional[List[str]] = None
+
+# Verificador de permissões
+def check_permission(user_permissions: List[str], required_permission: str) -> bool:
+    """
+    Verifica se o usuário tem a permissão necessária
+    Suporta wildcards: 'users.*' permite 'users.create', 'users.read', etc.
+    """
+    if not required_permission:
+        return True
+        
+    # Verificar permissão exata
+    if required_permission in user_permissions:
+        return True
+    
+    # Verificar wildcards
+    resource, action = required_permission.split('.', 1) if '.' in required_permission else (required_permission, '')
+    
+    for perm in user_permissions:
+        if perm.endswith('.*'):  # Permissão wildcard
+            perm_resource = perm[:-2]  # Remove '.*'
+            if resource == perm_resource:
+                return True
+        elif perm == f"{resource}.*":  # Todas ações no recurso
+            return True
+        elif perm == "*":  # Super admin
+            return True
+    
+    return False
+
+# Dependency para verificar permissões
+def require_permission(permission: str):
+    async def permission_checker(current_user: User = Depends(get_current_user)):
+        # Buscar permissões do usuário (roles + diretas)
+        user_permissions = await get_user_permissions(current_user.email)
+        
+        if not check_permission(user_permissions, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission required: {permission}"
+            )
+        return current_user
+    return permission_checker
+
+async def get_user_permissions(user_email: str) -> List[str]:
+    """
+    Busca todas as permissões do usuário (roles + diretas)
+    """
+    user_doc = await db.users.find_one({"email": user_email})
+    if not user_doc:
+        return []
+    
+    all_permissions = set()
+    
+    # Permissões diretas
+    rbac_info = user_doc.get('rbac', {})
+    direct_permissions = rbac_info.get('direct_permissions', [])
+    all_permissions.update(direct_permissions)
+    
+    # Permissões dos roles
+    role_ids = rbac_info.get('roles', [])
+    if role_ids:
+        roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+        for role in roles:
+            role_permissions = role.get('permissions', [])
+            # Buscar permissões por ID
+            if role_permissions:
+                permissions = await db.permissions.find({"id": {"$in": role_permissions}}).to_list(1000)
+                permission_names = [p.get('name') for p in permissions]
+                all_permissions.update(permission_names)
+    
+    return list(all_permissions)
+
 class UserRole(str, Enum):
     ADMIN = "admin"
     USER = "user"
