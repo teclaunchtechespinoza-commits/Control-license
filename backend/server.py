@@ -2130,6 +2130,9 @@ async def startup_db_client():
             category = Category(**cat_data)
             await db.categories.insert_one(category.dict())
         logger.info("Demo categories created")
+    
+    # Initialize RBAC system
+    await initialize_rbac_system()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
