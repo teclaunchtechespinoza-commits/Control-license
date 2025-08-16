@@ -417,7 +417,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RBAC System Initialization and Backend Endpoints"
+    - "RBAC Management Interface Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
