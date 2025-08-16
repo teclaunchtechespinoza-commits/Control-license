@@ -117,6 +117,64 @@ db = client[os.environ['DB_NAME']]
 # Create the main app
 app = FastAPI(title="License Management System", version="1.0.0")
 
+# Tenant Isolation Middleware
+class TenantMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Limpar contexto anterior
+        tenant_context.clear()
+        
+        # Extrair tenant_id do header, subdomain ou token JWT
+        tenant_id = None
+        is_super_admin_user = False
+        
+        # 1. Tentar obter tenant do header X-Tenant-ID
+        tenant_id = request.headers.get("X-Tenant-ID")
+        
+        # 2. Se não encontrou, tentar obter do token JWT
+        if not tenant_id:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                try:
+                    token = auth_header.split(" ")[1]
+                    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                    user_email = payload.get("sub")
+                    
+                    # Buscar usuário no banco para obter tenant_id
+                    if user_email:
+                        user_doc = await db.users.find_one({"email": user_email})
+                        if user_doc:
+                            tenant_id = user_doc.get("tenant_id")
+                            # Verificar se é super admin (pode acessar todos os tenants)
+                            is_super_admin_user = user_doc.get("role") == "super_admin"
+                except:
+                    pass  # Token inválido ou erro de decode
+        
+        # 3. Para endpoints públicos ou de sistema, usar tenant padrão
+        public_endpoints = ["/docs", "/openapi.json", "/health", "/"]
+        if request.url.path in public_endpoints:
+            tenant_id = "system"
+        
+        # Se ainda não encontrou tenant_id, usar tenant padrão para compatibilidade
+        if not tenant_id:
+            tenant_id = "default"
+        
+        # Configurar contexto do tenant
+        tenant_context.set_tenant(
+            tenant_id=tenant_id, 
+            is_super_admin=is_super_admin_user
+        )
+        
+        # Processar request
+        response = await call_next(request)
+        
+        # Adicionar header com tenant atual na resposta
+        response.headers["X-Current-Tenant"] = tenant_id
+        
+        return response
+
+# Adicionar middleware à aplicação
+app.add_middleware(TenantMiddleware)
+
 # Create API router
 api_router = APIRouter(prefix="/api")
 
