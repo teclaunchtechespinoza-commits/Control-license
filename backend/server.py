@@ -1931,7 +1931,9 @@ async def create_category(
 
 @api_router.get("/categories", response_model=List[Category])
 async def get_categories(current_user: User = Depends(get_current_user)):
-    categories = await db.categories.find({"is_active": True}).to_list(1000)
+    # Aplicar filtro de tenant
+    query_filter = add_tenant_filter({"is_active": True})
+    categories = await db.categories.find(query_filter).to_list(1000)
     return [Category(**category) for category in categories]
 
 @api_router.get("/categories/{category_id}", response_model=Category)
