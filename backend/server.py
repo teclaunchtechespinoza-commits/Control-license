@@ -29,6 +29,15 @@ from tenant_system import (
     get_plan_config, apply_plan_limits
 )
 
+# Import notification system
+from notification_system import (
+    Notification, NotificationTemplate, NotificationConfig, NotificationQueue,
+    NotificationLog, NotificationType, NotificationChannel, NotificationStatus,
+    NotificationPriority, CreateNotificationRequest, NotificationStats,
+    get_default_template, calculate_notification_trigger_dates,
+    should_send_notification, format_template_variables
+)
+
 # Utilitário para mascaramento de dados sensíveis
 def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
     """
