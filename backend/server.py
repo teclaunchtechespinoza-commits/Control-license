@@ -1294,6 +1294,173 @@ async def delete_license_plan(plan_id: str, current_user: User = Depends(get_cur
     )
     return {"message": "Plano removido com sucesso"}
 
+# RBAC Endpoints - Sistema de Controle de Acesso
+@api_router.get("/rbac/permissions", response_model=List[Permission])
+async def get_permissions(current_user: User = Depends(require_permission("rbac.read"))):
+    permissions = await db.permissions.find().to_list(1000)
+    return [Permission(**perm) for perm in permissions]
+
+@api_router.post("/rbac/permissions", response_model=Permission)
+async def create_permission(permission_data: Permission, current_user: User = Depends(require_permission("rbac.manage"))):
+    permission = Permission(**permission_data.dict())
+    await db.permissions.insert_one(permission.dict())
+    return permission
+
+@api_router.get("/rbac/roles", response_model=List[Role])  
+async def get_roles(current_user: User = Depends(require_permission("rbac.read"))):
+    roles = await db.roles.find().to_list(1000)
+    return [Role(**role) for role in roles]
+
+@api_router.post("/rbac/roles", response_model=Role)
+async def create_role(role_data: CreateRoleRequest, current_user: User = Depends(require_permission("rbac.manage"))):
+    role = Role(
+        name=role_data.name,
+        description=role_data.description,
+        permissions=role_data.permissions
+    )
+    await db.roles.insert_one(role.dict())
+    return role
+
+@api_router.put("/rbac/roles/{role_id}", response_model=Role)
+async def update_role(role_id: str, role_data: UpdateRoleRequest, current_user: User = Depends(require_permission("rbac.manage"))):
+    update_data = {k: v for k, v in role_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.roles.update_one({"id": role_id}, {"$set": update_data})
+    
+    role_doc = await db.roles.find_one({"id": role_id})
+    if not role_doc:
+        raise HTTPException(status_code=404, detail="Role not found")
+    
+    return Role(**role_doc)
+
+@api_router.delete("/rbac/roles/{role_id}")
+async def delete_role(role_id: str, current_user: User = Depends(require_permission("rbac.manage"))):
+    # Verificar se o role não é do sistema
+    role_doc = await db.roles.find_one({"id": role_id})
+    if not role_doc:
+        raise HTTPException(status_code=404, detail="Role not found")
+    
+    if role_doc.get('is_system', False):
+        raise HTTPException(status_code=400, detail="Cannot delete system role")
+    
+    await db.roles.delete_one({"id": role_id})
+    
+    # Remover role de todos os usuários
+    await db.users.update_many(
+        {"rbac.roles": role_id},
+        {"$pull": {"rbac.roles": role_id}}
+    )
+    
+    return {"message": "Role deleted successfully"}
+
+@api_router.post("/rbac/assign-roles")
+async def assign_roles(request: AssignRoleRequest, current_user: User = Depends(require_permission("users.manage"))):
+    # Verificar se usuário existe
+    user_doc = await db.users.find_one({"id": request.user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verificar se roles existem
+    existing_roles = await db.roles.find({"id": {"$in": request.role_ids}}).to_list(1000)
+    if len(existing_roles) != len(request.role_ids):
+        raise HTTPException(status_code=400, detail="One or more roles not found")
+    
+    # Atualizar usuário
+    await db.users.update_one(
+        {"id": request.user_id},
+        {
+            "$set": {
+                "rbac.roles": request.role_ids,
+                "rbac.last_permission_update": datetime.utcnow()
+            }
+        }
+    )
+    
+    return {"message": "Roles assigned successfully"}
+
+@api_router.post("/rbac/assign-permissions")
+async def assign_direct_permissions(request: AssignPermissionRequest, current_user: User = Depends(require_permission("users.manage"))):
+    # Verificar se usuário existe
+    user_doc = await db.users.find_one({"id": request.user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verificar se permissões existem
+    existing_permissions = await db.permissions.find({"id": {"$in": request.permission_ids}}).to_list(1000)
+    if len(existing_permissions) != len(request.permission_ids):
+        raise HTTPException(status_code=400, detail="One or more permissions not found")
+    
+    # Atualizar usuário
+    await db.users.update_one(
+        {"id": request.user_id},
+        {
+            "$set": {
+                "rbac.direct_permissions": request.permission_ids,
+                "rbac.last_permission_update": datetime.utcnow()
+            }
+        }
+    )
+    
+    return {"message": "Direct permissions assigned successfully"}
+
+@api_router.get("/rbac/users/{user_id}/permissions")
+async def get_user_permissions_endpoint(user_id: str, current_user: User = Depends(require_permission("users.read"))):
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_permissions = await get_user_permissions(user_doc['email'])
+    
+    # Buscar detalhes das permissões
+    permission_details = []
+    if user_permissions:
+        permissions = await db.permissions.find({"name": {"$in": user_permissions}}).to_list(1000)
+        permission_details = [Permission(**perm) for perm in permissions]
+    
+    # Buscar roles do usuário
+    rbac_info = user_doc.get('rbac', {})
+    role_ids = rbac_info.get('roles', [])
+    user_roles = []
+    if role_ids:
+        roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+        user_roles = [Role(**role) for role in roles]
+    
+    return {
+        "user_id": user_id,
+        "permissions": permission_details,
+        "roles": user_roles,
+        "has_permissions": len(user_permissions) > 0
+    }
+
+@api_router.get("/rbac/users", response_model=List[dict])
+async def get_all_users_rbac(current_user: User = Depends(require_permission("users.read"))):
+    users = await db.users.find().to_list(1000)
+    
+    result = []
+    for user in users:
+        rbac_info = user.get('rbac', {})
+        role_ids = rbac_info.get('roles', [])
+        
+        # Buscar nomes dos roles
+        user_roles = []
+        if role_ids:
+            roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+            user_roles = [{"id": role["id"], "name": role["name"]} for role in roles]
+        
+        result.append({
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "role": user.get("role", "user"),  # Role legado
+            "rbac_roles": user_roles,
+            "is_active": rbac_info.get('is_active', True),
+            "last_login": user.get("last_login"),
+            "created_at": user.get("created_at")
+        })
+    
+    return result
+
 # Maintenance and Logging Routes
 @api_router.get("/maintenance/logs")
 async def get_maintenance_logs(
