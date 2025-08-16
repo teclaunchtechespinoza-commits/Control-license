@@ -1461,6 +1461,34 @@ async def get_all_users_rbac(current_user: User = Depends(require_permission("us
     
     return result
 
+# Debug endpoint para testar permissões do usuário
+@api_router.get("/debug/user-permissions")
+async def debug_user_permissions(current_user: User = Depends(get_current_user)):
+    try:
+        user_permissions = await get_user_permissions(current_user.email)
+        
+        # Buscar dados do usuário
+        user_doc = await db.users.find_one({"email": current_user.email})
+        rbac_info = user_doc.get('rbac', {}) if user_doc else {}
+        role_ids = rbac_info.get('roles', [])
+        
+        # Buscar roles
+        roles_data = []
+        if role_ids:
+            roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+            roles_data = roles
+        
+        return {
+            "user_email": current_user.email,
+            "user_permissions": user_permissions,
+            "rbac_info": rbac_info,
+            "roles_data": roles_data,
+            "permission_check_rbac_read": check_permission(user_permissions, "rbac.read"),
+            "permission_check_users_read": check_permission(user_permissions, "users.read")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 # Maintenance and Logging Routes
 @api_router.get("/maintenance/logs")
 async def get_maintenance_logs(
