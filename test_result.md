@@ -105,6 +105,18 @@
 user_problem_statement: "Complete License Management System with comprehensive PJ (Pessoa Jurídica) client management. The system needs secure authentication, multi-user functionality, and detailed client registration including CNPJ validation, company information, addresses, legal representatives, and integration with license management."
 
 backend:
+  - task: "Sistema de Notificações - Alertas de Vencimento/Renovação"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/notification_system.py, /app/backend/notification_jobs.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔔 NOTIFICATION SYSTEM MVP IMPLEMENTED! Comprehensive notification system for license expiry alerts to reduce churn: 1) ✅ Complete notification models (Notification, NotificationConfig, NotificationQueue, NotificationLog) with multi-tenancy support, 2) ✅ Background job processor with automatic license expiry checking (30, 7, 1 days + expired), 3) ✅ Multi-channel support (email, in-app) with configurable templates, 4) ✅ Tenant-based configuration with opt-out controls and daily limits, 5) ✅ Queue system with retry logic and error handling, 6) ✅ Smart notification triggers based on license expiry dates, 7) ✅ Default email templates with variable substitution, 8) ✅ Statistics and logging system, 9) ✅ API endpoints for notification management (/api/notifications). BUSINESS IMPACT: Automated system to prevent license churn through timely renewal reminders. Ready for backend testing."
+
   - task: "Multi-tenancy Básico - Fundação SaaS"
     implemented: true
     working: true
