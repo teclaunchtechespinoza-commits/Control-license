@@ -1118,8 +1118,9 @@ async def create_pessoa_fisica(
     client_data: PessoaFisicaCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    # Check if CPF already exists
-    existing_client = await db.clientes_pf.find_one({"cpf": client_data.cpf})
+    # Check if CPF already exists in same tenant
+    query_filter = add_tenant_filter({"cpf": client_data.cpf})
+    existing_client = await db.clientes_pf.find_one(query_filter)
     if existing_client:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1129,8 +1130,11 @@ async def create_pessoa_fisica(
     client_dict = client_data.dict()
     client_dict["created_by"] = current_user.id
     
+    # Usar helper de tenant para adicionar tenant_id
+    client_dict = add_tenant_to_document(client_dict)
+    
     client = PessoaFisica(**client_dict)
-    await db.clientes_pf.insert_one(client.dict())
+    await db.clientes_pf.insert_one(client_dict)
     
     return client
 
