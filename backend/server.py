@@ -2024,6 +2024,7 @@ async def create_product(
         # Usar helper de tenant para adicionar tenant_id
         product_dict = add_tenant_to_document(product_dict)
         
+        # Criar produto com tenant_id
         product = Product(**product_dict)
         
         maint_logger.debug("products", "create_product_before_insert", {
