@@ -21,7 +21,11 @@ import {
   Plus,
   Edit,
   UserPlus,
-  Settings
+  Settings,
+  Activity,
+  TrendingUp,
+  Database,
+  Clock
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -38,6 +42,16 @@ const MaintenanceModule = () => {
   const [permissions, setPermissions] = useState([]);
   const [users, setUsers] = useState([]);
   const [rbacLoading, setRbacLoading] = useState(false);
+
+  // Estados para painel de status
+  const [statusStats, setStatusStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalRoles: 0,
+    systemRoles: 0,
+    totalPermissions: 0,
+    recentActivity: []
+  });
 
   // Estados para diálogos
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
@@ -103,9 +117,38 @@ const MaintenanceModule = () => {
         })
       ]);
 
-      setRoles(rolesResponse.data);
-      setPermissions(permissionsResponse.data);
-      setUsers(usersResponse.data);
+      const rolesData = rolesResponse.data;
+      const permissionsData = permissionsResponse.data;
+      const usersData = usersResponse.data;
+
+      setRoles(rolesData);
+      setPermissions(permissionsData);
+      setUsers(usersData);
+
+      // Calcular estatísticas para o painel de status
+      const stats = {
+        totalUsers: usersData.length,
+        activeUsers: usersData.filter(user => user.is_active).length,
+        totalRoles: rolesData.length,
+        systemRoles: rolesData.filter(role => role.is_system).length,
+        totalPermissions: permissionsData.length,
+        recentActivity: [
+          ...rolesData.slice(-3).map(role => ({
+            type: 'role_created',
+            message: `Papel "${role.name}" criado`,
+            timestamp: role.created_at,
+            icon: '👑'
+          })),
+          ...permissionsData.slice(-2).map(permission => ({
+            type: 'permission_created', 
+            message: `Permissão "${permission.name}" criada`,
+            timestamp: permission.created_at,
+            icon: '🔑'
+          }))
+        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5)
+      };
+
+      setStatusStats(stats);
     } catch (error) {
       console.error('Failed to fetch RBAC data:', error);
       toast.error('Erro ao carregar dados RBAC');
@@ -212,6 +255,10 @@ const MaintenanceModule = () => {
     return 'text-neutral bg-neutral-light';
   };
 
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString('pt-BR');
+  };
+
   useEffect(() => {
     fetchLogs();
     fetchRbacData();
@@ -230,7 +277,7 @@ const MaintenanceModule = () => {
       </div>
 
       <Tabs defaultValue="logs" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="logs" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
             <span>Logs do Sistema</span>
@@ -238,6 +285,10 @@ const MaintenanceModule = () => {
           <TabsTrigger value="rbac" className="flex items-center space-x-2">
             <Shield className="w-4 h-4" />
             <span>Controle de Acesso (RBAC)</span>
+          </TabsTrigger>
+          <TabsTrigger value="status" className="flex items-center space-x-2">
+            <Activity className="w-4 h-4" />
+            <span>Painel de Status</span>
           </TabsTrigger>
         </TabsList>
 
@@ -354,6 +405,184 @@ const MaintenanceModule = () => {
                 <p className="text-sm text-gray-600">Informações de debug</p>
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tab de Painel de Status */}
+        <TabsContent value="status" className="mt-6">
+          <div className="space-y-6">
+            
+            {/* Estatísticas Gerais */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm font-medium">
+                    <span>Usuários Totais</span>
+                    <Users className="w-4 h-4 text-blue-600" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statusStats.totalUsers}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {statusStats.activeUsers} ativos
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm font-medium">
+                    <span>Papéis (Roles)</span>
+                    <Shield className="w-4 h-4 text-purple-600" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statusStats.totalRoles}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {statusStats.systemRoles} do sistema
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm font-medium">
+                    <span>Permissões</span>
+                    <Key className="w-4 h-4 text-green-600" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statusStats.totalPermissions}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    configuradas
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm font-medium">
+                    <span>Status Sistema</span>
+                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center space-x-2">
+                    <SemanticBadge
+                      status="active"
+                      customLabel="Operacional"
+                      size="sm"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    RBAC funcional
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Atividade Recente */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5" />
+                  <span>Atividade Recente RBAC</span>
+                </CardTitle>
+                <CardDescription>
+                  Últimas alterações no sistema de controle de acesso
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {statusStats.recentActivity.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhuma atividade recente</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {statusStats.recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <span className="text-lg">{activity.icon}</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{activity.message}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatTimestamp(activity.timestamp)}
+                          </p>
+                        </div>
+                        <CustomSemanticBadge
+                          variant="info"
+                          label={activity.type === 'role_created' ? 'Papel' : 'Permissão'}
+                          icon={activity.type === 'role_created' ? '👑' : '🔑'}
+                          size="sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Resumo do Sistema */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Database className="w-5 h-5" />
+                  <span>Resumo do Sistema RBAC</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center space-x-2">
+                      <Shield className="w-4 h-4" />
+                      <span>Papéis Ativos</span>
+                    </h4>
+                    <div className="space-y-2">
+                      {roles.slice(0, 5).map((role) => (
+                        <div key={role.id} className="flex items-center justify-between text-sm">
+                          <span>{role.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <CustomSemanticBadge
+                              variant={getRoleVariant(role)}
+                              label={role.is_system ? 'Sistema' : 'Custom'}
+                              icon={role.is_system ? '🛡' : '⚙'}
+                              size="sm"
+                            />
+                            <span className="text-xs text-gray-500">
+                              {role.permissions.length} perms
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center space-x-2">
+                      <Users className="w-4 h-4" />
+                      <span>Usuários Ativos</span>
+                    </h4>
+                    <div className="space-y-2">
+                      {users.slice(0, 5).map((user) => (
+                        <div key={user.id} className="flex items-center justify-between text-sm">
+                          <span>{user.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <SemanticBadge
+                              status={user.is_active ? 'active' : 'inactive'}
+                              size="sm"
+                            />
+                            <span className="text-xs text-gray-500 capitalize">
+                              {user.role || 'user'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
         </TabsContent>
 
