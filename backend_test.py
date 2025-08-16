@@ -1750,10 +1750,10 @@ class LicenseManagementAPITester:
                 system_role_id = system_role.get('id')
                 print(f"   Testing deletion of system role: {system_role.get('name')} (ID: {system_role_id})")
                 success, response = self.run_test("Delete system role (should fail)", "DELETE", f"rbac/roles/{system_role_id}", 400, token=self.admin_token)
-                if not success:
+                if success:  # Success here means we got the expected 400 error
                     print(f"   ✅ SUCCESS: System role deletion properly blocked with error: {response}")
                 else:
-                    print("   ❌ FAILED: System role was deleted (should have been blocked)")
+                    print("   ❌ FAILED: System role deletion was not properly blocked")
                     all_tests_passed = False
             else:
                 print("   ⚠️  No system roles found to test deletion blocking")
