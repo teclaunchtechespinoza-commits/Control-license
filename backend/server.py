@@ -1209,9 +1209,10 @@ async def create_pessoa_juridica(
     client_data: PessoaJuridicaCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    # Check if CNPJ already exists (use normalized format)
+    # Check if CNPJ already exists in same tenant (use normalized format)
     cnpj_normalized = client_data.cnpj_normalizado if hasattr(client_data, 'cnpj_normalizado') else client_data.cnpj
-    existing_client = await db.clientes_pj.find_one({"cnpj_normalizado": cnpj_normalized})
+    query_filter = add_tenant_filter({"cnpj_normalizado": cnpj_normalized})
+    existing_client = await db.clientes_pj.find_one(query_filter)
     if existing_client:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1221,8 +1222,11 @@ async def create_pessoa_juridica(
     client_dict = client_data.dict()
     client_dict["created_by"] = current_user.id
     
+    # Usar helper de tenant para adicionar tenant_id
+    client_dict = add_tenant_to_document(client_dict)
+    
     client = PessoaJuridica(**client_dict)
-    await db.clientes_pj.insert_one(client.dict())
+    await db.clientes_pj.insert_one(client_dict)
     
     return client
 
