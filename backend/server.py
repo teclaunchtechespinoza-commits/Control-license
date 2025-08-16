@@ -2049,7 +2049,9 @@ async def get_products(current_user: User = Depends(get_current_user)):
             "user_email": current_user.email
         })
         
-        products = await db.products.find({"is_active": True}).to_list(1000)
+        # Aplicar filtro de tenant
+        query_filter = add_tenant_filter({"is_active": True})
+        products = await db.products.find(query_filter).to_list(1000)
         
         maint_logger.info("products", "get_products_success", {
             "count": len(products),
