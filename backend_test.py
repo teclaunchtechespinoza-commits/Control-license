@@ -4,13 +4,15 @@ import json
 from datetime import datetime, timedelta
 
 class LicenseManagementAPITester:
-    def __init__(self, base_url="https://rbac-licenser.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://8b36eb56-9975-4f00-b897-658cc3f40e27.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.user_token = None
         self.tests_run = 0
         self.tests_passed = 0
         self.created_license_id = None
+        self.created_roles = []
+        self.created_permissions = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None, params=None):
         """Run a single API test"""
