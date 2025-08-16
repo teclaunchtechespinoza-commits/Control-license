@@ -119,6 +119,9 @@ backend:
         - working: true
           agent: "main"
           comment: "✅ RBAC BACKEND VERIFICATION SUCCESSFUL! Comprehensive testing confirms all RBAC functionality working: 1) GET /api/rbac/roles returns 5 roles (Super Admin, Admin, Manager, Sales, Viewer) ✅, 2) GET /api/rbac/permissions returns 23 detailed permissions ✅, 3) Authentication working with JWT tokens ✅, 4) Role structure complete with permissions mapping ✅, 5) System roles marked as is_system: true ✅, 6) Admin user assigned Super Admin role ✅. Backend RBAC system is fully functional and ready for frontend integration."
+        - working: false
+          agent: "testing"
+          comment: "❌ RBAC PERMISSION ASSIGNMENT ISSUE IDENTIFIED: Comprehensive testing reveals that while RBAC system is implemented correctly, there's a critical permission assignment issue. FINDINGS: 1) ✅ Authentication works with admin@demo.com/admin123, 2) ✅ RBAC endpoints exist and are properly implemented, 3) ✅ Old admin system still functional (GET /api/users works), 4) ❌ CRITICAL: Admin user lacks 'rbac.read' and 'rbac.manage' permissions, 5) ❌ RBAC endpoints return 403 'Permission required: rbac.read', 6) ❌ Admin user only has 'Test Custom Role' instead of Super Admin role. ROOT CAUSE: RBAC initialization may not have properly assigned Super Admin role to admin@demo.com, or permission checking system has issues. IMPACT: RBAC endpoints are inaccessible, preventing full RBAC functionality testing."
 
   - task: "ClientStatus Enum 'blocked' Validation Fix"
     implemented: true
