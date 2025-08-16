@@ -756,6 +756,36 @@ async def login(user_credentials: UserLogin):
             detail="Incorrect email or password"
         )
     
+    # CORREÇÃO: Verificar se password_hash existe, senão criar
+    if "password_hash" not in user_doc:
+        # Migração para usuários antigos sem password_hash
+        logger.warning(f"User {user_credentials.email} missing password_hash, attempting migration")
+        
+        # Para usuários demo conhecidos, aplicar senhas padrão
+        if user_credentials.email == "admin@demo.com" and user_credentials.password == "admin123":
+            hashed_password = get_password_hash("admin123")
+            await db.users.update_one(
+                {"email": "admin@demo.com"},
+                {"$set": {"password_hash": hashed_password}}
+            )
+            logger.info("Admin password_hash migrated")
+        elif user_credentials.email == "user@demo.com" and user_credentials.password == "user123":
+            hashed_password = get_password_hash("user123")
+            await db.users.update_one(
+                {"email": "user@demo.com"},
+                {"$set": {"password_hash": hashed_password}}
+            )
+            logger.info("User password_hash migrated")
+        else:
+            # Para outros usuários, falhar e pedir para redefinir senha
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account needs password reset - contact administrator"
+            )
+        
+        # Buscar usuário novamente com password_hash atualizado
+        user_doc = await db.users.find_one({"email": user_credentials.email})
+    
     if not verify_password(user_credentials.password, user_doc["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
