@@ -1,23 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { SemanticBadge, CustomSemanticBadge } from './ui/semantic-badge';
 import { 
   RefreshCw, 
   Trash2, 
   FileText, 
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Shield,
+  Users,
+  Key,
+  Plus,
+  Edit,
+  UserPlus,
+  Settings
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
 const MaintenanceModule = () => {
+  // Estados para logs
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalLines, setTotalLines] = useState(0);
   const [showingLines, setShowingLines] = useState(0);
 
+  // Estados para RBAC
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [rbacLoading, setRbacLoading] = useState(false);
+
+  // Estados para diálogos
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+  const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
+
+  // Estados para formulários
+  const [newRole, setNewRole] = useState({ name: '', description: '', permissions: [] });
+  const [newPermission, setNewPermission] = useState({ 
+    name: '', 
+    description: '', 
+    resource: '', 
+    action: '' 
+  });
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState([]);
+
+  // Funções para logs
   const fetchLogs = async () => {
     try {
       setLoading(true);
@@ -47,12 +85,120 @@ const MaintenanceModule = () => {
     }
   };
 
-  useEffect(() => {
-    fetchLogs();
-  }, []);
+  // Funções para RBAC
+  const fetchRbacData = async () => {
+    try {
+      setRbacLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
+        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/permissions`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      setRoles(rolesResponse.data);
+      setPermissions(permissionsResponse.data);
+      setUsers(usersResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch RBAC data:', error);
+      toast.error('Erro ao carregar dados RBAC');
+    } finally {
+      setRbacLoading(false);
+    }
+  };
+
+  const createRole = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles`, newRole, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Papel criado com sucesso');
+      setRoleDialogOpen(false);
+      setNewRole({ name: '', description: '', permissions: [] });
+      await fetchRbacData();
+    } catch (error) {
+      console.error('Failed to create role:', error);
+      toast.error('Erro ao criar papel');
+    }
+  };
+
+  const createPermission = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/permissions`, newPermission, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Permissão criada com sucesso');
+      setPermissionDialogOpen(false);
+      setNewPermission({ name: '', description: '', resource: '', action: '' });
+      await fetchRbacData();
+    } catch (error) {
+      console.error('Failed to create permission:', error);
+      toast.error('Erro ao criar permissão');
+    }
+  };
+
+  const assignRoles = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/assign-roles`, {
+        user_id: selectedUser,
+        role_ids: selectedRoles
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Papéis atribuídos com sucesso');
+      setAssignRoleDialogOpen(false);
+      setSelectedUser('');
+      setSelectedRoles([]);
+      await fetchRbacData();
+    } catch (error) {
+      console.error('Failed to assign roles:', error);
+      toast.error('Erro ao atribuir papéis');
+    }
+  };
+
+  const deleteRole = async (roleId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles/${roleId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Papel excluído com sucesso');
+      await fetchRbacData();
+    } catch (error) {
+      console.error('Failed to delete role:', error);
+      toast.error('Erro ao excluir papel');
+    }
+  };
+
+  const getRoleVariant = (role) => {
+    if (role.name === 'Super Admin') return 'danger';
+    if (role.name === 'Admin') return 'warning';
+    if (role.name === 'Manager') return 'info';
+    return 'neutral';
+  };
+
+  const getPermissionVariant = (permission) => {
+    if (permission.action === 'manage' || permission.name === '*') return 'danger';
+    if (permission.action === 'create' || permission.action === 'update') return 'warning';
+    if (permission.action === 'read') return 'success';
+    return 'info';
+  };
 
   const getLogIcon = (line) => {
-    // Ícones semânticos WCAG para tipos de log
     if (line.includes('[ERROR]')) return <XCircle className="w-4 h-4 text-danger" aria-label="Erro crítico" />;
     if (line.includes('[INFO]')) return <CheckCircle className="w-4 h-4 text-success" aria-label="Informação" />;
     if (line.includes('[DEBUG]')) return <FileText className="w-4 h-4 text-info" aria-label="Debug" />;
@@ -60,136 +206,476 @@ const MaintenanceModule = () => {
   };
 
   const getLogColorClass = (line) => {
-    // Classes semânticas WCAG com contraste adequado
     if (line.includes('[ERROR]')) return 'text-danger bg-danger-light';
     if (line.includes('[INFO]')) return 'text-success bg-success-light';
     if (line.includes('[DEBUG]')) return 'text-info bg-info-light';
     return 'text-neutral bg-neutral-light';
   };
 
+  useEffect(() => {
+    fetchLogs();
+    fetchRbacData();
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
-          <FileText className="w-8 h-8 text-blue-600" />
+          <Settings className="w-8 h-8 text-blue-600" />
           <span>Módulo de Manutenção</span>
         </h1>
         <p className="text-gray-600 mt-2">
-          Monitor de logs do sistema para identificar falhas e problemas
+          Sistema de logs e gerenciamento de permissões (RBAC)
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <FileText className="w-5 h-5" />
-              <span>Logs do Sistema</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                onClick={fetchLogs}
-                variant="outline"
-                size="sm"
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-              <Button
-                onClick={clearLogs}
-                variant="outline"
-                size="sm"
-                disabled={loading}
-                className="text-danger hover:bg-danger-light hover:border-danger/50"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Limpar Logs
-              </Button>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            Mostrando {showingLines} de {totalLines} linhas de log
-            {showingLines < totalLines && ` (últimas ${showingLines})`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="text-center text-gray-400 py-8">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-                Carregando logs...
-              </div>
-            ) : logs.length === 0 ? (
-              <div className="text-center text-gray-400 py-8">
-                <FileText className="w-6 h-6 mx-auto mb-2" />
-                Nenhum log encontrado
-              </div>
-            ) : (
-              <div className="space-y-1 font-mono text-sm">
-                {logs.map((line, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-2 rounded flex items-start space-x-2 ${getLogColorClass(line)}`}
+      <Tabs defaultValue="logs" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="logs" className="flex items-center space-x-2">
+            <FileText className="w-4 h-4" />
+            <span>Logs do Sistema</span>
+          </TabsTrigger>
+          <TabsTrigger value="rbac" className="flex items-center space-x-2">
+            <Shield className="w-4 h-4" />
+            <span>Controle de Acesso (RBAC)</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab de Logs */}
+        <TabsContent value="logs" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5" />
+                  <span>Logs do Sistema</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={fetchLogs}
+                    variant="outline"
+                    size="sm"
+                    disabled={loading}
                   >
-                    {getLogIcon(line)}
-                    <span className="flex-1 whitespace-pre-wrap break-all">
-                      {line}
-                    </span>
+                    <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    Atualizar
+                  </Button>
+                  <Button
+                    onClick={clearLogs}
+                    variant="outline"
+                    size="sm"
+                    disabled={loading}
+                    className="text-danger hover:bg-danger-light hover:border-danger/50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Limpar Logs
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Mostrando {showingLines} de {totalLines} linhas de log
+                {showingLines < totalLines && ` (últimas ${showingLines})`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
+                {loading ? (
+                  <div className="text-center text-gray-400 py-8">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Carregando logs...
                   </div>
-                ))}
+                ) : logs.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">
+                    <FileText className="w-6 h-6 mx-auto mb-2" />
+                    Nenhum log encontrado
+                  </div>
+                ) : (
+                  <div className="space-y-1 font-mono text-sm">
+                    {logs.map((line, index) => (
+                      <div 
+                        key={index} 
+                        className={`p-2 rounded flex items-start space-x-2 ${getLogColorClass(line)}`}
+                      >
+                        {getLogIcon(line)}
+                        <span className="flex-1 whitespace-pre-wrap break-all">
+                          {line}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </CardContent>
+          </Card>
+
+          {/* Estatísticas dos logs */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-success flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>INFO</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {logs.filter(line => line.includes('[INFO]')).length}
+                </p>
+                <p className="text-sm text-gray-600">Operações bem-sucedidas</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-danger flex items-center space-x-2">
+                  <XCircle className="w-5 h-5" />
+                  <span>ERRO</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {logs.filter(line => line.includes('[ERROR]')).length}
+                </p>
+                <p className="text-sm text-gray-600">Erros encontrados</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-blue-600 flex items-center space-x-2">
+                  <FileText className="w-5 h-5" />
+                  <span>DEBUG</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {logs.filter(line => line.includes('[DEBUG]')).length}
+                </p>
+                <p className="text-sm text-gray-600">Informações de debug</p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-success flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>INFO</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {logs.filter(line => line.includes('[INFO]')).length}
-            </p>
-            <p className="text-sm text-gray-600">Operações bem-sucedidas</p>
-          </CardContent>
-        </Card>
+        {/* Tab de RBAC */}
+        <TabsContent value="rbac" className="mt-6">
+          <div className="space-y-6">
+            
+            {/* Seção de Papéis (Roles) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Gerenciamento de Papéis</span>
+                  </div>
+                  
+                  <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Papel
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Criar Novo Papel</DialogTitle>
+                        <DialogDescription>
+                          Defina um novo papel com suas permissões específicas.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="role-name">Nome do Papel</Label>
+                          <Input
+                            id="role-name"
+                            value={newRole.name}
+                            onChange={(e) => setNewRole({...newRole, name: e.target.value})}
+                            placeholder="Ex: Editor, Supervisor"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="role-description">Descrição</Label>
+                          <Textarea
+                            id="role-description"
+                            value={newRole.description}
+                            onChange={(e) => setNewRole({...newRole, description: e.target.value})}
+                            placeholder="Descreva as responsabilidades deste papel"
+                          />
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={createRole}>
+                          Criar Papel
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {rbacLoading ? (
+                    <div className="text-center py-8">
+                      <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                      Carregando papéis...
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {roles.map((role) => (
+                        <Card key={role.id} className="border-l-4 border-l-blue-500">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-lg flex items-center space-x-2">
+                                <CustomSemanticBadge
+                                  variant={getRoleVariant(role)}
+                                  label={role.name}
+                                  icon="♦"
+                                  ariaLabel={`Papel: ${role.name}`}
+                                  size="sm"
+                                />
+                              </CardTitle>
+                              {!role.is_system && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => deleteRole(role.id)}
+                                  className="text-danger hover:bg-danger-light"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                            {role.is_system && (
+                              <CustomSemanticBadge
+                                variant="info"
+                                label="Sistema"
+                                icon="🛡"
+                                ariaLabel="Papel do sistema - não editável"
+                                size="sm"
+                              />
+                            )}
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-gray-600 mb-3">{role.description}</p>
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium">{role.permissions.length}</span> permissões
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-danger flex items-center space-x-2">
-              <XCircle className="w-5 h-5" />
-              <span>ERRO</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {logs.filter(line => line.includes('[ERROR]')).length}
-            </p>
-            <p className="text-sm text-gray-600">Erros encontrados</p>
-          </CardContent>
-        </Card>
+            {/* Seção de Permissões */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Key className="w-5 h-5" />
+                    <span>Gerenciamento de Permissões</span>
+                  </div>
+                  
+                  <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Permissão
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Criar Nova Permissão</DialogTitle>
+                        <DialogDescription>
+                          Defina uma nova permissão específica para recursos do sistema.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="perm-name">Nome da Permissão</Label>
+                          <Input
+                            id="perm-name"
+                            value={newPermission.name}
+                            onChange={(e) => setNewPermission({...newPermission, name: e.target.value})}
+                            placeholder="Ex: clients.export, reports.advanced"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="perm-resource">Recurso</Label>
+                          <Input
+                            id="perm-resource"
+                            value={newPermission.resource}
+                            onChange={(e) => setNewPermission({...newPermission, resource: e.target.value})}
+                            placeholder="Ex: clients, reports, licenses"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="perm-action">Ação</Label>
+                          <Select value={newPermission.action} onValueChange={(value) => setNewPermission({...newPermission, action: value})}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma ação" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="read">Read (Visualizar)</SelectItem>
+                              <SelectItem value="create">Create (Criar)</SelectItem>
+                              <SelectItem value="update">Update (Editar)</SelectItem>
+                              <SelectItem value="delete">Delete (Excluir)</SelectItem>
+                              <SelectItem value="manage">Manage (Gerenciar)</SelectItem>
+                              <SelectItem value="export">Export (Exportar)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="perm-description">Descrição</Label>
+                          <Textarea
+                            id="perm-description"
+                            value={newPermission.description}
+                            onChange={(e) => setNewPermission({...newPermission, description: e.target.value})}
+                            placeholder="Descreva o que esta permissão permite fazer"
+                          />
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setPermissionDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={createPermission}>
+                          Criar Permissão
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {permissions.map((permission) => (
+                    <div key={permission.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <CustomSemanticBadge
+                          variant={getPermissionVariant(permission)}
+                          label={permission.action}
+                          icon="🔑"
+                          ariaLabel={`Ação: ${permission.action}`}
+                          size="sm"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{permission.name}</p>
+                          <p className="text-xs text-gray-500">{permission.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400 font-mono">
+                        {permission.resource}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-blue-600 flex items-center space-x-2">
-              <FileText className="w-5 h-5" />
-              <span>DEBUG</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {logs.filter(line => line.includes('[DEBUG]')).length}
-            </p>
-            <p className="text-sm text-gray-600">Informações de debug</p>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Seção de Atribuição de Papéis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <UserPlus className="w-5 h-5" />
+                    <span>Atribuir Papéis aos Usuários</span>
+                  </div>
+                  
+                  <Dialog open={assignRoleDialogOpen} onOpenChange={setAssignRoleDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Atribuir Papéis
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Atribuir Papéis ao Usuário</DialogTitle>
+                        <DialogDescription>
+                          Selecione um usuário e os papéis que deseja atribuir.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Usuário</Label>
+                          <Select value={selectedUser} onValueChange={setSelectedUser}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um usuário" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {users.map((user) => (
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.name} ({user.email})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setAssignRoleDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={assignRoles} disabled={!selectedUser}>
+                          Atribuir Papéis
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <Card key={user.id} className="bg-gray-50">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-600">{user.email}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <SemanticBadge
+                              status={user.is_active ? 'active' : 'inactive'}
+                              customLabel={user.is_active ? 'Ativo' : 'Inativo'}
+                              size="sm"
+                            />
+                            <CustomSemanticBadge
+                              variant="info"
+                              label={user.role || 'user'}
+                              icon="👤"
+                              ariaLabel={`Papel atual: ${user.role || 'user'}`}
+                              size="sm"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
