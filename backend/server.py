@@ -2533,13 +2533,13 @@ async def startup_db_client():
         logger.info("Demo regular user created")
         
     # Create some demo categories
-    categories_exist = await db.categories.count_documents({}) > 0
+    categories_exist = await db.categories.count_documents({"tenant_id": "default"}) > 0
     if not categories_exist:
         demo_categories = [
-            {"name": "Software", "description": "Licenças de software", "color": "#3B82F6", "icon": "code"},
-            {"name": "Office", "description": "Ferramentas de escritório", "color": "#10B981", "icon": "briefcase"},
-            {"name": "Design", "description": "Ferramentas de design", "color": "#8B5CF6", "icon": "palette"},
-            {"name": "Segurança", "description": "Ferramentas de segurança", "color": "#EF4444", "icon": "shield"}
+            {"name": "Software", "description": "Licenças de software", "color": "#3B82F6", "icon": "code", "tenant_id": "default"},
+            {"name": "Office", "description": "Ferramentas de escritório", "color": "#10B981", "icon": "briefcase", "tenant_id": "default"},
+            {"name": "Design", "description": "Ferramentas de design", "color": "#8B5CF6", "icon": "palette", "tenant_id": "default"},
+            {"name": "Segurança", "description": "Ferramentas de segurança", "color": "#EF4444", "icon": "shield", "tenant_id": "default"}
         ]
         for cat_data in demo_categories:
             category = Category(**cat_data)
