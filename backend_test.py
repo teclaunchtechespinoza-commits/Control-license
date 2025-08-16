@@ -1944,36 +1944,33 @@ class LicenseManagementAPITester:
 def main():
     tester = LicenseManagementAPITester()
     
-    # Run the critical categories investigation as requested in review
-    print("🚀 Starting Critical Categories Investigation")
-    print(f"Base URL: {tester.base_url}")
-    print("🎯 TESTING: Investigar problema com 'Gerenciar Categorias' reportado pelo usuário")
+    # Run the specific test requested in the review
+    print("🚀 EXECUTANDO TESTE ESPECÍFICO SOLICITADO NA REVISÃO")
+    print("="*60)
+    print("🎯 TESTE: Verificar login do usuário comum (user@demo.com/user123) após correção do bug password_hash")
     
-    # Essential tests for this review request
-    tester.test_health_check()
+    # First get admin token for any admin-required operations
     tester.test_authentication()
     
-    # The main test requested in the review
-    categories_success = tester.test_categories_critical_investigation()
-    
-    # Clean up test data
-    tester.cleanup_categories_test_data()
+    # Run the specific user login test
+    success = tester.test_user_login_password_hash_migration()
     
     # Print final results
     print("\n" + "="*50)
-    print("RESULTADO FINAL DA INVESTIGAÇÃO CRÍTICA DE CATEGORIAS")
+    print("RESULTADO FINAL DO TESTE ESPECÍFICO")
     print("="*50)
     print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     
-    if categories_success:
-        print("🎉 CONCLUSÃO: Gerenciar Categorias está funcionando corretamente!")
-        print("✅ Backend de categorias não tem problemas similares aos de produtos")
-        print("📋 RECOMENDAÇÃO: Verificar frontend ou problemas específicos do usuário")
+    if success:
+        print("🎉 TESTE ESPECÍFICO CONCLUÍDO COM SUCESSO!")
+        print("✅ O login do usuário comum está funcionando após a correção do bug password_hash")
+        print("✅ Sistema de migração automática para password_hash operacional")
+        print("✅ Sem mais erros 500 de KeyError 'password_hash'")
         return 0
     else:
-        print("❌ CONCLUSÃO: Problemas identificados em Gerenciar Categorias")
-        print("🔍 Problemas similares aos que foram corrigidos em produtos")
-        print("📋 RECOMENDAÇÃO: Aplicar correções similares às feitas em produtos")
+        print("❌ TESTE ESPECÍFICO FALHOU!")
+        print("❌ O login do usuário comum ainda apresenta problemas")
+        print("🔍 Verificar se a correção do bug password_hash foi aplicada corretamente")
         return 1
 
 if __name__ == "__main__":
