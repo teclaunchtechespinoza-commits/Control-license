@@ -516,6 +516,33 @@ class LicenseManagementAPITester:
             print(f"   {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def run_multi_tenancy_tests(self):
+        """Run multi-tenancy specific tests as requested in review"""
+        print("🚀 Starting Multi-Tenancy Foundation Tests")
+        print(f"Base URL: {self.base_url}")
+        
+        # Run authentication first
+        self.test_authentication()
+        
+        # Run multi-tenancy tests
+        self.test_multi_tenancy_system()
+        
+        # Test that existing RBAC endpoints still work with tenant isolation
+        self.test_rbac_system_comprehensive()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("MULTI-TENANCY TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All multi-tenancy tests passed!")
+            return 0
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
