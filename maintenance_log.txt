@@ -89,3 +89,5 @@ tenant_id
 [2025-08-16 23:38:09] [INFO] products - create_product_success: {"product_id": "e3dc3e04-bca4-4bdd-92db-b31c8346e801", "product_name": "Test Product", "insert_result": "68a116619352782d6b239173"}
 [2025-08-16 23:38:16] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-16 23:38:16] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-16 23:38:42] [INFO] products - create_product_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com", "product_data": {"name": "Multi-Tenant Test Product", "version": "1.0", "description": "Testing create endpoint with tenant_id auto-assignment", "category_id": null, "price": null, "currency": "BRL", "features": [], "requirements": null}}
+[2025-08-16 23:38:42] [ERROR] products - create_product_duplicate: {"product_name": "Multi-Tenant Test Product", "existing_id": null} ERROR: Product with same name already exists
