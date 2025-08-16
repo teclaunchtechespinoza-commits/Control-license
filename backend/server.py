@@ -1828,6 +1828,259 @@ async def get_tenant_stats(current_user: User = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving tenant stats: {str(e)}")
 
+# Notification System Routes
+@api_router.post("/notifications", response_model=Notification)
+async def create_notification(
+    notification_data: CreateNotificationRequest, 
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Criar uma nova notificação
+    """
+    try:
+        tenant_id = require_tenant()
+        
+        # Criar notificação
+        notification_dict = notification_data.dict()
+        notification_dict["tenant_id"] = tenant_id
+        
+        notification = Notification(**notification_dict)
+        await db.notifications.insert_one(notification.dict())
+        
+        # Adicionar à fila se não agendada para o futuro
+        if not notification.scheduled_for or notification.scheduled_for <= datetime.utcnow():
+            queue_item = NotificationQueue(
+                tenant_id=tenant_id,
+                notification_id=notification.id,
+                priority=1 if notification.priority == NotificationPriority.URGENT else 2
+            )
+            await db.notification_queue.insert_one(queue_item.dict())
+        
+        return notification
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating notification: {str(e)}")
+
+@api_router.get("/notifications", response_model=List[Notification])
+async def list_notifications(
+    status: Optional[NotificationStatus] = None,
+    type: Optional[NotificationType] = None,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Listar notificações do tenant atual
+    """
+    try:
+        query_filter = add_tenant_filter({})
+        
+        if status:
+            query_filter["status"] = status
+        if type:
+            query_filter["type"] = type
+        
+        notifications = await db.notifications.find(query_filter).sort("created_at", -1).limit(limit).to_list(limit)
+        return [Notification(**notif) for notif in notifications]
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing notifications: {str(e)}")
+
+@api_router.get("/notifications/{notification_id}", response_model=Notification)
+async def get_notification(
+    notification_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Obter detalhes de uma notificação específica
+    """
+    try:
+        query_filter = add_tenant_filter({"id": notification_id})
+        notification = await db.notifications.find_one(query_filter)
+        
+        if not notification:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        return Notification(**notification)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving notification: {str(e)}")
+
+@api_router.put("/notifications/{notification_id}/mark-read")
+async def mark_notification_read(
+    notification_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Marcar notificação como lida (para notificações in-app)
+    """
+    try:
+        query_filter = add_tenant_filter({"id": notification_id})
+        
+        # Atualizar status
+        update_result = await db.notifications.update_one(
+            query_filter,
+            {
+                "$set": {
+                    "status": NotificationStatus.READ,
+                    "read_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        if update_result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        # Log da ação
+        log_entry = NotificationLog(
+            tenant_id=require_tenant(),
+            notification_id=notification_id,
+            action="marked_read",
+            channel=NotificationChannel.IN_APP,
+            status=NotificationStatus.READ,
+            event_data={"user_id": current_user.id}
+        )
+        await db.notification_logs.insert_one(log_entry.dict())
+        
+        return {"message": "Notification marked as read"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error marking notification as read: {str(e)}")
+
+@api_router.get("/notifications/config", response_model=NotificationConfig)
+async def get_notification_config(current_user: User = Depends(get_current_user)):
+    """
+    Obter configurações de notificação do tenant atual
+    """
+    try:
+        tenant_id = require_tenant()
+        
+        config = await db.notification_configs.find_one({"tenant_id": tenant_id})
+        
+        if not config:
+            # Criar configuração padrão
+            default_config = NotificationConfig(tenant_id=tenant_id)
+            await db.notification_configs.insert_one(default_config.dict())
+            return default_config
+        
+        return NotificationConfig(**config)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving notification config: {str(e)}")
+
+@api_router.put("/notifications/config", response_model=NotificationConfig)
+async def update_notification_config(
+    config_update: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Atualizar configurações de notificação do tenant
+    """
+    try:
+        tenant_id = require_tenant()
+        
+        # Verificar permissão (apenas admins podem alterar configurações)
+        if current_user.role not in ["admin", "super_admin"]:
+            user_permissions = await get_user_permissions(current_user.email)
+            if not check_permission(user_permissions, "notifications.manage"):
+                raise HTTPException(status_code=403, detail="Permission required: notifications.manage")
+        
+        config_update["tenant_id"] = tenant_id
+        config_update["updated_at"] = datetime.utcnow()
+        
+        # Upsert configuração
+        await db.notification_configs.update_one(
+            {"tenant_id": tenant_id},
+            {"$set": config_update},
+            upsert=True
+        )
+        
+        # Buscar configuração atualizada
+        updated_config = await db.notification_configs.find_one({"tenant_id": tenant_id})
+        return NotificationConfig(**updated_config)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating notification config: {str(e)}")
+
+@api_router.get("/notifications/stats", response_model=NotificationStats)
+async def get_notification_stats(
+    days: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Obter estatísticas de notificações do tenant atual
+    """
+    try:
+        tenant_id = require_tenant()
+        period_end = datetime.utcnow()
+        period_start = period_end - timedelta(days=days)
+        
+        # Query base com filtro de tenant e período
+        base_filter = {
+            "tenant_id": tenant_id,
+            "created_at": {"$gte": period_start, "$lte": period_end}
+        }
+        
+        # Agregações para estatísticas
+        pipeline = [
+            {"$match": base_filter},
+            {"$group": {
+                "_id": None,
+                "total": {"$sum": 1},
+                "sent": {"$sum": {"$cond": [{"$eq": ["$status", "sent"]}, 1, 0]}},
+                "failed": {"$sum": {"$cond": [{"$eq": ["$status", "failed"]}, 1, 0]}},
+                "pending": {"$sum": {"$cond": [{"$eq": ["$status", "pending"]}, 1, 0]}},
+                "expiring_30": {"$sum": {"$cond": [{"$eq": ["$type", "license_expiring_30"]}, 1, 0]}},
+                "expiring_7": {"$sum": {"$cond": [{"$eq": ["$type", "license_expiring_7"]}, 1, 0]}},
+                "expiring_1": {"$sum": {"$cond": [{"$eq": ["$type", "license_expiring_1"]}, 1, 0]}},
+                "expired": {"$sum": {"$cond": [{"$eq": ["$type", "license_expired"]}, 1, 0]}},
+                "email_sent": {"$sum": {"$cond": [{"$eq": ["$channel", "email"]}, 1, 0]}},
+                "in_app_sent": {"$sum": {"$cond": [{"$eq": ["$channel", "in_app"]}, 1, 0]}}
+            }}
+        ]
+        
+        result = await db.notifications.aggregate(pipeline).to_list(1)
+        
+        if not result:
+            # Nenhuma notificação no período
+            stats_data = {
+                "tenant_id": tenant_id,
+                "period_start": period_start,
+                "period_end": period_end
+            }
+        else:
+            data = result[0]
+            total = data.get("total", 0)
+            sent = data.get("sent", 0)
+            
+            stats_data = {
+                "tenant_id": tenant_id,
+                "period_start": period_start,
+                "period_end": period_end,
+                "total_notifications": total,
+                "sent_successfully": sent,
+                "failed": data.get("failed", 0),
+                "pending": data.get("pending", 0),
+                "license_expiring_30": data.get("expiring_30", 0),
+                "license_expiring_7": data.get("expiring_7", 0),
+                "license_expiring_1": data.get("expiring_1", 0),
+                "license_expired": data.get("expired", 0),
+                "email_sent": data.get("email_sent", 0),
+                "in_app_sent": data.get("in_app_sent", 0),
+                "success_rate": (sent / total * 100) if total > 0 else 0.0
+            }
+        
+        return NotificationStats(**stats_data)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving notification stats: {str(e)}")
+
 # Maintenance and Logging Routes
 @api_router.get("/maintenance/logs")
 async def get_maintenance_logs(
