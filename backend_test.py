@@ -2584,20 +2584,54 @@ class LicenseManagementAPITester:
                 category_id = getattr(self, attr)
                 self.run_test(f"Cleanup test category {category_id}", "DELETE", f"categories/{category_id}", 200, token=self.admin_token)
 
-def main():
+if __name__ == "__main__":
+    import sys
+    
     tester = LicenseManagementAPITester()
     
-    # Run the critical test requested in the review
-    print("🚀 EXECUTANDO TESTE CRÍTICO SOLICITADO NA REVISÃO")
-    print("="*60)
-    print("🎯 TESTE: Verificar se novos usuários cadastrados conseguem fazer login após correção do bug")
-    print("📋 CONTEXTO: User reportou erro 'Account needs password reset - contact administrator'")
-    print("🔧 CORREÇÃO: Sistema agora cria password_hash para qualquer usuário durante login")
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "critical":
+            exit_code = tester.run_critical_test()
+        elif sys.argv[1] == "client_creation":
+            tester.test_authentication()
+            tester.test_client_creation_specific()
+            tester.cleanup_specific_tests()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "equipment":
+            tester.test_authentication()
+            tester.test_equipment_management()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "pj_debug":
+            tester.test_authentication()
+            tester.test_pj_client_debug()
+            tester.cleanup_debug_tests()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "pj_debug_specific":
+            tester.test_authentication()
+            tester.test_pj_client_debug_specific()
+            tester.cleanup_debug_tests()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "companies_plans":
+            tester.test_authentication()
+            tester.test_companies_endpoints()
+            tester.test_license_plans_endpoints()
+            tester.test_existing_endpoints_still_work()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "backend_product":
+            tester.test_authentication()
+            tester.test_direct_backend_product_creation()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "rbac":
+            tester.test_authentication()
+            tester.test_rbac_system_comprehensive()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif sys.argv[1] == "rbac_final":
+            tester.test_authentication()
+            success = tester.test_rbac_final_verification()
+            exit_code = 0 if success else 1
+        else:
+            exit_code = tester.run_all_tests()
+    else:
+        exit_code = tester.run_all_tests()
     
-    # Run the critical test
-    result = tester.run_critical_test()
-    
-    return result
-
-if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(exit_code)
