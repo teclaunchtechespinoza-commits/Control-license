@@ -38,6 +38,9 @@ from notification_system import (
     should_send_notification, format_template_variables
 )
 
+# Import notification jobs
+from notification_jobs import start_notification_jobs, stop_notification_jobs
+
 # Utilitário para mascaramento de dados sensíveis
 def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
     """
