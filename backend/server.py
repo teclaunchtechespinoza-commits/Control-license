@@ -1133,6 +1133,7 @@ async def create_pessoa_fisica(
     # Usar helper de tenant para adicionar tenant_id
     client_dict = add_tenant_to_document(client_dict)
     
+    # Criar cliente com tenant_id
     client = PessoaFisica(**client_dict)
     await db.clientes_pf.insert_one(client_dict)
     
