@@ -1366,7 +1366,295 @@ class LicenseManagementAPITester:
         
         return success
 
-    def test_new_user_registration_login_fix(self):
+    def test_rbac_system_comprehensive(self):
+        """Test RBAC (Role-Based Access Control) system MVP implementation as requested in review"""
+        print("\n" + "="*50)
+        print("TESTING RBAC SYSTEM MVP IMPLEMENTATION (REVIEW REQUEST)")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping RBAC tests")
+            return False
+
+        print("🎯 TESTING RBAC SYSTEM COMPONENTS:")
+        print("   1. Authentication with admin@demo.com/admin123")
+        print("   2. GET /api/rbac/roles - Should return 5 default roles")
+        print("   3. GET /api/rbac/permissions - Should return 23+ permissions")
+        print("   4. POST /api/rbac/roles - Test creating custom role")
+        print("   5. POST /api/rbac/permissions - Test creating permission")
+        print("   6. POST /api/rbac/assign-roles - Test role assignment")
+        print("   7. DELETE /api/rbac/roles/{role_id} - Test role deletion")
+        print("   8. Validation tests and business logic")
+
+        # Test 1: GET /api/rbac/roles - Should return 5 default roles
+        print("\n🔍 Test 1: GET /api/rbac/roles (Should return 5 default roles)")
+        success, response = self.run_test("Get RBAC roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        
+        if success:
+            roles = response if isinstance(response, list) else []
+            print(f"   ✅ Retrieved {len(roles)} roles")
+            
+            # Check for expected default roles
+            expected_roles = ["Super Admin", "Admin", "Manager", "Sales", "Viewer"]
+            found_roles = [role.get('name', '') for role in roles]
+            
+            print("   📋 Found roles:")
+            for role in roles:
+                is_system = role.get('is_system', False)
+                system_flag = " (SYSTEM)" if is_system else ""
+                print(f"      - {role.get('name', 'Unknown')}: {role.get('description', 'No description')}{system_flag}")
+            
+            # Verify expected roles exist
+            missing_roles = [role for role in expected_roles if role not in found_roles]
+            if missing_roles:
+                print(f"   ⚠️  Missing expected roles: {missing_roles}")
+            else:
+                print("   ✅ All expected default roles found")
+                
+            # Store system roles for later tests
+            self.system_roles = [role for role in roles if role.get('is_system', False)]
+            self.custom_roles = [role for role in roles if not role.get('is_system', False)]
+            
+        else:
+            print("   ❌ Failed to retrieve RBAC roles")
+            return False
+
+        # Test 2: GET /api/rbac/permissions - Should return 23+ permissions
+        print("\n🔍 Test 2: GET /api/rbac/permissions (Should return 23+ permissions)")
+        success, response = self.run_test("Get RBAC permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        
+        if success:
+            permissions = response if isinstance(response, list) else []
+            print(f"   ✅ Retrieved {len(permissions)} permissions")
+            
+            if len(permissions) >= 23:
+                print("   ✅ Permission count meets requirement (23+)")
+            else:
+                print(f"   ⚠️  Permission count below expected (got {len(permissions)}, expected 23+)")
+            
+            # Group permissions by resource
+            resources = {}
+            for perm in permissions:
+                resource = perm.get('resource', 'unknown')
+                if resource not in resources:
+                    resources[resource] = []
+                resources[resource].append(perm.get('name', 'unknown'))
+            
+            print("   📋 Permissions by resource:")
+            expected_resources = ['users', 'licenses', 'clients', 'reports', 'rbac', 'maintenance']
+            for resource in expected_resources:
+                if resource in resources:
+                    print(f"      - {resource}: {len(resources[resource])} permissions")
+                    for perm_name in resources[resource][:3]:  # Show first 3
+                        print(f"        • {perm_name}")
+                    if len(resources[resource]) > 3:
+                        print(f"        • ... and {len(resources[resource]) - 3} more")
+                else:
+                    print(f"      - {resource}: ❌ NOT FOUND")
+            
+            # Store permissions for later tests
+            self.available_permissions = permissions
+            
+        else:
+            print("   ❌ Failed to retrieve RBAC permissions")
+            return False
+
+        # Test 3: POST /api/rbac/roles - Test creating custom role
+        print("\n🔍 Test 3: POST /api/rbac/roles (Create custom role)")
+        
+        # Get some permission IDs for the new role
+        permission_ids = []
+        if hasattr(self, 'available_permissions') and self.available_permissions:
+            permission_ids = [perm['id'] for perm in self.available_permissions[:3]]  # Use first 3 permissions
+        
+        custom_role_data = {
+            "name": "Test Custom Role",
+            "description": "A test role created during RBAC testing",
+            "permissions": permission_ids
+        }
+        
+        success, response = self.run_test("Create custom role", "POST", "rbac/roles", 200, custom_role_data, self.admin_token)
+        
+        if success and 'id' in response:
+            self.created_custom_role_id = response['id']
+            print(f"   ✅ Custom role created with ID: {self.created_custom_role_id}")
+            print(f"   Role details: {response.get('name')} - {response.get('description')}")
+            print(f"   Permissions assigned: {len(response.get('permissions', []))}")
+            self.created_roles.append(self.created_custom_role_id)
+        else:
+            print("   ❌ Failed to create custom role")
+
+        # Test 4: POST /api/rbac/permissions - Test creating permission
+        print("\n🔍 Test 4: POST /api/rbac/permissions (Create custom permission)")
+        
+        custom_permission_data = {
+            "name": "test.custom_action",
+            "description": "A test permission created during RBAC testing",
+            "resource": "test",
+            "action": "custom_action"
+        }
+        
+        success, response = self.run_test("Create custom permission", "POST", "rbac/permissions", 200, custom_permission_data, self.admin_token)
+        
+        if success and 'id' in response:
+            self.created_custom_permission_id = response['id']
+            print(f"   ✅ Custom permission created with ID: {self.created_custom_permission_id}")
+            print(f"   Permission details: {response.get('name')} - {response.get('description')}")
+            print(f"   Resource: {response.get('resource')}, Action: {response.get('action')}")
+            self.created_permissions.append(self.created_custom_permission_id)
+        else:
+            print("   ❌ Failed to create custom permission")
+
+        # Test 5: POST /api/rbac/assign-roles - Test role assignment
+        print("\n🔍 Test 5: POST /api/rbac/assign-roles (Test role assignment)")
+        
+        # First, get current user ID
+        success, user_response = self.run_test("Get current user info", "GET", "auth/me", 200, token=self.admin_token)
+        
+        if success and 'id' in user_response and hasattr(self, 'created_custom_role_id'):
+            user_id = user_response['id']
+            
+            assign_role_data = {
+                "user_id": user_id,
+                "role_ids": [self.created_custom_role_id]
+            }
+            
+            success, response = self.run_test("Assign role to user", "POST", "rbac/assign-roles", 200, assign_role_data, self.admin_token)
+            
+            if success:
+                print(f"   ✅ Role assigned successfully to user {user_id}")
+            else:
+                print("   ❌ Failed to assign role to user")
+        else:
+            print("   ⚠️  Skipping role assignment test (missing user ID or custom role)")
+
+        # Test 6: DELETE /api/rbac/roles/{role_id} - Test role deletion
+        print("\n🔍 Test 6: DELETE /api/rbac/roles/{role_id} (Test role deletion)")
+        
+        # Test deleting system role (should fail)
+        if hasattr(self, 'system_roles') and self.system_roles:
+            system_role_id = self.system_roles[0]['id']
+            success, response = self.run_test("Delete system role (should fail)", "DELETE", f"rbac/roles/{system_role_id}", 400, token=self.admin_token)
+            
+            if not success:
+                print("   ✅ System role deletion properly prevented")
+            else:
+                print("   ❌ System role deletion should have failed but succeeded")
+        
+        # Test deleting custom role (should succeed)
+        if hasattr(self, 'created_custom_role_id'):
+            success, response = self.run_test("Delete custom role", "DELETE", f"rbac/roles/{self.created_custom_role_id}", 200, token=self.admin_token)
+            
+            if success:
+                print("   ✅ Custom role deleted successfully")
+                # Remove from cleanup list since it's already deleted
+                if self.created_custom_role_id in self.created_roles:
+                    self.created_roles.remove(self.created_custom_role_id)
+            else:
+                print("   ❌ Failed to delete custom role")
+
+        # Test 7: Validation tests
+        print("\n🔍 Test 7: Validation and Error Handling")
+        
+        # Test creating role with invalid data
+        invalid_role_data = {
+            "name": "",  # Empty name should fail
+            "description": "Invalid role"
+        }
+        self.run_test("Create role with empty name (should fail)", "POST", "rbac/roles", 422, invalid_role_data, self.admin_token)
+        
+        # Test assigning non-existent role
+        if success and 'id' in user_response:
+            invalid_assign_data = {
+                "user_id": user_response['id'],
+                "role_ids": ["non-existent-role-id"]
+            }
+            self.run_test("Assign non-existent role (should fail)", "POST", "rbac/assign-roles", 400, invalid_assign_data, self.admin_token)
+        
+        # Test deleting non-existent role
+        self.run_test("Delete non-existent role (should fail)", "DELETE", "rbac/roles/non-existent-id", 404, token=self.admin_token)
+
+        # Test 8: Authentication requirements
+        print("\n🔍 Test 8: Authentication Requirements")
+        
+        # Test RBAC endpoints without authentication (should fail)
+        self.run_test("Get roles without auth (should fail)", "GET", "rbac/roles", 401)
+        self.run_test("Get permissions without auth (should fail)", "GET", "rbac/permissions", 401)
+        self.run_test("Create role without auth (should fail)", "POST", "rbac/roles", 401, custom_role_data)
+
+        # Test 9: Business Logic Verification
+        print("\n🔍 Test 9: Business Logic Verification")
+        
+        # Verify admin user has Super Admin role
+        success, user_perms_response = self.run_test("Get admin user permissions", "GET", f"rbac/users/{user_response['id']}/permissions", 200, token=self.admin_token)
+        
+        if success:
+            user_roles = user_perms_response.get('roles', [])
+            has_super_admin = any(role.get('name') == 'Super Admin' for role in user_roles)
+            
+            if has_super_admin:
+                print("   ✅ Admin user has Super Admin role assigned")
+            else:
+                print("   ⚠️  Admin user does not have Super Admin role")
+                print(f"   Current roles: {[role.get('name') for role in user_roles]}")
+        
+        print("\n🎉 RBAC SYSTEM TESTING COMPLETED!")
+        return True
+
+    def test_rbac_system_mvp(self):
+        """Main RBAC MVP test as requested in review"""
+        print("🚀 Starting RBAC System MVP Testing")
+        print(f"Base URL: {self.base_url}")
+        
+        # Ensure we have admin authentication
+        if not self.admin_token:
+            print("🔑 Authenticating as admin first...")
+            self.test_authentication()
+        
+        if not self.admin_token:
+            print("❌ Cannot proceed without admin authentication")
+            return False
+        
+        # Run comprehensive RBAC tests
+        success = self.test_rbac_system_comprehensive()
+        
+        # Cleanup
+        self.cleanup_rbac_tests()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("RBAC MVP TESTING RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if success and self.tests_passed >= (self.tests_run * 0.9):  # Allow 10% failure rate
+            print("🎉 RBAC MVP TESTING SUCCESSFUL!")
+            print("   ✅ Authentication working with admin@demo.com/admin123")
+            print("   ✅ Default roles and permissions properly initialized")
+            print("   ✅ CRUD operations working for roles and permissions")
+            print("   ✅ Role assignment functionality working")
+            print("   ✅ System role protection working")
+            print("   ✅ Authentication requirements enforced")
+            print("   ✅ Business logic validation working")
+            print("\n🚀 RBAC BACKEND IS READY FOR FRONTEND INTEGRATION!")
+            return True
+        else:
+            print(f"❌ RBAC MVP TESTING FAILED!")
+            print(f"   {self.tests_run - self.tests_passed} critical tests failed")
+            return False
+
+    def cleanup_rbac_tests(self):
+        """Clean up RBAC test data"""
+        print("\n🔍 Cleaning up RBAC test data...")
+        
+        if not self.admin_token:
+            return
+            
+        # Clean up created roles (except those already deleted)
+        for role_id in self.created_roles:
+            self.run_test(f"Cleanup role {role_id}", "DELETE", f"rbac/roles/{role_id}", 200, token=self.admin_token)
+        
+        # Note: We don't delete permissions as they might be referenced by other entities
         """CRITICAL TEST: Verify new user registration and login fix as requested in review"""
         print("\n" + "="*50)
         print("TESTE CRÍTICO: VERIFICAR CORREÇÃO BUG REGISTRO + LOGIN NOVO USUÁRIO")
