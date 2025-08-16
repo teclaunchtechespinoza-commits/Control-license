@@ -77,3 +77,5 @@
 tenant_id
   Field required [type=missing, input_value={'name': 'Test Product', ...4f5d-9f38-7d145ba46026'}, input_type=dict]
     For further information visit https://errors.pydantic.dev/2.11/v/missing
+[2025-08-16 23:26:07] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-16 23:26:07] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
