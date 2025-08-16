@@ -1507,7 +1507,9 @@ async def get_user_permissions_endpoint(user_id: str, current_user: User = Depen
 
 @api_router.get("/rbac/users", response_model=List[dict])
 async def get_all_users_rbac(current_user: User = Depends(require_permission("users.read"))):
-    users = await db.users.find().to_list(1000)
+    # Aplicar filtro de tenant
+    query_filter = add_tenant_filter({})
+    users = await db.users.find(query_filter).to_list(1000)
     
     result = []
     for user in users:
