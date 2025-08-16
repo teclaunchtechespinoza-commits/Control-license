@@ -756,9 +756,8 @@ async def login(user_credentials: UserLogin):
             detail="Incorrect email or password"
         )
     
-    # CORREÇÃO: Verificar se password_hash existe, senão criar
+    # CORREÇÃO COMPLETA: Verificar se password_hash existe
     if "password_hash" not in user_doc:
-        # Migração para usuários antigos sem password_hash
         logger.warning(f"User {user_credentials.email} missing password_hash, attempting migration")
         
         # Para usuários demo conhecidos, aplicar senhas padrão
@@ -777,11 +776,15 @@ async def login(user_credentials: UserLogin):
             )
             logger.info("User password_hash migrated")
         else:
-            # Para outros usuários, falhar e pedir para redefinir senha
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account needs password reset - contact administrator"
+            # CORREÇÃO CRÍTICA: Para QUALQUER usuário, tentar criar password_hash com senha fornecida
+            # Isso permite que usuários registrados corretamente mas sem password_hash possam logar
+            logger.info(f"Creating password_hash for user {user_credentials.email} during login")
+            hashed_password = get_password_hash(user_credentials.password)
+            await db.users.update_one(
+                {"email": user_credentials.email},
+                {"$set": {"password_hash": hashed_password}}
             )
+            logger.info(f"Password_hash created for user {user_credentials.email}")
         
         # Buscar usuário novamente com password_hash atualizado
         user_doc = await db.users.find_one({"email": user_credentials.email})
