@@ -687,6 +687,7 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str = Field(..., description="ID do tenant do usuário")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
     last_login: Optional[datetime] = None
