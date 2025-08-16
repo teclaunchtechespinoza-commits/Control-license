@@ -2500,7 +2500,12 @@ async def initialize_default_tenant():
 
 @app.on_event("startup")
 async def startup_db_client():
-    # Create demo users on startup if they don't exist
+    logger.info("Starting up License Management System...")
+    
+    # Initialize default tenant first
+    await initialize_default_tenant()
+    
+    # Create demo admin user with default tenant
     admin_exists = await db.users.find_one({"email": "admin@demo.com"})
     if not admin_exists:
         admin_user = User(
