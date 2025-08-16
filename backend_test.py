@@ -491,6 +491,29 @@ class LicenseManagementAPITester:
         if hasattr(self, 'created_pj_id'):
             self.run_test("Inactivate PJ test client", "DELETE", f"clientes-pj/{self.created_pj_id}", 200, token=self.admin_token)
 
+    def run_critical_test(self):
+        """Run the critical test requested in the review"""
+        print("🚀 Starting CRITICAL TEST - New User Registration + Login Fix")
+        print(f"Base URL: {self.base_url}")
+        
+        # Run the critical test
+        success = self.test_new_user_registration_login_fix()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("RESULTADO FINAL DO TESTE CRÍTICO")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if success and self.tests_passed == self.tests_run:
+            print("🎉 TESTE CRÍTICO APROVADO COM SUCESSO ABSOLUTO!")
+            print("   A correção do bug de login para novos usuários está funcionando perfeitamente.")
+            return 0
+        else:
+            print(f"❌ TESTE CRÍTICO FALHOU!")
+            print(f"   {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
