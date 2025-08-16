@@ -2019,7 +2019,7 @@ async def create_product(
         })
         
         # Insert into database
-        result = await db.products.insert_one(product.dict())
+        result = await db.products.insert_one(product_dict)
         
         maint_logger.info("products", "create_product_success", {
             "product_id": product.id,
