@@ -2044,7 +2044,7 @@ async def send_bulk_whatsapp_messages(
                     alert_type = get_alert_type(days_to_expire)
                     
                     # Enviar mensagem
-                    whatsapp_message = await send_renewal_whatsapp(
+                    whatsapp_message = await send_renewal_whatsapp_message(
                         client_data=client_data,
                         license_data=license_data,
                         alert_type=alert_type,
