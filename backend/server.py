@@ -1888,72 +1888,6 @@ async def list_notifications(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error listing notifications: {str(e)}")
 
-@api_router.get("/notifications/{notification_id}", response_model=Notification)
-async def get_notification(
-    notification_id: str, 
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Obter detalhes de uma notificação específica
-    """
-    try:
-        query_filter = add_tenant_filter({"id": notification_id})
-        notification = await db.notifications.find_one(query_filter)
-        
-        if not notification:
-            raise HTTPException(status_code=404, detail="Notification not found")
-        
-        return Notification(**notification)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving notification: {str(e)}")
-
-@api_router.put("/notifications/{notification_id}/mark-read")
-async def mark_notification_read(
-    notification_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Marcar notificação como lida (para notificações in-app)
-    """
-    try:
-        query_filter = add_tenant_filter({"id": notification_id})
-        
-        # Atualizar status
-        update_result = await db.notifications.update_one(
-            query_filter,
-            {
-                "$set": {
-                    "status": NotificationStatus.READ,
-                    "read_at": datetime.utcnow(),
-                    "updated_at": datetime.utcnow()
-                }
-            }
-        )
-        
-        if update_result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Notification not found")
-        
-        # Log da ação
-        log_entry = NotificationLog(
-            tenant_id=require_tenant(),
-            notification_id=notification_id,
-            action="marked_read",
-            channel=NotificationChannel.IN_APP,
-            status=NotificationStatus.READ,
-            event_data={"user_id": current_user.id}
-        )
-        await db.notification_logs.insert_one(log_entry.dict())
-        
-        return {"message": "Notification marked as read"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error marking notification as read: {str(e)}")
-
 @api_router.get("/notifications/config", response_model=NotificationConfig)
 async def get_notification_config(current_user: User = Depends(get_current_user)):
     """
@@ -2083,6 +2017,72 @@ async def get_notification_stats(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving notification stats: {str(e)}")
+
+@api_router.get("/notifications/{notification_id}", response_model=Notification)
+async def get_notification(
+    notification_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Obter detalhes de uma notificação específica
+    """
+    try:
+        query_filter = add_tenant_filter({"id": notification_id})
+        notification = await db.notifications.find_one(query_filter)
+        
+        if not notification:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        return Notification(**notification)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving notification: {str(e)}")
+
+@api_router.put("/notifications/{notification_id}/mark-read")
+async def mark_notification_read(
+    notification_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Marcar notificação como lida (para notificações in-app)
+    """
+    try:
+        query_filter = add_tenant_filter({"id": notification_id})
+        
+        # Atualizar status
+        update_result = await db.notifications.update_one(
+            query_filter,
+            {
+                "$set": {
+                    "status": NotificationStatus.READ,
+                    "read_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        if update_result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        # Log da ação
+        log_entry = NotificationLog(
+            tenant_id=require_tenant(),
+            notification_id=notification_id,
+            action="marked_read",
+            channel=NotificationChannel.IN_APP,
+            status=NotificationStatus.READ,
+            event_data={"user_id": current_user.id}
+        )
+        await db.notification_logs.insert_one(log_entry.dict())
+        
+        return {"message": "Notification marked as read"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error marking notification as read: {str(e)}")
 
 # Maintenance and Logging Routes
 @api_router.get("/maintenance/logs")
