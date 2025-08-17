@@ -3156,8 +3156,9 @@ async def root():
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
-# Include router
+# Include routers
 app.include_router(api_router)
+app.include_router(whatsapp_router)  # Real WhatsApp integration
 
 # CORS middleware
 app.add_middleware(
