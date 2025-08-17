@@ -2867,6 +2867,11 @@ async def startup_db_client():
     
     # Start notification background jobs
     await start_notification_jobs(db)
+    maintenance_logger.info("system", "notification_jobs_started", {
+        "status": "operational",
+        "worker_id": "notification_processor",
+        "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]
+    })
     logger.info("Notification jobs started")
 
     await initialize_rbac_system()
