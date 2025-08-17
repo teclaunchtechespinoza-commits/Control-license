@@ -8,7 +8,7 @@ import sys
 import json
 
 class RBACBasicTester:
-    def __init__(self, base_url="https://8b36eb56-9975-4f00-b897-658cc3f40e27.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://licensehub-9.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.tests_passed = 0
