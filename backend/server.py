@@ -3156,9 +3156,357 @@ async def root():
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
+# WhatsApp Integration Endpoints - Direct implementation to avoid circular imports
+import httpx
+
+# WhatsApp Service Configuration
+WHATSAPP_SERVICE_URL = os.getenv("WHATSAPP_SERVICE_URL", "http://localhost:3001")
+WHATSAPP_REQUEST_TIMEOUT = 30.0
+
+# WhatsApp Models
+class WhatsAppSendRequest(BaseModel):
+    phone_number: str
+    message: str
+    message_id: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
+
+class WhatsAppBulkSendRequest(BaseModel):
+    messages: List[Dict[str, str]]
+
+class WhatsAppStatus(BaseModel):
+    connected: bool
+    status: str
+    user: Optional[Dict[str, Any]] = None
+    uptime: Optional[int] = None
+    last_activity: Optional[datetime] = None
+
+class WhatsAppQRResponse(BaseModel):
+    qr: Optional[str] = None
+    status: str
+
+class WhatsAppSendResponse(BaseModel):
+    success: bool
+    message_id: Optional[str] = None
+    phone_number: str
+    error: Optional[str] = None
+    timestamp: datetime
+
+# WhatsApp Service Helper Functions
+async def call_whatsapp_service(endpoint: str, method: str = "GET", data: Dict = None) -> Dict:
+    """Helper function to call WhatsApp Node.js service"""
+    try:
+        async with httpx.AsyncClient(timeout=WHATSAPP_REQUEST_TIMEOUT) as client:
+            url = f"{WHATSAPP_SERVICE_URL}/{endpoint}"
+            
+            if method == "GET":
+                response = await client.get(url)
+            elif method == "POST":
+                response = await client.post(url, json=data)
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                error_data = response.json() if response.content else {}
+                raise HTTPException(status_code=response.status_code, detail=error_data.get("error", "WhatsApp service error"))
+                
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=503, detail="WhatsApp service timeout")
+    except Exception as e:
+        logger.error(f"Error calling WhatsApp service: {e}")
+        raise HTTPException(status_code=503, detail="WhatsApp service unavailable")
+
+# WhatsApp API Endpoints
+@api_router.get("/whatsapp/health")
+async def whatsapp_health_check():
+    """Health check do serviço WhatsApp"""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{WHATSAPP_SERVICE_URL}/health")
+            is_healthy = response.status_code == 200
+            
+            return {
+                "service": "WhatsApp Integration",
+                "healthy": is_healthy,
+                "service_url": WHATSAPP_SERVICE_URL,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    except:
+        return {
+            "service": "WhatsApp Integration",
+            "healthy": False,
+            "service_url": WHATSAPP_SERVICE_URL,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+@api_router.get("/whatsapp/status")
+async def get_whatsapp_status(current_user: User = Depends(get_current_user)):
+    """Obtém status da conexão WhatsApp"""
+    data = await call_whatsapp_service("status")
+    
+    # Log da consulta
+    maintenance_logger.log("whatsapp_status_check", {
+        "user_id": current_user.id,
+        "connected": data.get("connected", False),
+        "status": data.get("status", "unknown")
+    })
+    
+    return WhatsAppStatus(**data)
+
+@api_router.get("/whatsapp/qr")
+async def get_whatsapp_qr(current_user: User = Depends(get_current_admin_user)):
+    """Obtém QR code para conectar WhatsApp (Admin only)"""
+    data = await call_whatsapp_service("qr")
+    
+    # Log da consulta
+    maintenance_logger.log("whatsapp_qr_request", {
+        "user_id": current_user.id,
+        "has_qr": bool(data.get("qr")),
+        "status": data.get("status", "unknown")
+    })
+    
+    return WhatsAppQRResponse(**data)
+
+@api_router.post("/whatsapp/send")
+async def send_whatsapp_message(
+    request: WhatsAppSendRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Envia mensagem WhatsApp individual"""
+    
+    # Log da tentativa
+    maintenance_logger.log("whatsapp_send_attempt", {
+        "user_id": current_user.id,
+        "phone_number": request.phone_number,
+        "message_length": len(request.message),
+        "has_context": bool(request.context)
+    })
+    
+    try:
+        payload = {
+            "phone_number": request.phone_number,
+            "message": request.message,
+            "message_id": request.message_id,
+            "context": request.context or {}
+        }
+        
+        data = await call_whatsapp_service("send", "POST", payload)
+        
+        result = WhatsAppSendResponse(
+            success=data.get("success", False),
+            message_id=data.get("message_id"),
+            phone_number=request.phone_number,
+            error=data.get("error"),
+            timestamp=datetime.utcnow()
+        )
+        
+    except Exception as e:
+        result = WhatsAppSendResponse(
+            success=False,
+            phone_number=request.phone_number,
+            error=str(e),
+            timestamp=datetime.utcnow()
+        )
+    
+    # Log do resultado
+    maintenance_logger.log("whatsapp_send_result", {
+        "user_id": current_user.id,
+        "phone_number": request.phone_number,
+        "success": result.success,
+        "error": result.error,
+        "message_id": result.message_id
+    })
+    
+    return result
+
+@api_router.post("/whatsapp/send-bulk")
+async def send_bulk_whatsapp(
+    request: WhatsAppBulkSendRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Envia mensagens WhatsApp em lote"""
+    
+    # Log da tentativa
+    maintenance_logger.log("whatsapp_bulk_send_attempt", {
+        "user_id": current_user.id,
+        "message_count": len(request.messages),
+        "phone_numbers": [msg.get("phone_number") for msg in request.messages]
+    })
+    
+    try:
+        payload = {"messages": request.messages}
+        result = await call_whatsapp_service("send-bulk", "POST", payload)
+    except Exception as e:
+        result = {
+            "total": len(request.messages),
+            "sent": 0,
+            "failed": len(request.messages),
+            "error": str(e)
+        }
+    
+    # Log do resultado
+    maintenance_logger.log("whatsapp_bulk_send_result", {
+        "user_id": current_user.id,
+        "total": result.get("total", 0),
+        "sent": result.get("sent", 0),
+        "failed": result.get("failed", 0)
+    })
+    
+    return result
+
+@api_router.post("/whatsapp/restart")
+async def restart_whatsapp_connection(current_user: User = Depends(get_current_admin_user)):
+    """Reinicia conexão WhatsApp (Admin only)"""
+    
+    try:
+        await call_whatsapp_service("restart", "POST")
+        success = True
+        message = "WhatsApp connection restart initiated"
+    except Exception as e:
+        success = False
+        message = f"Failed to restart WhatsApp connection: {str(e)}"
+    
+    # Log da operação
+    maintenance_logger.log("whatsapp_restart", {
+        "user_id": current_user.id,
+        "success": success
+    })
+    
+    if success:
+        return {"message": message}
+    else:
+        raise HTTPException(status_code=500, detail=message)
+
+# Helper function for sales dashboard integration - Updated to use direct service call
+async def send_renewal_whatsapp_message(client_data: Dict, license_data: Dict, alert_type: str, salesperson: str = None):
+    """
+    Função helper para enviar mensagens de renovação via WhatsApp
+    Integração com o sistema de vendas
+    """
+    # Buscar número de telefone do cliente
+    phone_number = None
+    for field in ['whatsapp', 'celular', 'telefone']:
+        if client_data.get(field):
+            phone_number = client_data[field]
+            break
+    
+    if not phone_number:
+        raise ValueError("Cliente não possui número de WhatsApp/telefone cadastrado")
+    
+    # Gerar mensagem usando template
+    client_name = client_data.get('nome_completo') or client_data.get('razao_social', 'Cliente')
+    license_name = license_data.get('name', 'sua licença')
+    
+    expires_at = license_data.get('expires_at')
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+    
+    days_to_expire = (expires_at - datetime.utcnow()).days if expires_at else 0
+    
+    # Template de mensagem baseado no tipo de alerta
+    if alert_type == "T-30":
+        message = f"""Olá {client_name}! 👋
+
+Esperamos que esteja tudo bem! 
+
+Queremos lembrá-lo que sua licença do {license_name} vence em {days_to_expire} dias.
+
+Para garantir a continuidade dos seus serviços sem interrupções, que tal renovarmos hoje mesmo?
+
+✅ Sem interrupção de serviços
+✅ Preço especial para renovação antecipada  
+✅ Suporte técnico garantido
+
+Posso ajudar com a renovação agora mesmo!
+
+{salesperson or "Equipe de Vendas"}
+Sua Empresa de Licenças"""
+    elif alert_type == "T-7":
+        message = f"""🚨 URGENTE - {client_name}!
+
+Sua licença do {license_name} vence em apenas {days_to_expire} dias!
+
+⚠️ ATENÇÃO: Após o vencimento, seus sistemas podem parar de funcionar.
+
+OFERTA ESPECIAL para renovação imediata:
+💰 15% de desconto
+🎁 +30 dias grátis de suporte
+
+👆 Responda AGORA para garantir seu desconto!
+
+{salesperson or "Equipe de Vendas"} - Sua Empresa"""
+    elif alert_type == "T-1":
+        message = f"""🔴 CRÍTICO - {client_name}!
+
+SUA LICENÇA VENCE HOJE!
+
+{license_name} expira em menos de 24h.
+
+🚨 SEUS SISTEMAS VÃO PARAR DE FUNCIONAR!
+
+LIGUE AGORA: (11) 9999-9999
+
+Posso renovar em 5 minutos via PIX!
+
+NÃO PERCA TEMPO - RESPONDA AGORA!
+
+{salesperson or "Equipe de Vendas"} - SUPORTE EMERGENCIAL"""
+    elif alert_type == "EXPIRED":
+        days_expired = abs(days_to_expire)
+        message = f"""❌ {client_name}, sua licença VENCEU!
+
+O {license_name} expirou há {days_expired} dias.
+
+CONSEQUÊNCIAS ATUAIS:
+🚫 Sistemas bloqueados
+🚫 Suporte suspenso
+
+REATIVE AGORA com desconto especial:
+💰 20% OFF para reativação
+🔄 Reativação imediata
+
+LIGUE URGENTE: (11) 9999-9999
+
+{salesperson or "Equipe de Vendas"} - REATIVAÇÃO"""
+    else:
+        message = f"Olá {client_name}! Sua licença {license_name} precisa de atenção. Entre em contato conosco: (11) 9999-9999"
+    
+    # Enviar mensagem via WhatsApp service
+    try:
+        payload = {
+            "phone_number": phone_number,
+            "message": message,
+            "message_id": f"renewal_{client_data.get('id')}_{alert_type}",
+            "context": {
+                "client_id": client_data.get('id'),
+                "license_id": license_data.get('id'),
+                "alert_type": alert_type,
+                "salesperson": salesperson
+            }
+        }
+        
+        data = await call_whatsapp_service("send", "POST", payload)
+        
+        return {
+            "success": data.get("success", False),
+            "message_id": data.get("message_id"),
+            "phone_number": phone_number,
+            "error": data.get("error"),
+            "timestamp": datetime.utcnow()
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "phone_number": phone_number,
+            "error": str(e),
+            "timestamp": datetime.utcnow()
+        }
+
 # Include routers
 app.include_router(api_router)
-app.include_router(whatsapp_router)  # Real WhatsApp integration
+# app.include_router(whatsapp_router)  # Real WhatsApp integration - Commented out to avoid circular import
 
 # CORS middleware
 app.add_middleware(
