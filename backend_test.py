@@ -828,9 +828,7 @@ class LicenseManagementAPITester:
 
         # Test 7: POST /api/sales-dashboard/bulk-whatsapp
         print("\n🔍 Test 7: Send Bulk WhatsApp Messages")
-        bulk_data = {
-            "alert_ids": ["alert_test_1", "alert_test_2", "alert_test_3"]
-        }
+        bulk_data = ["alert_test_1", "alert_test_2", "alert_test_3"]  # Send as list, not dict
         success, response = self.run_test("Send bulk WhatsApp messages", "POST", "sales-dashboard/bulk-whatsapp", 200, bulk_data, self.admin_token)
         if success:
             print(f"   ✅ Bulk WhatsApp campaign completed")
