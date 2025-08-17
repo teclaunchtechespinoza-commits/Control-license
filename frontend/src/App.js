@@ -156,80 +156,82 @@ function App() {
     <div className="App">
       <Router>
         <AuthProvider>
-          <div className="min-h-screen">
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/licenses" 
-                element={
-                  <ProtectedRoute>
-                    <UserLicenses />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/clientes" 
-                element={
-                  <ProtectedRoute adminOnly>
-                    <ClientsModule />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/cadastros" 
-                element={
-                  <ProtectedRoute adminOnly>
-                    <RegistryModule />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/manutencao" 
-                element={
-                  <ProtectedRoute adminOnly>
-                    <MaintenanceModule />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/vendas" 
-                element={
-                  <ProtectedRoute>
-                    <SalesDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/" element={<Navigate to="/dashboard" />} />
-            </Routes>
-          </div>
-          
-          {/* Rodapé com Controle de Versão */}
-          <footer className="bg-white border-t border-gray-200 py-3 px-4 mt-auto">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                © 2025 License Manager. Todos os direitos reservados.
-              </div>
-              <FooterVersion />
+          <HelpProvider>
+            <div className="min-h-screen">
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/licenses" 
+                  element={
+                    <ProtectedRoute>
+                      <UserLicenses />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/clientes" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <ClientsModule />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/cadastros" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <RegistryModule />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/manutencao" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <MaintenanceModule />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/vendas" 
+                  element={
+                    <ProtectedRoute>
+                      <SalesDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/" element={<Navigate to="/dashboard" />} />
+              </Routes>
             </div>
-          </footer>
-          
-          <Toaster position="top-right" richColors />
+            
+            {/* Rodapé com Controle de Versão */}
+            <footer className="bg-white border-t border-gray-200 py-3 px-4 mt-auto">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  © 2025 License Manager. Todos os direitos reservados.
+                </div>
+                <FooterVersion />
+              </div>
+            </footer>
+            
+            <Toaster position="top-right" richColors />
+          </HelpProvider>
         </AuthProvider>
       </Router>
     </div>
