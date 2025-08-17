@@ -47,7 +47,8 @@ class WhatsAppHandler {
                 defaultQueryTimeoutMs: 60000,
                 keepAliveIntervalMs: 10000,
                 logger: {
-                    level: 'silent' // Reduce Baileys logs
+                    level: 'silent', // Reduce Baileys logs
+                    child: () => ({ level: 'silent' }) // Fix for logger.child error
                 }
             });
 
