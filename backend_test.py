@@ -3021,6 +3021,8 @@ if __name__ == "__main__":
             tester.test_authentication()
             success = tester.test_rbac_final_verification()
             exit_code = 0 if success else 1
+        elif sys.argv[1] == "notifications":
+            exit_code = tester.run_notification_system_tests()
         else:
             exit_code = tester.run_all_tests()
     else:
