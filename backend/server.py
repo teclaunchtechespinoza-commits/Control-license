@@ -1525,6 +1525,197 @@ async def assign_direct_permissions(request: AssignPermissionRequest, current_us
     
     return {"message": "Direct permissions assigned successfully"}
 
+# ================================
+# HELPER FUNCTIONS FOR SALES DASHBOARD
+# ================================
+
+async def get_expiring_licenses():
+    """
+    Busca licenças que estão expirando ou já expiraram
+    """
+    try:
+        # Buscar licenças com data de expiração próxima (próximos 90 dias)
+        future_date = datetime.utcnow() + timedelta(days=90)
+        
+        query_filter = add_tenant_filter({
+            "$or": [
+                {"expires_at": {"$lte": future_date}},  # Expirando em 90 dias
+                {"expires_at": {"$lte": datetime.utcnow()}}  # Já expiraram
+            ]
+        })
+        
+        licenses = await db.licenses.find(query_filter).to_list(1000)
+        return licenses
+        
+    except Exception as e:
+        logger.error(f"Error fetching expiring licenses: {e}")
+        return []
+
+async def create_expiration_alert(license_doc):
+    """
+    Cria um alerta de expiração baseado nos dados da licença
+    """
+    try:
+        expires_at = license_doc.get('expires_at')
+        if not expires_at:
+            return None
+            
+        # Calcular dias para expirar
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        
+        days_to_expire = (expires_at - datetime.utcnow()).days
+        
+        # Buscar dados do cliente
+        client_name = "Cliente não identificado"
+        client_phone = None
+        
+        # Tentar buscar cliente PF
+        if license_doc.get('client_pf_id'):
+            client_pf = await db.clientes_pf.find_one({"id": license_doc['client_pf_id']})
+            if client_pf:
+                client_name = client_pf.get('nome_completo', client_name)
+                client_phone = client_pf.get('whatsapp') or client_pf.get('celular')
+        
+        # Tentar buscar cliente PJ
+        elif license_doc.get('client_pj_id'):
+            client_pj = await db.clientes_pj.find_one({"id": license_doc['client_pj_id']})
+            if client_pj:
+                client_name = client_pj.get('razao_social', client_name)
+                client_phone = client_pj.get('whatsapp') or client_pj.get('celular')
+        
+        # Determinar prioridade e status
+        priority = get_alert_priority(days_to_expire)
+        status = "expired" if days_to_expire < 0 else "expiring"
+        
+        # Calcular valor de oportunidade de renovação (simulado)
+        renewal_value = license_doc.get('price', 0) or random.uniform(500, 5000)
+        
+        alert = ExpirationAlert(
+            id=str(uuid.uuid4()),
+            license_id=license_doc['id'],
+            client_name=client_name,
+            client_phone=client_phone,
+            license_name=license_doc.get('name', 'Licença'),
+            expires_at=expires_at,
+            days_to_expire=days_to_expire,
+            status=status,
+            priority=priority,
+            renewal_opportunity_value=renewal_value,
+            last_contact_date=None,
+            contact_attempts=0,
+            notes=[]
+        )
+        
+        return alert
+        
+    except Exception as e:
+        logger.error(f"Error creating expiration alert: {e}")
+        return None
+
+async def calculate_sales_metrics(alerts, start_date, end_date):
+    """
+    Calcula métricas de vendas baseadas nos alertas
+    """
+    try:
+        total_expiring = len(alerts)
+        high_priority = len([a for a in alerts if a.priority == "high"])
+        total_opportunity_value = sum(a.renewal_opportunity_value or 0 for a in alerts)
+        
+        # Métricas simuladas para o MVP
+        metrics = SalesMetrics(
+            total_expiring_licenses=total_expiring,
+            high_priority_alerts=high_priority,
+            total_opportunity_value=total_opportunity_value,
+            conversion_rate=random.uniform(15, 35),  # Simulado
+            avg_response_time_hours=random.uniform(2, 24),  # Simulado
+            contacts_made_today=random.randint(5, 25),  # Simulado
+            renewals_closed_today=random.randint(1, 8)  # Simulado
+        )
+        
+        return metrics
+        
+    except Exception as e:
+        logger.error(f"Error calculating sales metrics: {e}")
+        return SalesMetrics(
+            total_expiring_licenses=0,
+            high_priority_alerts=0,
+            total_opportunity_value=0,
+            conversion_rate=0,
+            avg_response_time_hours=0,
+            contacts_made_today=0,
+            renewals_closed_today=0
+        )
+
+async def get_recent_sales_activities():
+    """
+    Busca atividades recentes de vendas (simulado para MVP)
+    """
+    try:
+        # Para o MVP, retornar atividades simuladas
+        activities = [
+            {
+                "id": str(uuid.uuid4()),
+                "type": "whatsapp_sent",
+                "description": "Mensagem de renovação enviada para João Silva",
+                "timestamp": datetime.utcnow() - timedelta(minutes=30),
+                "user": "Vendedor 1"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "type": "renewal_closed",
+                "description": "Renovação fechada - Empresa ABC Ltda",
+                "timestamp": datetime.utcnow() - timedelta(hours=2),
+                "user": "Vendedor 2"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "type": "follow_up",
+                "description": "Follow-up realizado com Maria Santos",
+                "timestamp": datetime.utcnow() - timedelta(hours=4),
+                "user": "Vendedor 1"
+            }
+        ]
+        
+        return activities
+        
+    except Exception as e:
+        logger.error(f"Error fetching recent activities: {e}")
+        return []
+
+async def get_alert_data(alert_id: str):
+    """
+    Busca dados do cliente e licença baseado no ID do alerta
+    Para o MVP, simular dados baseados no alert_id
+    """
+    try:
+        # Para o MVP, simular dados baseados no alert_id
+        # Em produção, buscar dados reais do banco
+        
+        # Simular dados do cliente
+        client_data = {
+            "id": f"client_{alert_id[:8]}",
+            "nome_completo": f"Cliente {alert_id[:8]}",
+            "razao_social": f"Empresa {alert_id[:8]} Ltda",
+            "whatsapp": "+5511999999999",
+            "celular": "+5511888888888",
+            "email_principal": f"cliente{alert_id[:8]}@email.com"
+        }
+        
+        # Simular dados da licença
+        license_data = {
+            "id": f"license_{alert_id[:8]}",
+            "name": f"Licença {alert_id[:8]}",
+            "expires_at": datetime.utcnow() + timedelta(days=random.randint(-30, 30)),
+            "price": random.uniform(500, 5000)
+        }
+        
+        return client_data, license_data
+        
+    except Exception as e:
+        logger.error(f"Error fetching alert data: {e}")
+        return None, None
+
 @api_router.get("/rbac/users/{user_id}/permissions")
 async def get_user_permissions_endpoint(user_id: str, current_user: User = Depends(require_permission("users.read"))):
     user_doc = await db.users.find_one({"id": user_id})
