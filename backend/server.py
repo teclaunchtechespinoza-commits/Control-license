@@ -1187,19 +1187,28 @@ async def update_pessoa_fisica(
     client_update: PessoaFisicaUpdate,
     current_user: User = Depends(get_current_admin_user)
 ):
+    # Aplicar filtro de tenant
+    query_filter = add_tenant_filter({"id": client_id})
+    
     update_data = {k: v for k, v in client_update.dict().items() if v is not None}
     update_data["updated_at"] = datetime.utcnow()
     update_data["updated_by"] = current_user.id
     
+    # CORREÇÃO: Converter datetime.date para datetime.datetime para compatibilidade MongoDB
+    from datetime import date, datetime
+    for key, value in update_data.items():
+        if isinstance(value, date) and not isinstance(value, datetime):
+            update_data[key] = datetime.combine(value, datetime.min.time())
+    
     result = await db.clientes_pf.update_one(
-        {"id": client_id},
+        query_filter,
         {"$set": update_data}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     
-    updated_client = await db.clientes_pf.find_one({"id": client_id})
+    updated_client = await db.clientes_pf.find_one(query_filter)
     return PessoaFisica(**updated_client)
 
 @api_router.delete("/clientes-pf/{client_id}")
