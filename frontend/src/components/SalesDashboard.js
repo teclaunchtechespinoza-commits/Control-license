@@ -17,9 +17,6 @@ const SalesDashboard = () => {
     // Estados para ações
     const [sendingWhatsApp, setSendingWhatsApp] = useState(new Set());
     const [selectedAlerts, setSelectedAlerts] = useState(new Set());
-    
-    // Help system
-    const { trackHelpUsage, checkFirstTime } = useHelp();
 
     // Configuração do backend
     const backendUrl = import.meta.env?.VITE_REACT_APP_BACKEND_URL || 
