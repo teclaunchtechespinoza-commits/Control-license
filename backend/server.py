@@ -1980,7 +1980,7 @@ async def send_whatsapp_renewal_message(
         alert_type = get_alert_type(days_to_expire)
         
         # Enviar mensagem WhatsApp
-        whatsapp_message = await send_renewal_whatsapp(
+        whatsapp_message = await send_renewal_whatsapp_message(
             client_data=client_data,
             license_data=license_data,
             alert_type=alert_type,
