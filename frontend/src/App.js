@@ -206,6 +206,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/vendas" 
+                element={
+                  <ProtectedRoute>
+                    <SalesDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
