@@ -56,12 +56,6 @@ const SalesDashboard = () => {
     // Carregar dados na inicialização
     useEffect(() => {
         fetchDashboardData();
-        
-        // Check se é primeira visita
-        const isFirstTime = checkFirstTime();
-        if (isFirstTime) {
-            trackHelpUsage('first_visit', 'sales-dashboard');
-        }
     }, []);
 
     // Função para atualizar dados
