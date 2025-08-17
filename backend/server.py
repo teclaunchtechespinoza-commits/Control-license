@@ -1195,10 +1195,10 @@ async def update_pessoa_fisica(
     update_data["updated_by"] = current_user.id
     
     # CORREÇÃO: Converter datetime.date para datetime.datetime para compatibilidade MongoDB
-    from datetime import date, datetime
+    import datetime as dt
     for key, value in update_data.items():
-        if isinstance(value, date) and not isinstance(value, datetime):
-            update_data[key] = datetime.combine(value, datetime.min.time())
+        if isinstance(value, dt.date) and not isinstance(value, dt.datetime):
+            update_data[key] = dt.datetime.combine(value, dt.datetime.min.time())
     
     result = await db.clientes_pf.update_one(
         query_filter,
