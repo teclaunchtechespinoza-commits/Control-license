@@ -3209,6 +3209,8 @@ if __name__ == "__main__":
             exit_code = 0 if success else 1
         elif sys.argv[1] == "notifications":
             exit_code = tester.run_notification_system_tests()
+        elif sys.argv[1] == "sales-dashboard":
+            exit_code = tester.run_sales_dashboard_tests()
         else:
             exit_code = tester.run_all_tests()
     else:
