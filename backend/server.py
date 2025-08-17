@@ -1625,12 +1625,26 @@ async def calculate_sales_metrics(alerts, start_date, end_date):
         # Métricas simuladas para o MVP
         metrics = SalesMetrics(
             total_expiring_licenses=total_expiring,
-            high_priority_alerts=high_priority,
-            total_opportunity_value=total_opportunity_value,
+            licenses_expiring_30_days=len([a for a in alerts if 7 < a.days_to_expire <= 30]),
+            licenses_expiring_7_days=len([a for a in alerts if 1 < a.days_to_expire <= 7]),
+            licenses_expiring_1_day=len([a for a in alerts if a.days_to_expire <= 1 and a.days_to_expire >= 0]),
+            expired_licenses=len([a for a in alerts if a.days_to_expire < 0]),
+            contacted_leads=random.randint(10, 50),  # Simulado
+            renewed_licenses=random.randint(5, 25),  # Simulado
+            lost_opportunities=random.randint(2, 10),  # Simulado
             conversion_rate=random.uniform(15, 35),  # Simulado
-            avg_response_time_hours=random.uniform(2, 24),  # Simulado
-            contacts_made_today=random.randint(5, 25),  # Simulado
-            renewals_closed_today=random.randint(1, 8)  # Simulado
+            potential_revenue=total_opportunity_value,
+            confirmed_revenue=random.uniform(5000, 25000),  # Simulado
+            lost_revenue=random.uniform(1000, 8000),  # Simulado
+            whatsapp_contacts=random.randint(20, 60),  # Simulado
+            phone_contacts=random.randint(10, 30),  # Simulado
+            email_contacts=random.randint(30, 80),  # Simulado
+            sales_by_person={
+                "João Silva": {"contacts": 25, "conversions": 12, "revenue": 8500.00},
+                "Maria Santos": {"contacts": 20, "conversions": 8, "revenue": 6200.00}
+            },
+            period_start=start_date,
+            period_end=end_date
         )
         
         return metrics
@@ -1639,12 +1653,23 @@ async def calculate_sales_metrics(alerts, start_date, end_date):
         logger.error(f"Error calculating sales metrics: {e}")
         return SalesMetrics(
             total_expiring_licenses=0,
-            high_priority_alerts=0,
-            total_opportunity_value=0,
+            licenses_expiring_30_days=0,
+            licenses_expiring_7_days=0,
+            licenses_expiring_1_day=0,
+            expired_licenses=0,
+            contacted_leads=0,
+            renewed_licenses=0,
+            lost_opportunities=0,
             conversion_rate=0,
-            avg_response_time_hours=0,
-            contacts_made_today=0,
-            renewals_closed_today=0
+            potential_revenue=0,
+            confirmed_revenue=0,
+            lost_revenue=0,
+            whatsapp_contacts=0,
+            phone_contacts=0,
+            email_contacts=0,
+            sales_by_person={},
+            period_start=start_date,
+            period_end=end_date
         )
 
 async def get_recent_sales_activities():
