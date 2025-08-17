@@ -41,6 +41,20 @@ from notification_system import (
 # Import notification jobs
 from notification_jobs import start_notification_jobs, stop_notification_jobs
 
+# Import sales dashboard
+from sales_dashboard import (
+    ExpirationAlert, SalesMetrics, SalesDashboardSummary, 
+    WhatsAppMessageTemplate, WhatsAppCampaign, SalesContact,
+    calculate_days_to_expire, get_alert_type, get_alert_priority,
+    DEFAULT_WHATSAPP_TEMPLATES
+)
+
+# Import WhatsApp integration
+from whatsapp_integration import (
+    WhatsAppMessage, WhatsAppContact, WhatsAppSession, WhatsAppStats,
+    whatsapp_service, template_service, send_renewal_whatsapp
+)
+
 # Utilitário para mascaramento de dados sensíveis
 def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
     """
