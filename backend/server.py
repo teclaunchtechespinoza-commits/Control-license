@@ -1810,6 +1810,345 @@ async def debug_user_permissions(current_user: User = Depends(get_current_user))
     except Exception as e:
         return {"error": str(e), "type": type(e).__name__}
 
+# ================================
+# DASHBOARD DE VENDAS - ENDPOINTS
+# ================================
+
+@api_router.get("/sales-dashboard/summary", response_model=SalesDashboardSummary)
+async def get_sales_dashboard_summary(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Endpoint principal do Dashboard de Vendas
+    Retorna resumo executivo com métricas e alertas prioritários
+    """
+    try:
+        # Período de análise (últimos 90 dias)
+        end_date = datetime.utcnow().date()
+        start_date = end_date - timedelta(days=90)
+        
+        # Buscar licenças que estão expirando ou já expiraram
+        expiring_licenses = await get_expiring_licenses()
+        
+        # Gerar alertas de expiração
+        alerts = []
+        for license_doc in expiring_licenses:
+            alert = await create_expiration_alert(license_doc)
+            if alert:
+                alerts.append(alert)
+        
+        # Calcular métricas
+        metrics = await calculate_sales_metrics(alerts, start_date, end_date)
+        
+        # Ordenar alertas por prioridade
+        priority_alerts = sorted(
+            [a for a in alerts if a.priority == "high"],
+            key=lambda x: x.days_to_expire
+        )[:10]  # Top 10 alertas críticos
+        
+        # Atividades recentes (simulado por enquanto)
+        recent_activities = await get_recent_sales_activities()
+        
+        # Top oportunidades por valor
+        top_opportunities = sorted(
+            [
+                {
+                    "client_name": a.client_name,
+                    "license_name": a.license_name,
+                    "potential_value": a.renewal_opportunity_value or 0,
+                    "days_to_expire": a.days_to_expire,
+                    "status": a.status
+                }
+                for a in alerts 
+                if a.renewal_opportunity_value
+            ],
+            key=lambda x: x["potential_value"],
+            reverse=True
+        )[:5]
+        
+        summary = SalesDashboardSummary(
+            metrics=metrics,
+            priority_alerts=priority_alerts,
+            recent_activities=recent_activities,
+            top_opportunities=top_opportunities
+        )
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"Error generating sales dashboard summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating dashboard: {str(e)}")
+
+@api_router.get("/sales-dashboard/expiring-licenses", response_model=List[ExpirationAlert])
+async def get_expiring_licenses_alerts(
+    days_ahead: int = 30,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista licenças expirando com alertas de vendas
+    """
+    try:
+        # Buscar licenças expirando nos próximos X dias
+        future_date = datetime.utcnow() + timedelta(days=days_ahead)
+        
+        # Query para buscar licenças expirando
+        query_filter = add_tenant_filter({
+            "$or": [
+                {"expires_at": {"$lte": future_date}},  # Expirando em X dias
+                {"expires_at": {"$lte": datetime.utcnow()}}  # Já expiraram
+            ]
+        })
+        
+        licenses = await db.licenses.find(query_filter).to_list(1000)
+        
+        # Converter para alertas
+        alerts = []
+        for license_doc in licenses:
+            alert = await create_expiration_alert(license_doc)
+            if alert:
+                # Filtros opcionais
+                if status and alert.status != status:
+                    continue
+                if priority and alert.priority != priority:
+                    continue
+                alerts.append(alert)
+        
+        # Ordenar por urgência (dias para expirar)
+        alerts.sort(key=lambda x: x.days_to_expire)
+        
+        return alerts
+        
+    except Exception as e:
+        logger.error(f"Error fetching expiring licenses: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/sales-dashboard/send-whatsapp/{alert_id}")
+async def send_whatsapp_renewal_message(
+    alert_id: str,
+    custom_message: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Envia mensagem de WhatsApp para renovação de licença
+    """
+    try:
+        # Para este MVP, vamos simular o envio baseado nos dados do alerta
+        # Em produção, buscar o alerta real do banco
+        
+        # Simular busca de dados do cliente e licença
+        client_data, license_data = await get_alert_data(alert_id)
+        
+        if not client_data or not license_data:
+            raise HTTPException(status_code=404, detail="Alerta não encontrado")
+        
+        # Determinar tipo de alerta
+        expires_at = license_data.get('expires_at')
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        
+        days_to_expire = (expires_at - datetime.utcnow()).days if expires_at else 0
+        alert_type = get_alert_type(days_to_expire)
+        
+        # Enviar mensagem WhatsApp
+        whatsapp_message = await send_renewal_whatsapp(
+            client_data=client_data,
+            license_data=license_data,
+            alert_type=alert_type,
+            salesperson=current_user.name
+        )
+        
+        # Registrar contato
+        contact_record = SalesContact(
+            alert_id=alert_id,
+            contact_method="whatsapp",
+            contacted_by=current_user.id,
+            notes=f"Mensagem de renovação enviada via WhatsApp - Tipo: {alert_type}",
+            outcome="answered" if whatsapp_message.status == "sent" else "no_answer"
+        )
+        
+        # Log da atividade
+        maintenance_logger.log("whatsapp_renewal_sent", {
+            "alert_id": alert_id,
+            "client_id": client_data.get('id'),
+            "status": whatsapp_message.status,
+            "sent_by": current_user.id,
+            "alert_type": alert_type
+        })
+        
+        return {
+            "message": "Mensagem WhatsApp enviada com sucesso",
+            "whatsapp_status": whatsapp_message.status,
+            "alert_type": alert_type,
+            "phone_number": whatsapp_message.phone_number,
+            "message_id": whatsapp_message.id
+        }
+        
+    except Exception as e:
+        logger.error(f"Error sending WhatsApp renewal message: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/sales-dashboard/bulk-whatsapp")
+async def send_bulk_whatsapp_messages(
+    alert_ids: List[str],
+    message_template: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Envia mensagens WhatsApp em lote para múltiplos alertas
+    """
+    try:
+        results = []
+        
+        for alert_id in alert_ids:
+            try:
+                # Buscar dados do alerta
+                client_data, license_data = await get_alert_data(alert_id)
+                
+                if client_data and license_data:
+                    # Determinar tipo de alerta
+                    expires_at = license_data.get('expires_at')
+                    if isinstance(expires_at, str):
+                        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                    
+                    days_to_expire = (expires_at - datetime.utcnow()).days if expires_at else 0
+                    alert_type = get_alert_type(days_to_expire)
+                    
+                    # Enviar mensagem
+                    whatsapp_message = await send_renewal_whatsapp(
+                        client_data=client_data,
+                        license_data=license_data,
+                        alert_type=alert_type,
+                        salesperson=current_user.name
+                    )
+                    
+                    results.append({
+                        "alert_id": alert_id,
+                        "status": "sent" if whatsapp_message.status == "sent" else "failed",
+                        "client_name": client_data.get('nome_completo') or client_data.get('razao_social'),
+                        "phone": whatsapp_message.phone_number,
+                        "message_id": whatsapp_message.id
+                    })
+                    
+                else:
+                    results.append({
+                        "alert_id": alert_id,
+                        "status": "failed",
+                        "error": "Dados não encontrados"
+                    })
+                    
+            except Exception as e:
+                results.append({
+                    "alert_id": alert_id,
+                    "status": "failed",
+                    "error": str(e)
+                })
+                
+            # Delay entre mensagens para evitar spam
+            await asyncio.sleep(1)
+        
+        # Estatísticas do envio
+        sent_count = len([r for r in results if r["status"] == "sent"])
+        failed_count = len(results) - sent_count
+        
+        maintenance_logger.log("bulk_whatsapp_campaign", {
+            "total_messages": len(results),
+            "sent": sent_count,
+            "failed": failed_count,
+            "sent_by": current_user.id
+        })
+        
+        return {
+            "message": f"Campanha concluída: {sent_count} enviadas, {failed_count} falharam",
+            "total": len(results),
+            "sent": sent_count,
+            "failed": failed_count,
+            "details": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error sending bulk WhatsApp messages: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/sales-dashboard/analytics", response_model=Dict[str, Any])
+async def get_sales_analytics(
+    period_days: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Analytics avançadas do dashboard de vendas
+    """
+    try:
+        end_date = datetime.utcnow().date()
+        start_date = end_date - timedelta(days=period_days)
+        
+        # Métricas por canal (simulado por enquanto - em produção buscar do banco)
+        channel_metrics = {
+            "whatsapp": {
+                "contacts": 45,
+                "responses": 32,
+                "conversions": 18,
+                "response_rate": 71.1,
+                "conversion_rate": 40.0
+            },
+            "phone": {
+                "contacts": 23,
+                "responses": 19,
+                "conversions": 12,
+                "response_rate": 82.6,
+                "conversion_rate": 52.2
+            },
+            "email": {
+                "contacts": 67,
+                "responses": 23,
+                "conversions": 8,
+                "response_rate": 34.3,
+                "conversion_rate": 11.9
+            }
+        }
+        
+        # Métricas por vendedor (simulado)
+        salesperson_metrics = {
+            "João Silva": {"contacts": 45, "conversions": 23, "revenue": 12500.00},
+            "Maria Santos": {"contacts": 38, "conversions": 19, "revenue": 9800.00},
+            "Carlos Oliveira": {"contacts": 52, "conversions": 16, "revenue": 8900.00}
+        }
+        
+        # Métricas temporais (simulado)
+        daily_metrics = []
+        for i in range(period_days):
+            date = start_date + timedelta(days=i)
+            daily_metrics.append({
+                "date": date.isoformat(),
+                "contacts": random.randint(0, 15),
+                "renewals": random.randint(0, 8),
+                "revenue": random.uniform(0, 3000)
+            })
+        
+        return {
+            "period": {
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "days": period_days
+            },
+            "channel_metrics": channel_metrics,
+            "salesperson_metrics": salesperson_metrics,
+            "daily_metrics": daily_metrics,
+            "summary": {
+                "total_contacts": sum(ch["contacts"] for ch in channel_metrics.values()),
+                "total_responses": sum(ch["responses"] for ch in channel_metrics.values()),
+                "total_conversions": sum(ch["conversions"] for ch in channel_metrics.values()),
+                "total_revenue": sum(sp["revenue"] for sp in salesperson_metrics.values()),
+                "avg_response_rate": sum(ch["response_rate"] for ch in channel_metrics.values()) / len(channel_metrics),
+                "avg_conversion_rate": sum(ch["conversion_rate"] for ch in channel_metrics.values()) / len(channel_metrics)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating sales analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Tenant Management Routes
 @api_router.post("/tenants", response_model=Tenant)
 async def create_tenant(tenant_data: TenantCreate, current_user: User = Depends(get_current_user)):
