@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import SemanticBadge from './ui/semantic-badge';
+import { SemanticBadge } from './ui/semantic-badge';
 import { AlertTriangle, MessageCircle, Phone, Mail, TrendingUp, TrendingDown, Users, DollarSign, Calendar, Send, Loader2, RefreshCw } from 'lucide-react';
 
 const SalesDashboard = () => {
