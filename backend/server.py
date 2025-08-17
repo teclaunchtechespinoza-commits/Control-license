@@ -105,9 +105,10 @@ def apply_data_masking(client_data: dict, user_role: str, license_reference: str
     return masked_data
 
 # Import maintenance logger
-import sys
-sys.path.append('/app')
-from maintenance_logger import logger as maint_logger
+from maintenance_logger import MaintenanceLogger
+
+# Initialize maintenance logger
+maintenance_logger = MaintenanceLogger()
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -2283,7 +2284,7 @@ async def create_product(
     current_user: User = Depends(get_current_admin_user)
 ):
     try:
-        maint_logger.info("products", "create_product_start", {
+        maintenance_logger.info("products", "create_product_start", {
             "user_id": current_user.id,
             "user_email": current_user.email,
             "product_data": product_data.dict()
@@ -2293,7 +2294,7 @@ async def create_product(
         query_filter = add_tenant_filter({"name": product_data.name})
         existing_product = await db.products.find_one(query_filter)
         if existing_product:
-            maint_logger.error("products", "create_product_duplicate", {
+            maintenance_logger.error("products", "create_product_duplicate", {
                 "product_name": product_data.name,
                 "existing_id": existing_product.get("id")
             }, "Product with same name already exists")
@@ -2312,7 +2313,7 @@ async def create_product(
         # Criar produto com tenant_id
         product = Product(**product_dict)
         
-        maint_logger.debug("products", "create_product_before_insert", {
+        maintenance_logger.debug("products", "create_product_before_insert", {
             "product_id": product.id,
             "product_name": product.name,
             "complete_product": product.dict()
@@ -2321,7 +2322,7 @@ async def create_product(
         # Insert into database
         result = await db.products.insert_one(product_dict)
         
-        maint_logger.info("products", "create_product_success", {
+        maintenance_logger.info("products", "create_product_success", {
             "product_id": product.id,
             "product_name": product.name,
             "insert_result": str(result.inserted_id) if result else "None"
@@ -2332,7 +2333,7 @@ async def create_product(
     except HTTPException:
         raise
     except Exception as e:
-        maint_logger.error("products", "create_product_exception", {
+        maintenance_logger.error("products", "create_product_exception", {
             "product_data": product_data.dict() if product_data else "None",
             "user_id": current_user.id if current_user else "None"
         }, str(e))
@@ -2344,7 +2345,7 @@ async def create_product(
 @api_router.get("/products", response_model=List[Product])
 async def get_products(current_user: User = Depends(get_current_user)):
     try:
-        maint_logger.debug("products", "get_products_start", {
+        maintenance_logger.debug("products", "get_products_start", {
             "user_id": current_user.id,
             "user_email": current_user.email
         })
@@ -2353,7 +2354,7 @@ async def get_products(current_user: User = Depends(get_current_user)):
         query_filter = add_tenant_filter({"is_active": True})
         products = await db.products.find(query_filter).to_list(1000)
         
-        maint_logger.info("products", "get_products_success", {
+        maintenance_logger.info("products", "get_products_success", {
             "count": len(products),
             "user_id": current_user.id
         })
@@ -2361,7 +2362,7 @@ async def get_products(current_user: User = Depends(get_current_user)):
         return [Product(**product) for product in products]
         
     except Exception as e:
-        maint_logger.error("products", "get_products_exception", {
+        maintenance_logger.error("products", "get_products_exception", {
             "user_id": current_user.id if current_user else "None"
         }, str(e))
         raise HTTPException(
