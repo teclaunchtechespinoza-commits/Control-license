@@ -40,13 +40,14 @@ class MaintenanceLogger:
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
     
-    def log(self, event_type: str, details: Optional[Dict[str, Any]] = None, level: LogLevel = LogLevel.INFO):
+    def log(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None, level: LogLevel = LogLevel.INFO):
         """
         Log an event with details
         """
         try:
             log_entry = {
                 "timestamp": datetime.utcnow(),
+                "category": category,
                 "event_type": event_type,
                 "details": details or {}
             }
@@ -69,24 +70,24 @@ class MaintenanceLogger:
         except Exception as e:
             # Fallback logging if JSON serialization fails
             self.logger.error(f"Maintenance logging error: {e}")
-            self.logger.info(f"Event: {event_type}, Details: {str(details)}")
+            self.logger.info(f"Category: {category}, Event: {event_type}, Details: {str(details)}")
     
-    def debug(self, event_type: str, details: Optional[Dict[str, Any]] = None):
+    def debug(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None):
         """Log debug event"""
-        self.log(event_type, details, LogLevel.DEBUG)
+        self.log(category, event_type, details, LogLevel.DEBUG)
     
-    def info(self, event_type: str, details: Optional[Dict[str, Any]] = None):
+    def info(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None):
         """Log info event"""
-        self.log(event_type, details, LogLevel.INFO)
+        self.log(category, event_type, details, LogLevel.INFO)
     
-    def warning(self, event_type: str, details: Optional[Dict[str, Any]] = None):
+    def warning(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None):
         """Log warning event"""
-        self.log(event_type, details, LogLevel.WARNING)
+        self.log(category, event_type, details, LogLevel.WARNING)
     
-    def error(self, event_type: str, details: Optional[Dict[str, Any]] = None):
+    def error(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None):
         """Log error event"""
-        self.log(event_type, details, LogLevel.ERROR)
+        self.log(category, event_type, details, LogLevel.ERROR)
     
-    def critical(self, event_type: str, details: Optional[Dict[str, Any]] = None):
+    def critical(self, category: str, event_type: str, details: Optional[Dict[str, Any]] = None):
         """Log critical event"""
-        self.log(event_type, details, LogLevel.CRITICAL)
+        self.log(category, event_type, details, LogLevel.CRITICAL)
