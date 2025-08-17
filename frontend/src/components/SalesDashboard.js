@@ -5,10 +5,6 @@ import { Badge } from './ui/badge';
 import { SemanticBadge } from './ui/semantic-badge';
 import { AlertTriangle, MessageCircle, Phone, Mail, TrendingUp, TrendingDown, Users, DollarSign, Calendar, Send, Loader2, RefreshCw } from 'lucide-react';
 
-// Import Help System
-import { useHelp } from './help/HelpProvider';
-import HelpTooltip, { HelpIcon } from './help/HelpTooltip';
-
 const SalesDashboard = () => {
     // Estados principais
     const [summary, setSummary] = useState(null);
