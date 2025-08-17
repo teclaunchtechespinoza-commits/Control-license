@@ -230,75 +230,63 @@ const SalesDashboard = () => {
 
             {/* Métricas Principais */}
             {summary?.metrics && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-tour="sales-metrics">
-                    <HelpTooltip module="sales-dashboard" section="metrics" trigger="hover">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Licenças Expirando</CardTitle>
-                                <AlertTriangle className="h-4 w-4 text-orange-500" />
-                                <HelpIcon module="sales-dashboard" section="metrics" size={14} className="ml-2" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{summary.metrics.total_expiring_licenses || 0}</div>
-                                <div className="flex gap-2 mt-2 text-sm text-gray-600">
-                                    <span>30d: {summary.metrics.licenses_expiring_30_days || 0}</span>
-                                    <span>7d: {summary.metrics.licenses_expiring_7_days || 0}</span>
-                                    <span>1d: {summary.metrics.licenses_expiring_1_day || 0}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </HelpTooltip>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Licenças Expirando</CardTitle>
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.metrics.total_expiring_licenses || 0}</div>
+                            <div className="flex gap-2 mt-2 text-sm text-gray-600">
+                                <span>30d: {summary.metrics.licenses_expiring_30_days || 0}</span>
+                                <span>7d: {summary.metrics.licenses_expiring_7_days || 0}</span>
+                                <span>1d: {summary.metrics.licenses_expiring_1_day || 0}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    <HelpTooltip module="sales-dashboard" section="metrics" trigger="hover">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-                                <TrendingUp className="h-4 w-4 text-green-500" />
-                                <HelpIcon module="sales-dashboard" section="metrics" size={14} className="ml-2" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{(summary.metrics.conversion_rate || 0).toFixed(1)}%</div>
-                                <p className="text-xs text-gray-600 mt-1">
-                                    {summary.metrics.renewed_licenses || 0} renovações de {summary.metrics.contacted_leads || 0} contatos
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </HelpTooltip>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{(summary.metrics.conversion_rate || 0).toFixed(1)}%</div>
+                            <p className="text-xs text-gray-600 mt-1">
+                                {summary.metrics.renewed_licenses || 0} renovações de {summary.metrics.contacted_leads || 0} contatos
+                            </p>
+                        </CardContent>
+                    </Card>
 
-                    <HelpTooltip module="sales-dashboard" section="metrics" trigger="hover">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Receita Potencial</CardTitle>
-                                <DollarSign className="h-4 w-4 text-blue-500" />
-                                <HelpIcon module="sales-dashboard" section="metrics" size={14} className="ml-2" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    R$ {(summary.metrics.potential_revenue || 0).toLocaleString('pt-BR')}
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1">
-                                    Confirmado: R$ {(summary.metrics.confirmed_revenue || 0).toLocaleString('pt-BR')}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </HelpTooltip>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Receita Potencial</CardTitle>
+                            <DollarSign className="h-4 w-4 text-blue-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                R$ {(summary.metrics.potential_revenue || 0).toLocaleString('pt-BR')}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                                Confirmado: R$ {(summary.metrics.confirmed_revenue || 0).toLocaleString('pt-BR')}
+                            </p>
+                        </CardContent>
+                    </Card>
 
-                    <HelpTooltip module="sales-dashboard" section="whatsapp-send" trigger="hover">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Contatos WhatsApp</CardTitle>
-                                <MessageCircle className="h-4 w-4 text-green-500" />
-                                <HelpIcon module="sales-dashboard" section="whatsapp-send" size={14} className="ml-2" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{summary.metrics.whatsapp_contacts || 0}</div>
-                                <div className="flex gap-2 mt-2 text-sm text-gray-600">
-                                    <span>📧 {summary.metrics.email_contacts || 0}</span>
-                                    <span>📞 {summary.metrics.phone_contacts || 0}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </HelpTooltip>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Contatos WhatsApp</CardTitle>
+                            <MessageCircle className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.metrics.whatsapp_contacts || 0}</div>
+                            <div className="flex gap-2 mt-2 text-sm text-gray-600">
+                                <span>📧 {summary.metrics.email_contacts || 0}</span>
+                                <span>📞 {summary.metrics.phone_contacts || 0}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             )}
 
