@@ -3589,74 +3589,31 @@ if __name__ == "__main__":
     
     tester = LicenseManagementAPITester()
     
+    # Check if specific test is requested
     if len(sys.argv) > 1:
         test_type = sys.argv[1].lower()
         
-        if test_type == "whatsapp-phase1":
-            # Run WhatsApp Real Integration Phase 1 tests
-            exit_code = tester.run_whatsapp_integration_phase1_tests()
-        elif test_type == "critical":
-            exit_code = tester.run_critical_test()
-        elif test_type == "client_creation":
-            tester.test_authentication()
-            tester.test_client_creation_specific()
-            tester.cleanup_specific_tests()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "equipment":
-            tester.test_authentication()
-            tester.test_equipment_management()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "pj_debug":
-            tester.test_authentication()
-            tester.test_pj_client_debug()
-            tester.cleanup_debug_tests()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "pj_debug_specific":
-            tester.test_authentication()
-            tester.test_pj_client_debug_specific()
-            tester.cleanup_debug_tests()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "companies_plans":
-            tester.test_authentication()
-            tester.test_companies_endpoints()
-            tester.test_license_plans_endpoints()
-            tester.test_existing_endpoints_still_work()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "backend_product":
-            tester.test_authentication()
-            tester.test_direct_backend_product_creation()
-            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        if test_type == "critical":
+            exit_code = tester.run_critical_validation_tests()
         elif test_type == "rbac":
             tester.test_authentication()
-            tester.test_rbac_system_comprehensive()
+            tester.test_rbac_critical_validation()
             exit_code = 0 if tester.tests_passed == tester.tests_run else 1
-        elif test_type == "rbac_final":
+        elif test_type == "whatsapp":
             tester.test_authentication()
-            success = tester.test_rbac_final_verification()
-            exit_code = 0 if success else 1
-        elif test_type == "notifications":
-            exit_code = tester.run_notification_system_tests()
-        elif test_type == "sales-dashboard":
-            exit_code = tester.run_sales_dashboard_tests()
+            tester.test_whatsapp_integration_critical()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif test_type == "sales":
+            tester.test_authentication()
+            tester.test_sales_dashboard_critical()
+            exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif test_type == "all":
+            exit_code = tester.run_all_tests()
         else:
-            print(f"Unknown test type: {test_type}")
-            print("Available test types:")
-            print("  whatsapp-phase1  - WhatsApp Real Integration Phase 1 tests")
-            print("  critical         - Critical user registration/login tests")
-            print("  client_creation  - Client creation specific tests")
-            print("  equipment        - Equipment management tests")
-            print("  pj_debug         - PJ client debug tests")
-            print("  pj_debug_specific - PJ client specific debug tests")
-            print("  companies_plans  - Companies and license plans tests")
-            print("  backend_product  - Backend product creation tests")
-            print("  rbac             - RBAC system tests")
-            print("  rbac_final       - RBAC final verification tests")
-            print("  notifications    - Notification system tests")
-            print("  sales-dashboard  - Sales Dashboard + WhatsApp integration tests")
+            print("Usage: python backend_test.py [critical|rbac|whatsapp|sales|all]")
             exit_code = 1
     else:
-        # Default: Run WhatsApp Phase 1 tests as requested in review
-        print("🎯 Running WhatsApp Real Integration Phase 1 tests by default")
-        exit_code = tester.run_whatsapp_integration_phase1_tests()
+        # Default: run critical validation tests
+        exit_code = tester.run_critical_validation_tests()
     
     sys.exit(exit_code)
