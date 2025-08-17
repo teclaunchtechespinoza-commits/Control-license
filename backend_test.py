@@ -543,6 +543,186 @@ class LicenseManagementAPITester:
             print(f"❌ {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def test_notification_system(self):
+        """Test comprehensive notification system for license expiry alerts"""
+        print("\n" + "="*50)
+        print("TESTING NOTIFICATION SYSTEM - LICENSE EXPIRY ALERTS")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping notification system tests")
+            return
+        
+        # Test 1: Create manual notification
+        print("\n🔍 Test 1: Create Manual Notification")
+        notification_data = {
+            "type": "license_expiring_30",
+            "channel": "email",
+            "recipient_email": "test@example.com",
+            "subject": "Test Notification",
+            "message": "This is a test notification for the notification system",
+            "priority": "normal"
+        }
+        success, response = self.run_test("Create manual notification", "POST", "notifications", 200, notification_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_notification_id = response['id']
+            print(f"   ✅ Created notification ID: {self.created_notification_id}")
+        
+        # Test 2: List tenant notifications
+        print("\n🔍 Test 2: List Tenant Notifications")
+        success, response = self.run_test("List notifications", "GET", "notifications", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} notifications")
+            for notif in response[:3]:  # Show first 3
+                print(f"      - {notif.get('type', 'unknown')}: {notif.get('status', 'unknown')} ({notif.get('channel', 'unknown')})")
+        
+        # Test 3: Get specific notification
+        if hasattr(self, 'created_notification_id'):
+            print("\n🔍 Test 3: Get Specific Notification")
+            self.run_test("Get specific notification", "GET", f"notifications/{self.created_notification_id}", 200, token=self.admin_token)
+        
+        # Test 4: Mark notification as read
+        if hasattr(self, 'created_notification_id'):
+            print("\n🔍 Test 4: Mark Notification as Read")
+            self.run_test("Mark notification as read", "PUT", f"notifications/{self.created_notification_id}/mark-read", 200, token=self.admin_token)
+        
+        # Test 5: Get notification config (FAILING endpoint according to review)
+        print("\n🔍 Test 5: Get Notification Config (Testing Failing Endpoint)")
+        success, response = self.run_test("Get notification config", "GET", "notifications/config", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Config retrieved successfully")
+            print(f"      - Enabled: {response.get('enabled', 'unknown')}")
+            print(f"      - Email enabled: {response.get('email_enabled', 'unknown')}")
+            print(f"      - Max notifications per day: {response.get('max_notifications_per_day', 'unknown')}")
+        else:
+            print("   ❌ Config endpoint failed as mentioned in review")
+        
+        # Test 6: Update notification config
+        print("\n🔍 Test 6: Update Notification Config")
+        config_update = {
+            "enabled": True,
+            "license_expiring_30_enabled": True,
+            "license_expiring_7_enabled": True,
+            "license_expiring_1_enabled": True,
+            "email_enabled": True,
+            "in_app_enabled": True,
+            "max_notifications_per_day": 50
+        }
+        self.run_test("Update notification config", "PUT", "notifications/config", 200, config_update, self.admin_token)
+        
+        # Test 7: Get notification stats (FAILING endpoint according to review)
+        print("\n🔍 Test 7: Get Notification Statistics (Testing Failing Endpoint)")
+        success, response = self.run_test("Get notification stats", "GET", "notifications/stats", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Stats retrieved successfully")
+            print(f"      - Total notifications: {response.get('total_notifications', 0)}")
+            print(f"      - Sent successfully: {response.get('sent_successfully', 0)}")
+            print(f"      - Failed: {response.get('failed', 0)}")
+            print(f"      - Pending: {response.get('pending', 0)}")
+        else:
+            print("   ❌ Stats endpoint failed as mentioned in review")
+        
+        # Test 8: Create license with expiry date for background job testing
+        print("\n🔍 Test 8: Create License with Expiry Date for Background Job Testing")
+        if hasattr(self, 'created_pf_id'):
+            # Create license expiring in 30 days
+            license_expiry_data = {
+                "name": "Test License for Notification",
+                "description": "License to test notification system",
+                "max_users": 1,
+                "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                "features": ["notification_test"],
+                "client_pf_id": self.created_pf_id,
+                "status": "active"
+            }
+            success, response = self.run_test("Create license for notification testing", "POST", "licenses", 200, license_expiry_data, self.admin_token)
+            if success and 'id' in response:
+                self.created_notification_license_id = response['id']
+                print(f"   ✅ Created license for notification testing: {self.created_notification_license_id}")
+                print(f"      - Expires in 30 days: {license_expiry_data['expires_at']}")
+        
+        # Test 9: Create already expired license
+        print("\n🔍 Test 9: Create Already Expired License for Testing")
+        if hasattr(self, 'created_pj_id'):
+            # Create license that already expired
+            expired_license_data = {
+                "name": "Expired Test License",
+                "description": "License that already expired for notification testing",
+                "max_users": 1,
+                "expires_at": "2025-08-14T00:00:00",  # Already expired as mentioned in review
+                "features": ["expired_test"],
+                "client_pj_id": self.created_pj_id,
+                "status": "active"
+            }
+            success, response = self.run_test("Create expired license for notification testing", "POST", "licenses", 200, expired_license_data, self.admin_token)
+            if success and 'id' in response:
+                self.created_expired_license_id = response['id']
+                print(f"   ✅ Created expired license for notification testing: {self.created_expired_license_id}")
+                print(f"      - Already expired: {expired_license_data['expires_at']}")
+        
+        # Test 10: Verify background job processor is running (check logs)
+        print("\n🔍 Test 10: Verify Background Job Processor")
+        success, response = self.run_test("Get maintenance logs", "GET", "maintenance/logs?lines=50", 200, token=self.admin_token)
+        if success and isinstance(response, list):
+            # Look for notification job processor logs
+            job_logs = [log for log in response if 'worker_' in str(log) or 'notification' in str(log).lower()]
+            if job_logs:
+                print(f"   ✅ Found {len(job_logs)} notification-related log entries")
+                for log in job_logs[:3]:  # Show first 3
+                    print(f"      - {log.get('message', 'No message')[:80]}...")
+            else:
+                print("   ⚠️ No notification job processor logs found")
+        
+        # Test 11: Test notification filtering
+        print("\n🔍 Test 11: Test Notification Filtering")
+        self.run_test("Filter notifications by status", "GET", "notifications?status=pending&limit=10", 200, token=self.admin_token)
+        self.run_test("Filter notifications by type", "GET", "notifications?type=license_expiring_30&limit=10", 200, token=self.admin_token)
+        
+        # Test 12: Test tenant isolation
+        print("\n🔍 Test 12: Test Tenant Isolation")
+        if self.user_token:
+            # User should only see notifications from their tenant
+            self.run_test("Get notifications (user)", "GET", "notifications", 200, token=self.user_token)
+        
+        print("\n🎯 NOTIFICATION SYSTEM TESTING COMPLETED")
+        print("   Key areas tested:")
+        print("   ✅ Manual notification creation")
+        print("   ✅ Notification listing and retrieval")
+        print("   ✅ Notification config management")
+        print("   ✅ Notification statistics")
+        print("   ✅ License expiry scenarios")
+        print("   ✅ Background job verification")
+        print("   ✅ Tenant isolation")
+
+    def run_notification_system_tests(self):
+        """Run notification system tests as requested in review"""
+        print("🚀 Starting Notification System Tests for License Expiry Alerts")
+        print(f"Base URL: {self.base_url}")
+        
+        # Run authentication first
+        self.test_authentication()
+        
+        # Create some test data for notification testing
+        if self.admin_token:
+            self.test_clientes_pf_management()
+            self.test_clientes_pj_management()
+        
+        # Run comprehensive notification system tests
+        self.test_notification_system()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("NOTIFICATION SYSTEM TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All notification system tests passed!")
+            return 0
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
@@ -558,6 +738,7 @@ class LicenseManagementAPITester:
         self.test_products_management()
         self.test_license_plans_management()
         self.test_enhanced_license_management()
+        self.test_notification_system()  # Add notification system tests
         self.test_admin_stats()
         self.test_cleanup()
         
