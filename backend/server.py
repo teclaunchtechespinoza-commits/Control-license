@@ -56,8 +56,8 @@ from whatsapp_integration import (
     whatsapp_service, template_service, send_renewal_whatsapp
 )
 
-# Import WhatsApp Service (Real Integration)
-from whatsapp_service import whatsapp_router, send_renewal_whatsapp_message
+# Import WhatsApp Service (Real Integration) - Commented out to avoid circular imports
+# from whatsapp_service import whatsapp_router, send_renewal_whatsapp_message
 
 # Utilitário para mascaramento de dados sensíveis
 def mask_sensitive_data(data: str, mask_char: str = "*", visible_chars: int = 4) -> str:
