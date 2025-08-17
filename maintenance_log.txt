@@ -103,3 +103,13 @@ tenant_id
 [2025-08-16 23:51:34] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
 [2025-08-16 23:51:34] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
 [2025-08-16 23:51:34] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-17 00:15:40] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-17 00:15:40] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-17 00:15:40] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-17 00:15:40] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-17 00:17:30] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-17 00:17:30] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-17 00:17:30] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-17 00:17:30] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
+[2025-08-17 00:17:44] [DEBUG] products - get_products_start: {"user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026", "user_email": "admin@demo.com"}
+[2025-08-17 00:17:44] [INFO] products - get_products_success: {"count": 5, "user_id": "1a03ea63-8ceb-4f5d-9f38-7d145ba46026"}
