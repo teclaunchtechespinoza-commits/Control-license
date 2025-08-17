@@ -22,7 +22,8 @@ import {
   UserCog,
   Tag,
   Users,
-  RotateCcw
+  RotateCcw,
+  TrendingUp
 } from 'lucide-react';
 
 const Navbar = () => {
