@@ -238,6 +238,23 @@ class WhatsAppHandler {
         this.userInfo = null;
         this.qrCode = null;
     }
+
+    createBaileysLogger() {
+        /**
+         * Create a Baileys-compatible logger
+         * Baileys expects specific methods: trace, debug, info, warn, error, fatal, child
+         */
+        return {
+            level: 'silent',
+            trace: () => {},
+            debug: () => {},
+            info: () => {},
+            warn: () => {},
+            error: () => {},
+            fatal: () => {},
+            child: () => this.createBaileysLogger()
+        };
+    }
 }
 
 // Factory function to create WhatsApp connection
