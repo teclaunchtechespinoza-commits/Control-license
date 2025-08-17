@@ -262,9 +262,14 @@ class NotificationJobProcessor:
     async def check_expiring_licenses(self):
         """Verificar licenças próximas do vencimento e criar notificações"""
         try:
-            logger.info("Checking for expiring licenses...")
+            maintenance_logger.info("notifications", "expiry_check_started", {
+                "worker_id": self.worker_id,
+                "check_windows": [30, 7, 1],
+                "timestamp": datetime.utcnow().isoformat()
+            })
             
             now = datetime.utcnow()
+            total_notifications_created = 0
             
             # Definir janelas de verificação
             check_dates = {
@@ -289,11 +294,24 @@ class NotificationJobProcessor:
                 
                 logger.info(f"Found {len(licenses)} licenses expiring in {days} days")
                 
+                if len(licenses) > 0:
+                    maintenance_logger.info("notifications", "licenses_detected", {
+                        "expiring_in_days": days,
+                        "licenses_count": len(licenses),
+                        "notification_type": str(notification_type),
+                        "target_date": target_date.strftime("%Y-%m-%d")
+                    })
+                
                 for license_doc in licenses:
                     try:
                         await self.create_expiry_notification(license_doc, notification_type)
+                        total_notifications_created += 1
                     except Exception as e:
                         logger.error(f"Error creating notification for license {license_doc.get('id')}: {e}")
+                        maintenance_logger.error("notifications", "create_notification_failed", {
+                            "license_id": license_doc.get('id'),
+                            "notification_type": str(notification_type)
+                        }, str(e))
             
             # Verificar licenças já expiradas (últimos 7 dias)
             expired_start = now - timedelta(days=7)
@@ -307,9 +325,16 @@ class NotificationJobProcessor:
             
             logger.info(f"Found {len(expired_licenses)} recently expired licenses")
             
+            if len(expired_licenses) > 0:
+                maintenance_logger.info("notifications", "expired_licenses_detected", {
+                    "expired_licenses_count": len(expired_licenses),
+                    "check_period": "last_7_days"
+                })
+            
             for license_doc in expired_licenses:
                 try:
                     await self.create_expiry_notification(license_doc, NotificationType.LICENSE_EXPIRED)
+                    total_notifications_created += 1
                     
                     # Marcar licença como expirada
                     await self.db.licenses.update_one(
@@ -318,9 +343,22 @@ class NotificationJobProcessor:
                     )
                 except Exception as e:
                     logger.error(f"Error processing expired license {license_doc.get('id')}: {e}")
+                    maintenance_logger.error("notifications", "process_expired_failed", {
+                        "license_id": license_doc.get('id')
+                    }, str(e))
+            
+            maintenance_logger.info("notifications", "expiry_check_completed", {
+                "worker_id": self.worker_id,
+                "total_notifications_created": total_notifications_created,
+                "processing_duration": "completed",
+                "status": "success"
+            })
         
         except Exception as e:
             logger.error(f"Error checking expiring licenses: {e}")
+            maintenance_logger.error("notifications", "expiry_check_failed", {
+                "worker_id": self.worker_id
+            }, str(e))
     
     async def create_expiry_notification(self, license_doc: dict, notification_type: NotificationType):
         """Criar notificação de vencimento para uma licença"""
