@@ -213,28 +213,42 @@ const SalesDashboard = () => {
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
             {/* Header */}
             <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Dashboard de Vendas</h1>
-                    <p className="text-gray-600 mt-1">Transforme alertas técnicos em oportunidades de vendas</p>
-                </div>
+                <HelpTooltip 
+                    module="sales-dashboard" 
+                    section="overview"
+                    position="bottom"
+                    size="large"
+                >
+                    <div data-tour="sales-dashboard">
+                        <h1 className="text-3xl font-bold text-gray-900">Dashboard de Vendas</h1>
+                        <p className="text-gray-600 mt-1">Transforme alertas técnicos em oportunidades de vendas</p>
+                    </div>
+                </HelpTooltip>
+                
                 <div className="flex gap-3">
-                    <button
-                        onClick={handleRefresh}
-                        disabled={refreshing}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                        Atualizar
-                    </button>
-                    {selectedAlerts.size > 0 && (
+                    <HelpTooltip module="sales-dashboard" section="analytics" trigger="hover">
                         <button
-                            onClick={sendBulkWhatsApp}
-                            disabled={sendingWhatsApp.has('bulk')}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
                         >
-                            <Send className="h-4 w-4" />
-                            {sendingWhatsApp.has('bulk') ? 'Enviando...' : `Enviar WhatsApp (${selectedAlerts.size})`}
+                            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                            Atualizar
                         </button>
+                    </HelpTooltip>
+                    
+                    {selectedAlerts.size > 0 && (
+                        <HelpTooltip module="sales-dashboard" section="bulk-whatsapp" position="bottom">
+                            <button
+                                onClick={sendBulkWhatsApp}
+                                disabled={sendingWhatsApp.has('bulk')}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                data-tour="bulk-actions"
+                            >
+                                <Send className="h-4 w-4" />
+                                {sendingWhatsApp.has('bulk') ? 'Enviando...' : `Enviar WhatsApp (${selectedAlerts.size})`}
+                            </button>
+                        </HelpTooltip>
                     )}
                 </div>
             </div>
