@@ -12,9 +12,8 @@ from datetime import datetime
 import logging
 import os
 
-from database import get_database
-from auth import get_current_user, User
-from maintenance_logger import maintenance_logger
+# Import from server.py instead of separate modules
+from server import get_current_user, User, maintenance_logger
 
 logger = logging.getLogger(__name__)
 
