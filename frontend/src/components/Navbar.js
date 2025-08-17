@@ -80,6 +80,17 @@ const Navbar = () => {
                 <span>Minhas Licenças</span>
               </Button>
             </Link>
+
+            <Link to="/vendas">
+              <Button
+                variant={isActive('/vendas') ? 'default' : 'ghost'}
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>Dashboard Vendas</span>
+              </Button>
+            </Link>
             
             {user?.role === 'admin' && (
               <>
