@@ -15,6 +15,12 @@ from notification_system import (
     get_default_template, calculate_notification_trigger_dates
 )
 
+# Import maintenance logger
+from maintenance_logger import MaintenanceLogger
+
+# Initialize maintenance logger
+maintenance_logger = MaintenanceLogger()
+
 # Configuração de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
