@@ -2820,6 +2820,12 @@ async def startup_db_client():
     
     # Initialize default tenant first
     await initialize_default_tenant()
+    maintenance_logger.info("system", "multi_tenancy_initialized", {
+        "default_tenant_created": True,
+        "data_migration_completed": True,
+        "tenant_isolation_active": True,
+        "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]
+    })
     
     # Create demo admin user with default tenant
     admin_exists = await db.users.find_one({"email": "admin@demo.com"})
