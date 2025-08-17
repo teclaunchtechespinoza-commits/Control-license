@@ -15,6 +15,7 @@ import MaintenanceModule from './components/MaintenanceModule';
 import SalesDashboard from './components/SalesDashboard';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
+import { HelpProvider } from './components/help/HelpProvider';
 
 // API Configuration
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
