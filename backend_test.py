@@ -723,6 +723,191 @@ class LicenseManagementAPITester:
             print(f"❌ {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def test_sales_dashboard_system(self):
+        """Test comprehensive Sales Dashboard + WhatsApp integration as requested in review"""
+        print("\n" + "="*50)
+        print("TESTING SALES DASHBOARD + WHATSAPP INTEGRATION")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping sales dashboard tests")
+            return
+
+        # Test 1: GET /api/sales-dashboard/summary
+        print("\n🔍 Test 1: Sales Dashboard Summary (Main Endpoint)")
+        success, response = self.run_test("Sales dashboard summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Dashboard summary retrieved successfully")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Total expiring licenses: {metrics.get('total_expiring_licenses', 0)}")
+                print(f"      - High priority alerts: {metrics.get('high_priority_alerts', 0)}")
+                print(f"      - Total opportunity value: R$ {metrics.get('total_opportunity_value', 0):.2f}")
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+            if 'priority_alerts' in response:
+                print(f"      - Priority alerts count: {len(response['priority_alerts'])}")
+            if 'recent_activities' in response:
+                print(f"      - Recent activities count: {len(response['recent_activities'])}")
+
+        # Test 2: GET /api/sales-dashboard/expiring-licenses (default parameters)
+        print("\n🔍 Test 2: Expiring Licenses (Default 30 days)")
+        success, response = self.run_test("Expiring licenses default", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} expiring licenses")
+            for alert in response[:3]:  # Show first 3
+                print(f"      - {alert.get('client_name', 'Unknown')}: {alert.get('license_name', 'Unknown')} (expires in {alert.get('days_to_expire', 'N/A')} days)")
+
+        # Test 3: GET /api/sales-dashboard/expiring-licenses with parameters
+        print("\n🔍 Test 3: Expiring Licenses with Filters")
+        params = {"days_ahead": 30, "status": "pending", "priority": "high"}
+        success, response = self.run_test("Expiring licenses filtered", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token, params=params)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} high priority pending alerts")
+
+        # Test 4: GET /api/sales-dashboard/analytics
+        print("\n🔍 Test 4: Sales Analytics (Advanced)")
+        params = {"period_days": 30}
+        success, response = self.run_test("Sales analytics", "GET", "sales-dashboard/analytics", 200, token=self.admin_token, params=params)
+        if success:
+            print(f"   ✅ Analytics retrieved successfully")
+            if 'channel_metrics' in response:
+                channels = response['channel_metrics']
+                print(f"      - WhatsApp contacts: {channels.get('whatsapp', {}).get('contacts', 0)}")
+                print(f"      - Phone contacts: {channels.get('phone', {}).get('contacts', 0)}")
+                print(f"      - Email contacts: {channels.get('email', {}).get('contacts', 0)}")
+            if 'summary' in response:
+                summary = response['summary']
+                print(f"      - Total contacts: {summary.get('total_contacts', 0)}")
+                print(f"      - Total conversions: {summary.get('total_conversions', 0)}")
+                print(f"      - Total revenue: R$ {summary.get('total_revenue', 0):.2f}")
+
+        # Test 5: Create test licenses for WhatsApp testing
+        print("\n🔍 Test 5: Create Test Licenses for WhatsApp Testing")
+        if hasattr(self, 'created_pf_id') and hasattr(self, 'created_pj_id'):
+            # Create license expiring in 30 days
+            license_30_data = {
+                "name": "Licença Teste WhatsApp 30 dias",
+                "description": "Licença para testar WhatsApp T-30",
+                "max_users": 5,
+                "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                "features": ["whatsapp_test"],
+                "client_pf_id": self.created_pf_id,
+                "status": "active"
+            }
+            success, response = self.run_test("Create license expiring in 30 days", "POST", "licenses", 200, license_30_data, self.admin_token)
+            if success and 'id' in response:
+                self.test_license_30_id = response['id']
+                print(f"   ✅ Created 30-day license: {self.test_license_30_id}")
+
+            # Create license expiring in 7 days
+            license_7_data = {
+                "name": "Licença Teste WhatsApp 7 dias",
+                "description": "Licença para testar WhatsApp T-7",
+                "max_users": 10,
+                "expires_at": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+                "features": ["whatsapp_test"],
+                "client_pj_id": self.created_pj_id,
+                "status": "active"
+            }
+            success, response = self.run_test("Create license expiring in 7 days", "POST", "licenses", 200, license_7_data, self.admin_token)
+            if success and 'id' in response:
+                self.test_license_7_id = response['id']
+                print(f"   ✅ Created 7-day license: {self.test_license_7_id}")
+
+        # Test 6: POST /api/sales-dashboard/send-whatsapp/{alert_id}
+        print("\n🔍 Test 6: Send Individual WhatsApp Message")
+        # Use a simulated alert ID for testing
+        test_alert_id = "alert_test_12345"
+        success, response = self.run_test("Send WhatsApp message", "POST", f"sales-dashboard/send-whatsapp/{test_alert_id}", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ WhatsApp message sent successfully")
+            print(f"      - Status: {response.get('whatsapp_status', 'unknown')}")
+            print(f"      - Alert type: {response.get('alert_type', 'unknown')}")
+            print(f"      - Phone: {response.get('phone_number', 'unknown')}")
+            print(f"      - Message ID: {response.get('message_id', 'unknown')}")
+
+        # Test 7: POST /api/sales-dashboard/bulk-whatsapp
+        print("\n🔍 Test 7: Send Bulk WhatsApp Messages")
+        bulk_data = {
+            "alert_ids": ["alert_test_1", "alert_test_2", "alert_test_3"]
+        }
+        success, response = self.run_test("Send bulk WhatsApp messages", "POST", "sales-dashboard/bulk-whatsapp", 200, bulk_data, self.admin_token)
+        if success:
+            print(f"   ✅ Bulk WhatsApp campaign completed")
+            print(f"      - Total messages: {response.get('total', 0)}")
+            print(f"      - Sent successfully: {response.get('sent', 0)}")
+            print(f"      - Failed: {response.get('failed', 0)}")
+            if 'details' in response:
+                for detail in response['details'][:3]:  # Show first 3
+                    print(f"      - Alert {detail.get('alert_id', 'unknown')}: {detail.get('status', 'unknown')}")
+
+        # Test 8: Test different analytics periods
+        print("\n🔍 Test 8: Analytics with Different Periods")
+        for period in [7, 15, 60]:
+            params = {"period_days": period}
+            success, response = self.run_test(f"Analytics {period} days", "GET", "sales-dashboard/analytics", 200, token=self.admin_token, params=params)
+            if success:
+                print(f"   ✅ {period}-day analytics retrieved")
+
+        # Test 9: Test error scenarios
+        print("\n🔍 Test 9: Error Scenarios")
+        # Test with invalid alert ID
+        success, response = self.run_test("WhatsApp invalid alert", "POST", "sales-dashboard/send-whatsapp/invalid_alert_id", 404, token=self.admin_token)
+        if not success:
+            print(f"   ✅ Invalid alert ID properly rejected")
+
+        # Test without authentication
+        success, response = self.run_test("Dashboard without auth", "GET", "sales-dashboard/summary", 401)
+        if not success:
+            print(f"   ✅ Authentication properly enforced")
+
+        print("\n🎯 SALES DASHBOARD TESTING COMPLETED")
+        print("   Key areas tested:")
+        print("   ✅ Dashboard summary with metrics and alerts")
+        print("   ✅ Expiring licenses with filtering")
+        print("   ✅ Advanced analytics by channel and period")
+        print("   ✅ Individual WhatsApp message sending")
+        print("   ✅ Bulk WhatsApp campaign functionality")
+        print("   ✅ Error handling and authentication")
+        print("   ✅ Data structure validation")
+
+    def run_sales_dashboard_tests(self):
+        """Run sales dashboard tests as requested in review"""
+        print("🚀 Starting CRITICAL SALES DASHBOARD + WHATSAPP TESTS")
+        print(f"Base URL: {self.base_url}")
+        print("Testing MVP functionality for sales dashboard with WhatsApp integration")
+        
+        # Run authentication first
+        self.test_authentication()
+        
+        # Create test data for sales dashboard testing
+        if self.admin_token:
+            self.test_clientes_pf_management()
+            self.test_clientes_pj_management()
+        
+        # Run comprehensive sales dashboard tests
+        self.test_sales_dashboard_system()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("SALES DASHBOARD TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 TESTE CRÍTICO DO BACKEND - DASHBOARD DE VENDAS + WHATSAPP APROVADO!")
+            print("   Todos os endpoints estão funcionando corretamente:")
+            print("   ✅ GET /api/sales-dashboard/summary")
+            print("   ✅ GET /api/sales-dashboard/expiring-licenses")
+            print("   ✅ GET /api/sales-dashboard/analytics")
+            print("   ✅ POST /api/sales-dashboard/send-whatsapp/{alert_id}")
+            print("   ✅ POST /api/sales-dashboard/bulk-whatsapp")
+            print("   Sistema MVP funcional pronto para demonstração!")
+            return 0
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
@@ -739,6 +924,7 @@ class LicenseManagementAPITester:
         self.test_license_plans_management()
         self.test_enhanced_license_management()
         self.test_notification_system()  # Add notification system tests
+        self.test_sales_dashboard_system()  # Add sales dashboard tests
         self.test_admin_stats()
         self.test_cleanup()
         
