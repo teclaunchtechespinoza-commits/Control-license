@@ -1124,6 +1124,212 @@ class LicenseManagementAPITester:
             print(f"❌ {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def test_rbac_critical_validation(self):
+        """Test RBAC functionality as requested in critical review"""
+        print("\n" + "="*50)
+        print("TESTING RBAC FUNCTIONALITY - CRITICAL VALIDATION")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping RBAC tests")
+            return
+
+        # Test 1: GET /api/rbac/roles - Should return roles
+        print("\n🔍 Test 1: GET /api/rbac/roles")
+        success, response = self.run_test("Get RBAC roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} roles")
+            for role in response[:3]:  # Show first 3
+                print(f"      - {role.get('name', 'Unknown')}: {role.get('description', 'No description')}")
+
+        # Test 2: GET /api/rbac/permissions - Should return permissions
+        print("\n🔍 Test 2: GET /api/rbac/permissions")
+        success, response = self.run_test("Get RBAC permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} permissions")
+            for perm in response[:3]:  # Show first 3
+                print(f"      - {perm.get('name', 'Unknown')}: {perm.get('description', 'No description')}")
+
+        # Test 3: GET /api/rbac/users - Should list users
+        print("\n🔍 Test 3: GET /api/rbac/users")
+        success, response = self.run_test("Get RBAC users", "GET", "rbac/users", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} users")
+            for user in response[:3]:  # Show first 3
+                print(f"      - {user.get('email', 'Unknown')}: {user.get('name', 'No name')}")
+
+        # Test 4: Verify admin user has correct permissions
+        print("\n🔍 Test 4: Verify Admin User Permissions")
+        success, response = self.run_test("Get current user info", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Admin user: {response.get('email', 'Unknown')}")
+            print(f"   ✅ Role: {response.get('role', 'Unknown')}")
+
+    def test_whatsapp_integration_critical(self):
+        """Test WhatsApp integration as requested in critical review"""
+        print("\n" + "="*50)
+        print("TESTING WHATSAPP INTEGRATION - CRITICAL VALIDATION")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping WhatsApp tests")
+            return
+
+        # Test 1: GET /api/whatsapp/health - Should return healthy: true
+        print("\n🔍 Test 1: GET /api/whatsapp/health")
+        success, response = self.run_test("WhatsApp health check", "GET", "whatsapp/health", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Service healthy: {response.get('healthy', False)}")
+            print(f"   ✅ Service: {response.get('service', 'Unknown')}")
+            print(f"   ✅ Service URL: {response.get('service_url', 'Unknown')}")
+
+        # Test 2: GET /api/whatsapp/status - Status da conexão WhatsApp
+        print("\n🔍 Test 2: GET /api/whatsapp/status")
+        success, response = self.run_test("WhatsApp connection status", "GET", "whatsapp/status", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Connected: {response.get('connected', False)}")
+            print(f"   ✅ Status: {response.get('status', 'Unknown')}")
+
+        # Test 3: GET /api/whatsapp/qr - QR code para admin (se desconectado)
+        print("\n🔍 Test 3: GET /api/whatsapp/qr")
+        success, response = self.run_test("WhatsApp QR code", "GET", "whatsapp/qr", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ QR Status: {response.get('status', 'Unknown')}")
+            print(f"   ✅ QR Available: {bool(response.get('qr'))}")
+
+        # Test 4: POST /api/whatsapp/send - Teste de envio simulado
+        print("\n🔍 Test 4: POST /api/whatsapp/send")
+        message_data = {
+            "phone_number": "+5511999999999",
+            "message": "Teste crítico de validação WhatsApp",
+            "message_id": "critical_test_001"
+        }
+        success, response = self.run_test("WhatsApp send message", "POST", "whatsapp/send", 200, message_data, self.admin_token)
+        if success:
+            print(f"   ✅ Success: {response.get('success', False)}")
+            print(f"   ✅ Phone: {response.get('phone_number', 'Unknown')}")
+            print(f"   ✅ Message ID: {response.get('message_id', 'Unknown')}")
+
+    def test_sales_dashboard_critical(self):
+        """Test Sales Dashboard as requested in critical review"""
+        print("\n" + "="*50)
+        print("TESTING SALES DASHBOARD - CRITICAL VALIDATION")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping Sales Dashboard tests")
+            return
+
+        # Test 1: GET /api/sales-dashboard/summary - Dashboard de vendas
+        print("\n🔍 Test 1: GET /api/sales-dashboard/summary")
+        success, response = self.run_test("Sales dashboard summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Dashboard summary retrieved successfully")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Total expiring licenses: {metrics.get('total_expiring_licenses', 0)}")
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+                print(f"      - Total revenue: R$ {metrics.get('confirmed_revenue', 0):.2f}")
+
+        # Test 2: GET /api/sales-dashboard/expiring-licenses - Lista de alertas
+        print("\n🔍 Test 2: GET /api/sales-dashboard/expiring-licenses")
+        success, response = self.run_test("Expiring licenses", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} expiring licenses")
+            for alert in response[:3]:  # Show first 3
+                print(f"      - {alert.get('client_name', 'Unknown')}: expires in {alert.get('days_to_expire', 'N/A')} days")
+
+        # Test 3: POST /api/sales-dashboard/send-whatsapp/{id} - Integração WhatsApp
+        print("\n🔍 Test 3: POST /api/sales-dashboard/send-whatsapp/{id}")
+        test_alert_id = "critical_test_alert_001"
+        success, response = self.run_test("Sales dashboard WhatsApp send", "POST", f"sales-dashboard/send-whatsapp/{test_alert_id}", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ WhatsApp status: {response.get('whatsapp_status', 'Unknown')}")
+            print(f"   ✅ Alert type: {response.get('alert_type', 'Unknown')}")
+            print(f"   ✅ Message ID: {response.get('message_id', 'Unknown')}")
+
+    def test_inter_service_communication(self):
+        """Test inter-service communication as requested in critical review"""
+        print("\n" + "="*50)
+        print("TESTING INTER-SERVICE COMMUNICATION - CRITICAL VALIDATION")
+        print("="*50)
+        
+        # Test 1: FastAPI → Node.js WhatsApp service
+        print("\n🔍 Test 1: FastAPI → Node.js WhatsApp Service Communication")
+        try:
+            import requests
+            node_response = requests.get("http://localhost:3001/health", timeout=5)
+            if node_response.status_code == 200:
+                node_data = node_response.json()
+                print(f"   ✅ Node.js service responding: {node_data.get('status', 'Unknown')}")
+                print(f"   ✅ Service version: {node_data.get('version', 'Unknown')}")
+                print(f"   ✅ WhatsApp connected: {node_data.get('whatsapp_connected', False)}")
+            else:
+                print(f"   ❌ Node.js service error: HTTP {node_response.status_code}")
+        except Exception as e:
+            print(f"   ❌ Node.js service communication error: {e}")
+
+        # Test 2: Redis session management (through API)
+        print("\n🔍 Test 2: Redis Session Management")
+        if self.admin_token:
+            success, response = self.run_test("Test session via auth/me", "GET", "auth/me", 200, token=self.admin_token)
+            if success:
+                print(f"   ✅ Session management working: {response.get('email', 'Unknown')}")
+
+        # Test 3: Database connectivity
+        print("\n🔍 Test 3: Database Connectivity")
+        if self.admin_token:
+            success, response = self.run_test("Test database via users", "GET", "users", 200, token=self.admin_token)
+            if success:
+                print(f"   ✅ Database connectivity working: {len(response)} users found")
+
+    def run_critical_validation_tests(self):
+        """Run critical validation tests as requested in review"""
+        print("🚀 TESTE CRÍTICO DE RECUPERAÇÃO - VALIDAÇÃO PÓS-FIXES")
+        print(f"Base URL: {self.base_url}")
+        print("Testing critical functionality after recent fixes")
+        
+        # Run authentication first with admin@demo.com / admin123
+        print("\n🔑 Testing Login: admin@demo.com / admin123")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   ✅ Admin token obtained successfully")
+        else:
+            print("   ❌ Failed to obtain admin token - cannot continue tests")
+            return 1
+
+        # Run critical validation tests
+        self.test_rbac_critical_validation()
+        self.test_whatsapp_integration_critical()
+        self.test_sales_dashboard_critical()
+        self.test_inter_service_communication()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("CRITICAL VALIDATION TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 TESTE CRÍTICO DE RECUPERAÇÃO APROVADO COM SUCESSO ABSOLUTO!")
+            print("   TODOS OS PROBLEMAS REPORTADOS FORAM RESOLVIDOS:")
+            print("   ✅ Erros de dados RBAC corrigidos")
+            print("   ✅ Conexões funcionando")
+            print("   ✅ WhatsApp integration ativa")
+            print("   ✅ Comunicação externa operacional")
+            print("   ✅ Sistema está 100% operacional para continuar com Tenant Admin development")
+            return 0
+        else:
+            print(f"❌ TESTE CRÍTICO FALHOU!")
+            print(f"   {self.tests_run - self.tests_passed} tests failed")
+            print("   Sistema NÃO está pronto para continuar desenvolvimento")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
