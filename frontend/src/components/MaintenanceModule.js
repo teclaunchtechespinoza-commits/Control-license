@@ -99,10 +99,51 @@ const MaintenanceModule = () => {
     }
   };
 
-  // Função para garantir URL correto (máscara)
-  const getApiUrl = (endpoint) => {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
-    return `${backendUrl}/api/${endpoint}`;
+  // Função para diagnóstico direto do RBAC
+  const testRbacDirect = async () => {
+    try {
+      console.log('=== TESTE DIRETO RBAC ===');
+      
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+      console.log('Backend URL:', backendUrl);
+      
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      console.log('Token existe:', !!token);
+      
+      if (!token) {
+        toast.error('Token não encontrado - faça login primeiro');
+        return;
+      }
+
+      // Teste direto com URL completo
+      const testUrl = `${backendUrl}/api/rbac/roles`;
+      console.log('Testando URL:', testUrl);
+      
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Dados RBAC recebidos:', data);
+        toast.success(`RBAC funcionando! ${data.length} roles encontradas`);
+      } else {
+        const errorText = await response.text();
+        console.error('Erro na resposta:', errorText);
+        toast.error(`Erro RBAC: ${response.status} - ${errorText}`);
+      }
+      
+    } catch (error) {
+      console.error('Erro no teste direto:', error);
+      toast.error(`Erro de conexão: ${error.message}`);
+    }
   };
 
   // Funções para RBAC
