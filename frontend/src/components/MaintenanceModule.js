@@ -160,7 +160,7 @@ const MaintenanceModule = () => {
   const createRole = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles`, newRole, {
+      await axios.post('/rbac/roles', newRole, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
