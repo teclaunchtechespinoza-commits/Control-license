@@ -115,6 +115,7 @@ const MaintenanceModule = () => {
       
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       console.log('Token existe:', !!token);
+      console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'NENHUM');
       
       if (!token) {
         toast.error('Token não encontrado - faça login primeiro');
@@ -134,24 +135,30 @@ const MaintenanceModule = () => {
       });
       
       console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const data = await response.json();
         console.log('Dados RBAC recebidos:', data);
-        toast.success(`RBAC funcionando! ${data.length} roles encontradas`);
+        console.log('Tipo dos dados:', typeof data, Array.isArray(data));
+        toast.success(`✅ RBAC FUNCIONANDO! ${Array.isArray(data) ? data.length : 'N/A'} roles encontradas`);
         
-        // Atualizar os dados se o teste funcionou
-        setRoles(data);
+        // Tentar atualizar os dados diretamente
+        if (Array.isArray(data)) {
+          setRoles(data);
+          console.log('Estados roles atualizados com sucesso');
+        }
       } else {
         const errorText = await response.text();
-        console.error('Erro na resposta:', errorText);
-        toast.error(`Erro RBAC: ${response.status} - ${errorText}`);
+        console.error('Erro na resposta:', response.status, errorText);
+        toast.error(`❌ Erro RBAC: ${response.status} - ${errorText}`);
       }
       
     } catch (error) {
       console.error('Erro no teste direto:', error);
-      toast.error(`Erro de conexão: ${error.message}`);
+      console.error('Stack trace:', error.stack);
+      toast.error(`❌ Erro de conexão: ${error.message}`);
     }
   };
 
