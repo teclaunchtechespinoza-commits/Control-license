@@ -700,52 +700,6 @@ const MaintenanceModule = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Novo Papel
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Criar Novo Papel</DialogTitle>
-                        <DialogDescription>
-                          Defina um novo papel com suas permissões específicas.
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="role-name">Nome do Papel</Label>
-                          <Input
-                            id="role-name"
-                            value={newRole.name}
-                            onChange={(e) => setNewRole({...newRole, name: e.target.value})}
-                            placeholder="Ex: Editor, Supervisor"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="role-description">Descrição</Label>
-                          <Textarea
-                            id="role-description"
-                            value={newRole.description}
-                            onChange={(e) => setNewRole({...newRole, description: e.target.value})}
-                            placeholder="Descreva as responsabilidades deste papel"
-                          />
-                        </div>
-                      </div>
-                      
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
-                          Cancelar
-                        </Button>
-                        <Button onClick={createRole}>
-                          Criar Papel
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                 </CardTitle>
               </CardHeader>
               <CardContent>
