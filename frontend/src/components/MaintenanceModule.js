@@ -99,6 +99,12 @@ const MaintenanceModule = () => {
     }
   };
 
+  // Função para garantir URL correto (máscara)
+  const getApiUrl = (endpoint) => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+    return `${backendUrl}/api/${endpoint}`;
+  };
+
   // Função para diagnóstico direto do RBAC
   const testRbacDirect = async () => {
     try {
@@ -134,6 +140,9 @@ const MaintenanceModule = () => {
         const data = await response.json();
         console.log('Dados RBAC recebidos:', data);
         toast.success(`RBAC funcionando! ${data.length} roles encontradas`);
+        
+        // Atualizar os dados se o teste funcionou
+        setRoles(data);
       } else {
         const errorText = await response.text();
         console.error('Erro na resposta:', errorText);
