@@ -4010,6 +4010,8 @@ if __name__ == "__main__":
             tester.test_authentication()
             tester.test_rbac_critical_validation()
             exit_code = 0 if tester.tests_passed == tester.tests_run else 1
+        elif test_type == "rbac-investigation":
+            exit_code = tester.run_rbac_interface_failure_investigation()
         elif test_type == "whatsapp":
             tester.test_authentication()
             tester.test_whatsapp_integration_critical()
@@ -4023,10 +4025,10 @@ if __name__ == "__main__":
         elif test_type == "frontend-backend":
             exit_code = tester.run_frontend_backend_communication_tests()
         else:
-            print("Usage: python backend_test.py [critical|rbac|whatsapp|sales|all|frontend-backend]")
+            print("Usage: python backend_test.py [critical|rbac|rbac-investigation|whatsapp|sales|all|frontend-backend]")
             exit_code = 1
     else:
-        # Default: run critical validation tests
-        exit_code = tester.run_critical_validation_tests()
+        # Default: run RBAC interface failure investigation as requested in review
+        exit_code = tester.run_rbac_interface_failure_investigation()
     
     sys.exit(exit_code)
