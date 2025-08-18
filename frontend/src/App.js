@@ -76,10 +76,8 @@ const AuthProvider = ({ children }) => {
       
       toast.success(`Welcome back, ${userData.name}!`);
       
-      // Forçar redirecionamento imediato
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 100);
+      // Usar React Router navigate em vez de window.location
+      navigate('/dashboard');
       
       return { success: true };
     } catch (error) {
