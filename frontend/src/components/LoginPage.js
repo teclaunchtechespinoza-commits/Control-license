@@ -227,6 +227,26 @@ const LoginPage = () => {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar
                   </Button>
+                  
+                  {/* Botão de teste temporário */}
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full mt-2" 
+                    onClick={async () => {
+                      try {
+                        console.log('Testando conexão com backend...');
+                        const response = await axios.get('/health');
+                        console.log('Health response:', response.data);
+                        alert(`Backend conectado! Status: ${response.data.status}`);
+                      } catch (error) {
+                        console.error('Erro na conexão:', error);
+                        alert(`Erro na conexão: ${error.message}`);
+                      }
+                    }}
+                  >
+                    Testar Conexão Backend
+                  </Button>
                 </CardFooter>
               </form>
             </TabsContent>
