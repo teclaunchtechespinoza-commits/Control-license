@@ -59,6 +59,12 @@ const LoginPage = () => {
     const result = await login(loginData);
     console.log('Login result:', result);
     
+    // Se o login foi bem-sucedido, forçar redirecionamento
+    if (result && result.success) {
+      console.log('Login successful, forcing redirect to dashboard');
+      window.location.href = '/dashboard';
+    }
+    
     setIsLoading(false);
   };
 
