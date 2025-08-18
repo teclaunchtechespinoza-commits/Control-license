@@ -240,6 +240,19 @@ const MaintenanceModule = () => {
     } catch (error) {
       console.error('Failed to fetch RBAC data:', error);
       toast.error('Erro ao carregar dados RBAC');
+      
+      // Limpar estados em caso de erro para evitar problemas de tipo
+      setRoles([]);
+      setPermissions([]);
+      setUsers([]);
+      setStatusStats({
+        totalUsers: 0,
+        activeUsers: 0,
+        totalRoles: 0,
+        systemRoles: 0,
+        totalPermissions: 0,
+        recentActivity: []
+      });
     } finally {
       setRbacLoading(false);
     }
