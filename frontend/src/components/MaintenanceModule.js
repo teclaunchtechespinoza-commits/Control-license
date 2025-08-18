@@ -135,9 +135,9 @@ const MaintenanceModule = () => {
         }).then(res => res.json())
       ]);
 
-      const rolesData = rolesResponse.data;
-      const permissionsData = permissionsResponse.data;
-      const usersData = usersResponse.data;
+      const rolesData = rolesResponse;
+      const permissionsData = permissionsResponse;
+      const usersData = usersResponse;
 
       console.log('Dados RBAC carregados:', { 
         roles: rolesData.length, 
