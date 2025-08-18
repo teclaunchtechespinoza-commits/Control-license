@@ -215,19 +215,19 @@ const MaintenanceModule = () => {
 
       // Calcular estatísticas para o painel de status
       const stats = {
-        totalUsers: usersData.length,
-        activeUsers: usersData.filter(user => user.is_active).length,
-        totalRoles: rolesData.length,
-        systemRoles: rolesData.filter(role => role.is_system).length,
-        totalPermissions: permissionsData.length,
+        totalUsers: (usersData || []).length,
+        activeUsers: (usersData || []).filter(user => user.is_active).length,
+        totalRoles: (rolesData || []).length,
+        systemRoles: (rolesData || []).filter(role => role.is_system).length,
+        totalPermissions: (permissionsData || []).length,
         recentActivity: [
-          ...rolesData.slice(-3).map(role => ({
+          ...(rolesData || []).slice(-3).map(role => ({
             type: 'role_created',
             message: `Papel "${role.name}" criado`,
             timestamp: role.created_at,
             icon: '👑'
           })),
-          ...permissionsData.slice(-2).map(permission => ({
+          ...(permissionsData || []).slice(-2).map(permission => ({
             type: 'permission_created', 
             message: `Permissão "${permission.name}" criada`,
             timestamp: permission.created_at,
