@@ -106,13 +106,13 @@ const MaintenanceModule = () => {
       const token = localStorage.getItem('access_token');
       
       const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
-        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles`, {
+        axios.get('/rbac/roles', {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/permissions`, {
+        axios.get('/rbac/permissions', {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/users`, {
+        axios.get('/users', {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
