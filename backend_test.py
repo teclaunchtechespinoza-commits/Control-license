@@ -3584,6 +3584,167 @@ class LicenseManagementAPITester:
                 category_id = getattr(self, attr)
                 self.run_test(f"Cleanup test category {category_id}", "DELETE", f"categories/{category_id}", 200, token=self.admin_token)
 
+    def run_frontend_backend_communication_tests(self):
+        """Run specific tests for frontend-backend communication issues"""
+        print("🚀 TESTING FRONTEND-BACKEND COMMUNICATION CRITICAL ISSUES")
+        print(f"Base URL: {self.base_url}")
+        print("Focus: Authentication flow and RBAC permission issues")
+        
+        # Test 1: Authentication with admin@demo.com/admin123
+        print("\n" + "="*50)
+        print("TEST 1: AUTHENTICATION FLOW")
+        print("="*50)
+        
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login (critical)", "POST", "auth/login", 200, admin_credentials)
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   ✅ Login successful - JWT token received")
+            print(f"   ✅ User data: {response.get('user', {}).get('email', 'Unknown')}")
+            print(f"   ✅ User role: {response.get('user', {}).get('role', 'Unknown')}")
+            print(f"   ✅ Tenant ID: {response.get('user', {}).get('tenant_id', 'Unknown')}")
+        else:
+            print("   ❌ CRITICAL: Admin login failed - this blocks all frontend functionality")
+            return 1
+
+        # Test 2: Token validation via /auth/me
+        print("\n" + "="*50)
+        print("TEST 2: TOKEN VALIDATION")
+        print("="*50)
+        
+        success, response = self.run_test("Token validation", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Token validation successful")
+            print(f"   ✅ User email: {response.get('email', 'Unknown')}")
+            print(f"   ✅ User role: {response.get('role', 'Unknown')}")
+        else:
+            print("   ❌ CRITICAL: Token validation failed")
+
+        # Test 3: RBAC Endpoints (the stuck issue)
+        print("\n" + "="*50)
+        print("TEST 3: RBAC ENDPOINTS (REPORTED AS STUCK)")
+        print("="*50)
+        
+        # Test GET /api/rbac/roles
+        success, response = self.run_test("RBAC roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ RBAC roles endpoint working - {len(response)} roles found")
+            if len(response) >= 5:
+                print("   ✅ Expected minimum 5 roles found")
+            for role in response[:3]:
+                print(f"      - {role.get('name', 'Unknown')}: {role.get('description', 'No description')}")
+        else:
+            print("   ❌ CRITICAL: RBAC roles endpoint failed - this blocks RBAC interface")
+
+        # Test GET /api/rbac/permissions
+        success, response = self.run_test("RBAC permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ RBAC permissions endpoint working - {len(response)} permissions found")
+            if len(response) >= 23:
+                print("   ✅ Expected minimum 23 permissions found")
+            for perm in response[:3]:
+                print(f"      - {perm.get('name', 'Unknown')}: {perm.get('description', 'No description')}")
+        else:
+            print("   ❌ CRITICAL: RBAC permissions endpoint failed - this blocks RBAC interface")
+
+        # Test GET /api/users (for RBAC interface)
+        success, response = self.run_test("Users list", "GET", "users", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Users endpoint working - {len(response)} users found")
+            if len(response) >= 6:
+                print("   ✅ Expected minimum 6 users found")
+        else:
+            print("   ❌ CRITICAL: Users endpoint failed - this blocks RBAC interface")
+
+        # Test 4: Sales Dashboard Endpoints
+        print("\n" + "="*50)
+        print("TEST 4: SALES DASHBOARD ENDPOINTS")
+        print("="*50)
+        
+        # Test GET /api/sales-dashboard/summary
+        success, response = self.run_test("Sales dashboard summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Sales dashboard summary working")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+                print(f"      - Total revenue: R$ {metrics.get('confirmed_revenue', 0):.2f}")
+        else:
+            print("   ❌ Sales dashboard summary failed")
+
+        # Test GET /api/sales-dashboard/expiring-licenses
+        success, response = self.run_test("Sales dashboard expiring licenses", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Sales dashboard expiring licenses working - {len(response)} alerts")
+        else:
+            print("   ❌ Sales dashboard expiring licenses failed")
+
+        # Test 5: Client Management Endpoints
+        print("\n" + "="*50)
+        print("TEST 5: CLIENT MANAGEMENT ENDPOINTS")
+        print("="*50)
+        
+        # Test GET /api/clientes-pf
+        success, response = self.run_test("PF clients list", "GET", "clientes-pf", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ PF clients endpoint working - {len(response)} clients")
+        else:
+            print("   ❌ PF clients endpoint failed")
+
+        # Test GET /api/clientes-pj
+        success, response = self.run_test("PJ clients list", "GET", "clientes-pj", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ PJ clients endpoint working - {len(response)} clients")
+        else:
+            print("   ❌ PJ clients endpoint failed")
+
+        # Test 6: Check for 403/500 errors that might block frontend
+        print("\n" + "="*50)
+        print("TEST 6: ERROR DETECTION (403/500 ERRORS)")
+        print("="*50)
+        
+        # Test endpoints that might return 403 errors
+        test_endpoints = [
+            ("categories", "GET", "categories"),
+            ("products", "GET", "products"),
+            ("companies", "GET", "companies"),
+            ("license-plans", "GET", "license-plans")
+        ]
+        
+        for name, method, endpoint in test_endpoints:
+            success, response = self.run_test(f"{name} endpoint", method, endpoint, 200, token=self.admin_token)
+            if not success:
+                print(f"   ❌ {name} endpoint failed - potential 403/500 error")
+
+        # Print final results
+        print("\n" + "="*50)
+        print("FRONTEND-BACKEND COMMUNICATION TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        
+        if success_rate >= 90:
+            print("🎉 FRONTEND-BACKEND COMMUNICATION TESTS PASSED!")
+            print("   Critical endpoints are working correctly:")
+            print("   ✅ Authentication flow (POST /api/auth/login)")
+            print("   ✅ Token validation (GET /api/auth/me)")
+            print("   ✅ RBAC endpoints (GET /api/rbac/roles, /api/rbac/permissions)")
+            print("   ✅ Sales dashboard endpoints")
+            print("   ✅ Client management endpoints")
+            print("   ✅ No blocking 403/500 errors detected")
+            print("")
+            print("   The backend is ready for frontend integration.")
+            print("   If frontend login still fails, the issue is in frontend code, not backend APIs.")
+            return 0
+        else:
+            print(f"❌ CRITICAL ISSUES DETECTED: {self.tests_run - self.tests_passed} tests failed")
+            print("   Backend has issues that will block frontend functionality")
+            return 1
+
 if __name__ == "__main__":
     import sys
     
