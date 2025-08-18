@@ -107,22 +107,21 @@ const LoginPage = () => {
   };
 
   const useDemoCredentials = (type) => {
-    console.log('useDemoCredentials chamado:', { type, demoCredentials });
+    console.log('useDemoCredentials executado:', { type, demoCredentials });
     
-    if (demoCredentials) {
+    if (demoCredentials && demoCredentials[type]) {
       const creds = demoCredentials[type];
-      console.log('Credenciais encontradas:', creds);
+      console.log('Aplicando credenciais:', creds);
       
       setLoginData({
         email: creds.email,
         password: creds.password
       });
       
-      console.log('LoginData atualizado:', { email: creds.email, password: '***' });
-      toast.info(`Demo ${type} credentials loaded`);
+      toast.success(`Credenciais ${type} carregadas!`);
+      console.log('Credenciais aplicadas com sucesso');
     } else {
-      console.error('demoCredentials não disponível');
-      alert('Demo credentials não carregadas ainda!');
+      console.error('Demo credentials não disponíveis:', { demoCredentials, type });
     }
   };
 
