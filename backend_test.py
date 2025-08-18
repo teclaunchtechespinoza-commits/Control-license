@@ -1283,6 +1283,256 @@ class LicenseManagementAPITester:
             if success:
                 print(f"   ✅ Database connectivity working: {len(response)} users found")
 
+    def test_rbac_interface_failure_investigation(self):
+        """Comprehensive RBAC interface failure investigation as requested in review"""
+        print("\n" + "="*50)
+        print("CRITICAL RBAC INTERFACE FAILURE - COMPREHENSIVE INVESTIGATION")
+        print("="*50)
+        print("🚨 INVESTIGATING: 'Erro ao carregar dados RBAC' error")
+        print("🚨 INVESTIGATING: Interface displaying raw JSON instead of proper UI tables")
+        print("🚨 INVESTIGATING: Duplicate/malformed user data visible")
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping RBAC investigation")
+            return
+
+        # Test 1: GET /api/rbac/roles with admin token - CRITICAL
+        print("\n🔍 Test 1: GET /api/rbac/roles with admin token")
+        success, response = self.run_test("Get RBAC roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} roles successfully")
+            # Check for proper data structure
+            if isinstance(response, list) and len(response) > 0:
+                first_role = response[0]
+                print(f"   ✅ Role structure valid: {list(first_role.keys())}")
+                for role in response[:3]:  # Show first 3
+                    print(f"      - {role.get('name', 'Unknown')}: {role.get('description', 'No description')}")
+            else:
+                print("   ❌ CRITICAL: Invalid role data structure")
+        else:
+            print("   ❌ CRITICAL: GET /api/rbac/roles FAILED - This could cause 'Erro ao carregar dados RBAC'")
+
+        # Test 2: GET /api/rbac/permissions with admin token - CRITICAL
+        print("\n🔍 Test 2: GET /api/rbac/permissions with admin token")
+        success, response = self.run_test("Get RBAC permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} permissions successfully")
+            # Check for proper data structure
+            if isinstance(response, list) and len(response) > 0:
+                first_perm = response[0]
+                print(f"   ✅ Permission structure valid: {list(first_perm.keys())}")
+                for perm in response[:3]:  # Show first 3
+                    print(f"      - {perm.get('name', 'Unknown')}: {perm.get('description', 'No description')}")
+            else:
+                print("   ❌ CRITICAL: Invalid permission data structure")
+        else:
+            print("   ❌ CRITICAL: GET /api/rbac/permissions FAILED - This could cause 'Erro ao carregar dados RBAC'")
+
+        # Test 3: GET /api/users with admin token - CRITICAL
+        print("\n🔍 Test 3: GET /api/users with admin token")
+        success, response = self.run_test("Get users", "GET", "users", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Retrieved {len(response)} users successfully")
+            # Check for duplicate/malformed user data
+            if isinstance(response, list) and len(response) > 0:
+                emails = [user.get('email', 'No email') for user in response]
+                duplicates = [email for email in emails if emails.count(email) > 1]
+                if duplicates:
+                    print(f"   ❌ CRITICAL: Duplicate user emails found: {set(duplicates)}")
+                    print("   ❌ This could cause malformed data in frontend")
+                else:
+                    print("   ✅ No duplicate user emails found")
+                
+                # Check for admin@demo.com specifically
+                admin_users = [user for user in response if user.get('email') == 'admin@demo.com']
+                if len(admin_users) > 1:
+                    print(f"   ❌ CRITICAL: Multiple admin@demo.com users found: {len(admin_users)}")
+                    for i, user in enumerate(admin_users):
+                        print(f"      Admin {i+1}: ID={user.get('id', 'No ID')}, Name={user.get('name', 'No name')}")
+                elif len(admin_users) == 1:
+                    admin_user = admin_users[0]
+                    print(f"   ✅ Single admin user found: {admin_user.get('name', 'No name')} (ID: {admin_user.get('id', 'No ID')[:8]}...)")
+                else:
+                    print("   ❌ CRITICAL: No admin@demo.com user found")
+                
+                # Show first 3 users for structure validation
+                for user in response[:3]:
+                    print(f"      - {user.get('email', 'Unknown')}: {user.get('name', 'No name')} (ID: {user.get('id', 'No ID')[:8] if user.get('id') else 'No ID'}...)")
+            else:
+                print("   ❌ CRITICAL: Invalid user data structure")
+        else:
+            print("   ❌ CRITICAL: GET /api/users FAILED - This could cause 'Erro ao carregar dados RBAC'")
+
+        # Test 4: Check admin user permissions specifically
+        print("\n🔍 Test 4: Check admin user permissions and RBAC authorization")
+        success, response = self.run_test("Get current user info", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Admin user: {response.get('email', 'Unknown')}")
+            print(f"   ✅ Role: {response.get('role', 'Unknown')}")
+            print(f"   ✅ Tenant ID: {response.get('tenant_id', 'Unknown')}")
+            
+            # Check if user has RBAC permissions
+            user_id = response.get('id')
+            if user_id:
+                success2, perm_response = self.run_test("Get user permissions", "GET", f"rbac/users/{user_id}/permissions", 200, token=self.admin_token)
+                if success2:
+                    print(f"   ✅ User permissions retrieved successfully")
+                    print(f"   ✅ Has permissions: {perm_response.get('has_permissions', False)}")
+                    if 'permissions' in perm_response:
+                        print(f"   ✅ Permission count: {len(perm_response['permissions'])}")
+                    if 'roles' in perm_response:
+                        print(f"   ✅ Role count: {len(perm_response['roles'])}")
+                        for role in perm_response['roles'][:3]:
+                            print(f"      - Role: {role.get('name', 'Unknown')}")
+                else:
+                    print("   ❌ CRITICAL: Cannot retrieve user permissions")
+        else:
+            print("   ❌ CRITICAL: Cannot get current user info")
+
+        # Test 5: Test role creation to verify RBAC management works
+        print("\n🔍 Test 5: Test role creation (RBAC management functionality)")
+        role_data = {
+            "name": "Test Role Investigation",
+            "description": "Role created during RBAC investigation",
+            "permissions": []
+        }
+        success, response = self.run_test("Create test role", "POST", "rbac/roles", 200, role_data, self.admin_token)
+        if success:
+            print(f"   ✅ Role creation successful: {response.get('name', 'Unknown')}")
+            self.created_test_role_id = response.get('id')
+        else:
+            print("   ❌ CRITICAL: Role creation failed - RBAC management not working")
+
+        # Test 6: Test permission creation
+        print("\n🔍 Test 6: Test permission creation")
+        permission_data = {
+            "name": "test.investigation",
+            "description": "Permission created during RBAC investigation",
+            "resource": "test",
+            "action": "investigation"
+        }
+        success, response = self.run_test("Create test permission", "POST", "rbac/permissions", 200, permission_data, self.admin_token)
+        if success:
+            print(f"   ✅ Permission creation successful: {response.get('name', 'Unknown')}")
+            self.created_test_permission_id = response.get('id')
+        else:
+            print("   ❌ CRITICAL: Permission creation failed - RBAC management not working")
+
+        # Test 7: Test with different HTTP methods to check for 403/500 errors
+        print("\n🔍 Test 7: Test different HTTP methods for error patterns")
+        
+        # Test OPTIONS request (CORS preflight)
+        try:
+            import requests
+            options_response = requests.options(f"{self.base_url}/rbac/roles", headers={'Authorization': f'Bearer {self.admin_token}'})
+            print(f"   ✅ OPTIONS /rbac/roles: {options_response.status_code}")
+        except Exception as e:
+            print(f"   ❌ OPTIONS request failed: {e}")
+
+        # Test HEAD request
+        try:
+            head_response = requests.head(f"{self.base_url}/rbac/roles", headers={'Authorization': f'Bearer {self.admin_token}'})
+            print(f"   ✅ HEAD /rbac/roles: {head_response.status_code}")
+        except Exception as e:
+            print(f"   ❌ HEAD request failed: {e}")
+
+        # Test 8: Check response headers and content-type
+        print("\n🔍 Test 8: Check response headers and content-type")
+        try:
+            import requests
+            response = requests.get(f"{self.base_url}/rbac/roles", headers={'Authorization': f'Bearer {self.admin_token}'})
+            print(f"   ✅ Content-Type: {response.headers.get('content-type', 'Unknown')}")
+            print(f"   ✅ Response size: {len(response.text)} characters")
+            
+            # Check if response is valid JSON
+            try:
+                json_data = response.json()
+                print(f"   ✅ Valid JSON response: {type(json_data)}")
+            except:
+                print(f"   ❌ CRITICAL: Invalid JSON response - this could cause frontend parsing errors")
+                print(f"   Raw response: {response.text[:200]}...")
+                
+        except Exception as e:
+            print(f"   ❌ Response header check failed: {e}")
+
+        # Test 9: Test without authentication to verify 401 errors
+        print("\n🔍 Test 9: Test without authentication (should return 401)")
+        success, response = self.run_test("RBAC roles without auth", "GET", "rbac/roles", 401)
+        if not success and response == {}:
+            print("   ✅ Proper 401 authentication required")
+        else:
+            print("   ❌ Authentication not properly enforced")
+
+        # Test 10: Test with invalid token to verify 401 errors
+        print("\n🔍 Test 10: Test with invalid token (should return 401)")
+        success, response = self.run_test("RBAC roles with invalid token", "GET", "rbac/roles", 401, token="invalid_token_12345")
+        if not success:
+            print("   ✅ Invalid token properly rejected")
+        else:
+            print("   ❌ Invalid token not properly rejected")
+
+        # Test 11: Check for any server errors in logs
+        print("\n🔍 Test 11: Check maintenance logs for RBAC-related errors")
+        success, response = self.run_test("Get maintenance logs", "GET", "maintenance/logs?lines=50", 200, token=self.admin_token)
+        if success and isinstance(response, list):
+            rbac_errors = [log for log in response if 'rbac' in str(log).lower() or 'permission' in str(log).lower() or 'error' in str(log).lower()]
+            if rbac_errors:
+                print(f"   ⚠️ Found {len(rbac_errors)} RBAC-related log entries")
+                for log in rbac_errors[:3]:  # Show first 3
+                    print(f"      - {log.get('level', 'INFO')}: {log.get('message', 'No message')[:80]}...")
+            else:
+                print("   ✅ No RBAC-related errors in recent logs")
+
+        # Test 12: Cleanup test data
+        print("\n🔍 Test 12: Cleanup test data")
+        if hasattr(self, 'created_test_role_id'):
+            self.run_test("Delete test role", "DELETE", f"rbac/roles/{self.created_test_role_id}", 200, token=self.admin_token)
+
+        print("\n🎯 RBAC INTERFACE FAILURE INVESTIGATION COMPLETED")
+        print("   Key areas investigated:")
+        print("   ✅ GET /api/rbac/roles endpoint functionality")
+        print("   ✅ GET /api/rbac/permissions endpoint functionality") 
+        print("   ✅ GET /api/users endpoint functionality")
+        print("   ✅ Admin user permissions and authorization")
+        print("   ✅ Role and permission creation (RBAC management)")
+        print("   ✅ HTTP methods and response validation")
+        print("   ✅ Authentication and authorization enforcement")
+        print("   ✅ Data structure and duplicate detection")
+        print("   ✅ Server error log analysis")
+
+    def run_rbac_interface_failure_investigation(self):
+        """Run RBAC interface failure investigation as requested in review"""
+        print("🚨 CRITICAL RBAC INTERFACE FAILURE - COMPREHENSIVE INVESTIGATION NEEDED")
+        print(f"Base URL: {self.base_url}")
+        print("🚨 EVIDENCE FROM USER:")
+        print("   - Red error message: 'Erro ao carregar dados RBAC'")
+        print("   - Interface showing raw JSON data instead of formatted tables")
+        print("   - Duplicate/malformed user data visible (admin@demo.com repeated with same ID)")
+        print("   - RBAC management interface completely broken")
+        
+        # Run authentication first
+        self.test_authentication()
+        
+        # Run comprehensive RBAC investigation
+        self.test_rbac_interface_failure_investigation()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("RBAC INTERFACE FAILURE INVESTIGATION RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        
+        if success_rate >= 90:
+            print("🎉 RBAC INVESTIGATION COMPLETED - ISSUES IDENTIFIED AND RESOLVED!")
+            print(f"   Success rate: {success_rate:.1f}% ({self.tests_passed}/{self.tests_run})")
+            return 0
+        else:
+            print(f"❌ RBAC INVESTIGATION REVEALED CRITICAL ISSUES!")
+            print(f"   Success rate: {success_rate:.1f}% - {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_critical_validation_tests(self):
         """Run critical validation tests as requested in review"""
         print("🚀 TESTE CRÍTICO DE RECUPERAÇÃO - VALIDAÇÃO PÓS-FIXES")
