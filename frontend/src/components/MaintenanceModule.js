@@ -194,7 +194,7 @@ const MaintenanceModule = () => {
   const assignRoles = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/assign-roles`, {
+      await axios.post('/rbac/assign-roles', {
         user_id: selectedUser,
         role_ids: selectedRoles
       }, {
