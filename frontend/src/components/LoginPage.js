@@ -55,7 +55,10 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    await login(loginData);
+    console.log('HandleLogin called:', loginData);
+    const result = await login(loginData);
+    console.log('Login result:', result);
+    
     setIsLoading(false);
   };
 
