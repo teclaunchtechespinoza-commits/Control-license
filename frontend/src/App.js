@@ -73,12 +73,16 @@ const AuthProvider = ({ children }) => {
       console.log('Login response:', response);
       
       const { access_token, user: userData } = response.data;
+      console.log('User data received:', userData);
       
       localStorage.setItem('token', access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      console.log('Setting user state:', userData);
       setUser(userData);
       
       toast.success(`Welcome back, ${userData.name}!`);
+      console.log('Login successful - user state should be updated');
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
