@@ -528,10 +528,9 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Frontend-Backend Communication Fix"
-    - "RBAC Interface Permission Issue Fix"
-  stuck_tasks: 
-    - "Frontend Login Flow Issue (Backend APIs Working)"
+    - "Dashboard de Vendas - Frontend Implementation"
+    - "AdminPanel Client Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
