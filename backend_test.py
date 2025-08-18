@@ -3609,8 +3609,10 @@ if __name__ == "__main__":
             exit_code = 0 if tester.tests_passed == tester.tests_run else 1
         elif test_type == "all":
             exit_code = tester.run_all_tests()
+        elif test_type == "frontend-backend":
+            exit_code = tester.run_frontend_backend_communication_tests()
         else:
-            print("Usage: python backend_test.py [critical|rbac|whatsapp|sales|all]")
+            print("Usage: python backend_test.py [critical|rbac|whatsapp|sales|all|frontend-backend]")
             exit_code = 1
     else:
         # Default: run critical validation tests
