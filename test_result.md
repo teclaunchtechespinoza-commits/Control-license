@@ -510,8 +510,10 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "WhatsApp Real Integration - Phase 2 (Help Contextual)"
-  stuck_tasks: []
+    - "Frontend-Backend Communication Fix"
+    - "RBAC Interface Permission Issue Fix"
+  stuck_tasks: 
+    - "RBAC Interface Permission Issue (Status Panel showing zeros)"
   test_all: false
   test_priority: "high_first"
 
