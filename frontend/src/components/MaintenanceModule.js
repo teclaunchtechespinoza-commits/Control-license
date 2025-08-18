@@ -173,17 +173,30 @@ const MaintenanceModule = () => {
       console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
       
       // Usar fetch direto com URLs absolutos (máscara de URL)
-      const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
+      const requests = [
         fetch(getApiUrl('rbac/roles'), {
           headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json()),
+        }),
         fetch(getApiUrl('rbac/permissions'), {
           headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json()),
+        }),
         fetch(getApiUrl('users'), {
           headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json())
-      ]);
+        })
+      ];
+
+      const responses = await Promise.all(requests);
+      
+      // Verificar se todas as respostas são válidas
+      for (let i = 0; i < responses.length; i++) {
+        if (!responses[i].ok) {
+          throw new Error(`Request ${i} failed: ${responses[i].status}`);
+        }
+      }
+
+      const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all(
+        responses.map(response => response.json())
+      );
 
       // Garantir que os dados sejam arrays válidos
       const rolesData = Array.isArray(rolesResponse) ? rolesResponse : [];
