@@ -42,11 +42,16 @@ const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('App useEffect executando...');
     const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+    console.log('Token encontrado:', token ? 'SIM' : 'NÃO');
+    
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('Configurando axios com token e chamando fetchUser...');
       fetchUser();
     } else {
+      console.log('Nenhum token encontrado, definindo loading como false');
       setLoading(false);
     }
   }, []);
