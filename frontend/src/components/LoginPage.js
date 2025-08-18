@@ -36,19 +36,12 @@ const LoginPage = () => {
     // Fetch demo credentials
     const fetchDemoCredentials = async () => {
       try {
-        console.log('Tentando buscar demo credentials...');
-        console.log('Axios baseURL:', axios.defaults.baseURL);
-        
+        console.log('Buscando demo credentials...');
         const response = await axios.get('/demo-credentials');
-        console.log('Demo credentials response:', response);
-        console.log('Demo credentials data:', response.data);
-        
+        console.log('Demo credentials recebidas:', response.data);
         setDemoCredentials(response.data);
-        console.log('Demo credentials definidas com sucesso');
       } catch (error) {
-        console.error('Failed to fetch demo credentials:', error);
-        console.error('Error details:', error.response);
-        alert(`Erro ao carregar demo credentials: ${error.message}`);
+        console.error('Falha ao buscar demo credentials:', error);
       }
     };
     
