@@ -215,7 +215,7 @@ const MaintenanceModule = () => {
   const deleteRole = async (roleId) => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles/${roleId}`, {
+      await axios.delete(`/rbac/roles/${roleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
