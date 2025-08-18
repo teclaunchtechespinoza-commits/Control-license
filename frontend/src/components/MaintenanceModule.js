@@ -210,15 +210,25 @@ const MaintenanceModule = () => {
 
   const createPermission = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post('/rbac/permissions', newPermission, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      toast.success('Permissão criada com sucesso');
-      setPermissionDialogOpen(false);
-      setNewPermission({ name: '', description: '', resource: '', action: '' });
-      await fetchRbacData();
+      const response = await fetch(getApiUrl('rbac/permissions'), {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newPermission)
+      });
+
+      if (response.ok) {
+        toast.success('Permissão criada com sucesso');
+        setPermissionDialogOpen(false);
+        setNewPermission({ name: '', description: '', resource: '', action: '' });
+        await fetchRbacData();
+      } else {
+        throw new Error('Failed to create permission');
+      }
     } catch (error) {
       console.error('Failed to create permission:', error);
       toast.error('Erro ao criar permissão');
