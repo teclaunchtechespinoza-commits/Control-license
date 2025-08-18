@@ -67,7 +67,10 @@ const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      console.log('Fazendo login com credenciais:', credentials.email);
       const response = await axios.post('/auth/login', credentials);
+      console.log('Resposta do servidor:', response.data);
+      
       const { access_token, user: userData } = response.data;
       
       localStorage.setItem('token', access_token);
@@ -75,13 +78,12 @@ const AuthProvider = ({ children }) => {
       setUser(userData);
       
       toast.success(`Welcome back, ${userData.name}!`);
-      
-      // Usar React Router navigate em vez de window.location
-      navigate('/dashboard');
+      console.log('Login completado com sucesso');
       
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      console.error('Resposta de erro:', error.response);
       
       const message = error.response?.data?.detail || error.message || 'Login failed';
       toast.error(message);
