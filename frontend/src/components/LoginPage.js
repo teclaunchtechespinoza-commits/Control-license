@@ -65,25 +65,17 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    alert('HandleLogin chamado - iniciando processo');
-    console.log('HandleLogin called:', loginData);
-    
     try {
+      console.log('HandleLogin called with loginData:', loginData);
       const result = await login(loginData);
       console.log('Login result:', result);
-      alert(`Login result: ${JSON.stringify(result)}`);
       
-      // Se o login foi bem-sucedido, usar navigate em vez de window.location
       if (result && result.success) {
         console.log('Login successful, navigating to dashboard');
-        alert('Login sucesso - navegando para dashboard');
         navigate('/dashboard', { replace: true });
-      } else {
-        alert('Login falhou - resultado não success');
       }
     } catch (error) {
       console.error('Error in handleLogin:', error);
-      alert(`Erro no handleLogin: ${error.message}`);
     }
     
     setIsLoading(false);
