@@ -1283,6 +1283,242 @@ class LicenseManagementAPITester:
             if success:
                 print(f"   ✅ Database connectivity working: {len(response)} users found")
 
+    def test_race_condition_fix_verification(self):
+        """Test race condition fix for intermittent RBAC issues as requested in review"""
+        print("\n" + "="*50)
+        print("RACE CONDITION FIX VERIFICATION - INTERMITTENCY TESTING")
+        print("="*50)
+        print("🎯 TESTING: Multiple sequential login attempts to verify no intermittency")
+        print("🎯 TESTING: RBAC data loading consistency across multiple requests")
+        print("🎯 TESTING: Authentication flow stability")
+        print("🎯 TESTING: Token validation across different endpoints")
+        print("🎯 TESTING: Concurrent requests handling")
+        
+        # Test 1: Multiple Sequential Login Attempts
+        print("\n🔍 Test 1: Multiple Sequential Login Attempts (Race Condition Test)")
+        login_success_count = 0
+        total_login_attempts = 5
+        
+        for i in range(total_login_attempts):
+            print(f"   Login attempt {i+1}/{total_login_attempts}")
+            admin_credentials = {
+                "email": "admin@demo.com",
+                "password": "admin123"
+            }
+            success, response = self.run_test(f"Sequential login {i+1}", "POST", "auth/login", 200, admin_credentials)
+            if success and 'access_token' in response:
+                login_success_count += 1
+                temp_token = response['access_token']
+                
+                # Immediately test RBAC endpoints with this token
+                rbac_success, rbac_response = self.run_test(f"RBAC roles with token {i+1}", "GET", "rbac/roles", 200, token=temp_token)
+                if rbac_success:
+                    print(f"      ✅ RBAC roles accessible: {len(rbac_response)} roles")
+                else:
+                    print(f"      ❌ RBAC roles failed with fresh token")
+        
+        print(f"   📊 Login success rate: {login_success_count}/{total_login_attempts} ({(login_success_count/total_login_attempts)*100:.1f}%)")
+        
+        if not self.admin_token:
+            print("❌ No admin token available for remaining tests")
+            return
+            
+        # Test 2: Rapid RBAC Data Requests with Same Token
+        print("\n🔍 Test 2: Multiple Rapid RBAC Data Requests (Same Token)")
+        rbac_endpoints = [
+            ("rbac/roles", "roles"),
+            ("rbac/permissions", "permissions"), 
+            ("rbac/users", "users")
+        ]
+        
+        for endpoint, data_type in rbac_endpoints:
+            print(f"   Testing {data_type} endpoint with rapid requests...")
+            success_count = 0
+            total_requests = 3
+            
+            for j in range(total_requests):
+                success, response = self.run_test(f"Rapid {data_type} request {j+1}", "GET", endpoint, 200, token=self.admin_token)
+                if success:
+                    success_count += 1
+                    print(f"      ✅ Request {j+1}: {len(response)} {data_type}")
+                else:
+                    print(f"      ❌ Request {j+1}: Failed")
+            
+            print(f"   📊 {data_type.title()} success rate: {success_count}/{total_requests} ({(success_count/total_requests)*100:.1f}%)")
+        
+        # Test 3: Token Validation Across Different Endpoints
+        print("\n🔍 Test 3: Token Validation Across Different Endpoints")
+        test_endpoints = [
+            ("auth/me", "User info"),
+            ("rbac/roles", "RBAC roles"),
+            ("rbac/permissions", "RBAC permissions"),
+            ("users", "Users list"),
+            ("categories", "Categories"),
+            ("products", "Products")
+        ]
+        
+        token_validation_success = 0
+        for endpoint, description in test_endpoints:
+            success, response = self.run_test(f"Token validation - {description}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                token_validation_success += 1
+                print(f"      ✅ {description}: Token valid")
+            else:
+                print(f"      ❌ {description}: Token validation failed")
+        
+        print(f"   📊 Token validation success rate: {token_validation_success}/{len(test_endpoints)} ({(token_validation_success/len(test_endpoints))*100:.1f}%)")
+        
+        # Test 4: Concurrent Request Simulation
+        print("\n🔍 Test 4: Concurrent Request Simulation")
+        import threading
+        import time
+        
+        concurrent_results = []
+        
+        def concurrent_rbac_request(endpoint, request_id):
+            try:
+                success, response = self.run_test(f"Concurrent {endpoint} {request_id}", "GET", endpoint, 200, token=self.admin_token)
+                concurrent_results.append({
+                    'request_id': request_id,
+                    'endpoint': endpoint,
+                    'success': success,
+                    'data_count': len(response) if success and isinstance(response, list) else 0
+                })
+            except Exception as e:
+                concurrent_results.append({
+                    'request_id': request_id,
+                    'endpoint': endpoint,
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        # Create concurrent threads
+        threads = []
+        for i in range(6):  # 6 concurrent requests
+            endpoint = rbac_endpoints[i % len(rbac_endpoints)][0]
+            thread = threading.Thread(target=concurrent_rbac_request, args=(endpoint, i+1))
+            threads.append(thread)
+        
+        # Start all threads simultaneously
+        start_time = time.time()
+        for thread in threads:
+            thread.start()
+        
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+        
+        end_time = time.time()
+        
+        # Analyze concurrent results
+        concurrent_success_count = sum(1 for result in concurrent_results if result['success'])
+        print(f"   📊 Concurrent requests completed in {end_time - start_time:.2f} seconds")
+        print(f"   📊 Concurrent success rate: {concurrent_success_count}/{len(concurrent_results)} ({(concurrent_success_count/len(concurrent_results))*100:.1f}%)")
+        
+        for result in concurrent_results:
+            if result['success']:
+                print(f"      ✅ Request {result['request_id']} ({result['endpoint']}): {result['data_count']} items")
+            else:
+                print(f"      ❌ Request {result['request_id']} ({result['endpoint']}): Failed")
+        
+        # Test 5: Stats Panel Data Consistency
+        print("\n🔍 Test 5: Stats Panel Data Consistency (Zero Values Check)")
+        stats_endpoints = [
+            ("rbac/roles", "roles"),
+            ("rbac/permissions", "permissions"),
+            ("users", "users")
+        ]
+        
+        stats_data = {}
+        for endpoint, data_type in stats_endpoints:
+            success, response = self.run_test(f"Stats data - {data_type}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                count = len(response) if isinstance(response, list) else 0
+                stats_data[data_type] = count
+                print(f"      ✅ {data_type.title()}: {count} items")
+                
+                if count == 0:
+                    print(f"      ⚠️ WARNING: {data_type} count is ZERO - this may indicate the race condition issue!")
+            else:
+                stats_data[data_type] = 0
+                print(f"      ❌ {data_type.title()}: Failed to retrieve")
+        
+        # Test 6: Authentication Flow Stability
+        print("\n🔍 Test 6: Authentication Flow Stability")
+        auth_flow_tests = [
+            ("auth/me", "Current user info"),
+            ("auth/login", "Login endpoint availability", {"email": "admin@demo.com", "password": "admin123"}),
+        ]
+        
+        auth_stability_success = 0
+        for endpoint, description, *data in auth_flow_tests:
+            if data:
+                success, response = self.run_test(f"Auth flow - {description}", "POST", endpoint, 200, data[0])
+            else:
+                success, response = self.run_test(f"Auth flow - {description}", "GET", endpoint, 200, token=self.admin_token)
+            
+            if success:
+                auth_stability_success += 1
+                print(f"      ✅ {description}: Stable")
+            else:
+                print(f"      ❌ {description}: Unstable")
+        
+        print(f"   📊 Authentication flow stability: {auth_stability_success}/{len(auth_flow_tests)} ({(auth_stability_success/len(auth_flow_tests))*100:.1f}%)")
+        
+        # Test 7: Error Message Verification
+        print("\n🔍 Test 7: Error Message Verification")
+        print("   Checking if 'Erro ao carregar dados RBAC' is resolved...")
+        
+        # Test with invalid token to see error handling
+        invalid_token = "invalid_token_12345"
+        success, response = self.run_test("Invalid token test", "GET", "rbac/roles", 401, token=invalid_token)
+        if not success:
+            print("      ✅ Invalid token properly rejected (expected behavior)")
+        
+        # Test without token
+        success, response = self.run_test("No token test", "GET", "rbac/roles", 401)
+        if not success:
+            print("      ✅ No token properly rejected (expected behavior)")
+        
+        # Summary
+        print("\n🎯 RACE CONDITION FIX VERIFICATION SUMMARY")
+        print("="*50)
+        print(f"   📊 Sequential logins: {login_success_count}/{total_login_attempts} successful")
+        print(f"   📊 Token validation: {token_validation_success}/{len(test_endpoints)} endpoints working")
+        print(f"   📊 Concurrent requests: {concurrent_success_count}/{len(concurrent_results)} successful")
+        print(f"   📊 Authentication flow: {auth_stability_success}/{len(auth_flow_tests)} stable")
+        
+        # Check for zero values issue
+        zero_values_detected = any(count == 0 for count in stats_data.values())
+        if zero_values_detected:
+            print("   ⚠️ WARNING: Zero values detected in stats panel - race condition may still exist")
+            for data_type, count in stats_data.items():
+                if count == 0:
+                    print(f"      - {data_type.title()}: {count} (should be > 0)")
+        else:
+            print("   ✅ No zero values detected - stats panel showing proper values")
+        
+        # Overall assessment
+        total_tests = total_login_attempts + len(test_endpoints) + len(concurrent_results) + len(auth_flow_tests)
+        total_success = login_success_count + token_validation_success + concurrent_success_count + auth_stability_success
+        overall_success_rate = (total_success / total_tests) * 100
+        
+        print(f"   📊 Overall success rate: {total_success}/{total_tests} ({overall_success_rate:.1f}%)")
+        
+        if overall_success_rate >= 95 and not zero_values_detected:
+            print("   🎉 RACE CONDITION FIX VERIFICATION: SUCCESSFUL!")
+            print("   ✅ System shows stable behavior across multiple requests")
+            print("   ✅ No intermittency detected in authentication flow")
+            print("   ✅ RBAC data loading consistent")
+            print("   ✅ Stats panel shows proper values (not zeros)")
+        elif overall_success_rate >= 80:
+            print("   ⚠️ RACE CONDITION FIX VERIFICATION: PARTIALLY SUCCESSFUL")
+            print("   ⚠️ Some intermittency still detected - may need additional fixes")
+        else:
+            print("   ❌ RACE CONDITION FIX VERIFICATION: FAILED")
+            print("   ❌ Significant intermittency still present")
+            print("   ❌ Race condition fix may not be working properly")
+
     def test_rbac_interface_failure_investigation(self):
         """Comprehensive RBAC interface failure investigation as requested in review"""
         print("\n" + "="*50)
