@@ -632,7 +632,27 @@ const MaintenanceModule = () => {
                     <span>Gerenciamento de Papéis</span>
                   </div>
                   
-                  <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      onClick={fetchRbacData} 
+                      variant="outline" 
+                      disabled={rbacLoading}
+                      className="mb-4"
+                    >
+                      {rbacLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Carregando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Atualizar Dados RBAC
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
                     <DialogTrigger asChild>
                       <Button size="sm">
                         <Plus className="w-4 h-4 mr-2" />
