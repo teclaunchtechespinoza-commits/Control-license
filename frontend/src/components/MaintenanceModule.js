@@ -730,6 +730,15 @@ const MaintenanceModule = () => {
                       )}
                     </Button>
                     
+                    <Button 
+                      onClick={testRbacDirect} 
+                      variant="destructive" 
+                      size="sm"
+                      className="mb-4 ml-2"
+                    >
+                      🔍 Diagnosticar RBAC
+                    </Button>
+                    
                     <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
                       <DialogTrigger asChild>
                         <Button size="sm">
