@@ -47,6 +47,7 @@ const LoginPage = () => {
 
   // If user is already logged in, redirect to dashboard
   if (user) {
+    console.log('User is logged in, redirecting to dashboard:', user);
     return <Navigate to="/dashboard" />;
   }
 
