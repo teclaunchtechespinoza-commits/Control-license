@@ -103,7 +103,7 @@ const MaintenanceModule = () => {
   const fetchRbacData = async () => {
     try {
       setRbacLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       
       const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
         axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/roles`, {
