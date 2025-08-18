@@ -59,11 +59,16 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      console.log('=== INICIANDO LOGIN ===');
-      console.log('Dados do login:', loginData);
+      // Validação básica
+      if (!loginData.email || !loginData.password) {
+        toast.error('Por favor, preencha email e senha');
+        setIsLoading(false);
+        return;
+      }
       
-      // Testar a requisição diretamente
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/login`, {
+      // Fazer login usando fetch direto
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://licensehub-10.preview.emergentagent.com';
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,29 +76,29 @@ const LoginPage = () => {
         body: JSON.stringify(loginData)
       });
       
-      console.log('Resposta do fetch:', response);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Dados recebidos:', data);
         
-        // Salvar token e dados do usuário
+        // Salvar dados de autenticação
         localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Redirecionar imediatamente
-        console.log('Redirecionando para dashboard...');
-        window.location.href = '/dashboard';
+        // Mostrar sucesso
+        toast.success(`Bem-vindo, ${data.user.name}!`);
+        
+        // Aguardar um pouco e redirecionar
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
         
       } else {
-        console.error('Resposta não ok:', response.status, response.statusText);
         const errorData = await response.json();
-        console.error('Erro detalhado:', errorData);
-        toast.error(errorData.detail || 'Login falhou');
+        toast.error(errorData.detail || 'Falha no login');
       }
       
     } catch (error) {
-      console.error('Erro capturado:', error);
-      toast.error(`Erro de login: ${error.message}`);
+      console.error('Erro de login:', error);
+      toast.error('Erro de conexão. Tente novamente.');
     }
     
     setIsLoading(false);
