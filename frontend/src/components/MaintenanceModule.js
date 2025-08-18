@@ -277,7 +277,24 @@ const MaintenanceModule = () => {
 
   useEffect(() => {
     fetchLogs();
-    fetchRbacData();
+    
+    // Aguardar um pouco para garantir que a autenticação foi completada
+    // antes de tentar carregar dados RBAC
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      if (token) {
+        console.log('Inicializando carregamento de dados RBAC...');
+        fetchRbacData();
+      } else {
+        console.log('Token não disponível no useEffect, aguardando autenticação...');
+        // Tentar novamente após mais tempo
+        setTimeout(() => {
+          fetchRbacData();
+        }, 2000);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
