@@ -183,15 +183,25 @@ const MaintenanceModule = () => {
 
   const createRole = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post('/rbac/roles', newRole, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      toast.success('Papel criado com sucesso');
-      setRoleDialogOpen(false);
-      setNewRole({ name: '', description: '', permissions: [] });
-      await fetchRbacData();
+      const response = await fetch(getApiUrl('rbac/roles'), {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newRole)
+      });
+
+      if (response.ok) {
+        toast.success('Papel criado com sucesso');
+        setRoleDialogOpen(false);
+        setNewRole({ name: '', description: '', permissions: [] });
+        await fetchRbacData();
+      } else {
+        throw new Error('Failed to create role');
+      }
     } catch (error) {
       console.error('Failed to create role:', error);
       toast.error('Erro ao criar papel');
