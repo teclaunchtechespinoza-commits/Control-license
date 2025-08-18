@@ -103,7 +103,17 @@ const MaintenanceModule = () => {
   const fetchRbacData = async () => {
     try {
       setRbacLoading(true);
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      
+      // Verificação crítica: não fazer requisições sem token
+      if (!token) {
+        console.warn('No token available for RBAC data fetch');
+        toast.error('Sessão não encontrada. Faça login novamente.');
+        setRbacLoading(false);
+        return;
+      }
+      
+      console.log('Buscando dados RBAC com token válido...');
       
       const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
         axios.get('/rbac/roles', {
@@ -120,6 +130,12 @@ const MaintenanceModule = () => {
       const rolesData = rolesResponse.data;
       const permissionsData = permissionsResponse.data;
       const usersData = usersResponse.data;
+
+      console.log('Dados RBAC carregados:', { 
+        roles: rolesData.length, 
+        permissions: permissionsData.length, 
+        users: usersData.length 
+      });
 
       setRoles(rolesData);
       setPermissions(permissionsData);
