@@ -66,13 +66,20 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
+      console.log('Iniciando login com:', loginData);
       const result = await login(loginData);
+      console.log('Resultado do login:', result);
+      
       if (result && result.success) {
-        // O redirecionamento agora é feito na função login
-        console.log('Login successful');
+        // Se chegou até aqui, significa que o login foi bem-sucedido
+        // Vamos forçar o redirecionamento aqui mesmo
+        console.log('Login sucesso - redirecionando...');
+        window.location.replace('/dashboard');
+      } else {
+        console.error('Login falhou:', result);
       }
     } catch (error) {
-      console.error('Error in handleLogin:', error);
+      console.error('Erro no handleLogin:', error);
     }
     
     setIsLoading(false);
