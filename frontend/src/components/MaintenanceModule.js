@@ -676,7 +676,7 @@ const MaintenanceModule = () => {
                       <span>Papéis Ativos</span>
                     </h4>
                     <div className="space-y-2">
-                      {roles.slice(0, 5).map((role) => (
+                      {(roles || []).slice(0, 5).map((role) => (
                         <div key={role.id} className="flex items-center justify-between text-sm">
                           <span>{role.name}</span>
                           <div className="flex items-center space-x-2">
