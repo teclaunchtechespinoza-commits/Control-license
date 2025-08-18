@@ -66,13 +66,10 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      console.log('HandleLogin called with loginData:', loginData);
       const result = await login(loginData);
-      console.log('Login result:', result);
-      
       if (result && result.success) {
-        console.log('Login successful, navigating to dashboard');
-        navigate('/dashboard', { replace: true });
+        // O redirecionamento agora é feito na função login
+        console.log('Login successful');
       }
     } catch (error) {
       console.error('Error in handleLogin:', error);
