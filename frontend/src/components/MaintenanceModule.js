@@ -177,7 +177,7 @@ const MaintenanceModule = () => {
   const createPermission = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}/api/rbac/permissions`, newPermission, {
+      await axios.post('/rbac/permissions', newPermission, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
