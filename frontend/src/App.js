@@ -53,11 +53,18 @@ const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
+      console.log('Tentando buscar dados do usuário...');
+      console.log('Axios baseURL:', axios.defaults.baseURL);
+      console.log('Authorization header:', axios.defaults.headers.common['Authorization']);
+      
       const response = await axios.get('/auth/me');
+      console.log('Resposta fetchUser:', response.data);
       setUser(response.data);
     } catch (error) {
       console.error('Failed to fetch user:', error);
+      console.error('Error response:', error.response);
       localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
       delete axios.defaults.headers.common['Authorization'];
       toast.error('Session expired. Please login again.');
     } finally {
