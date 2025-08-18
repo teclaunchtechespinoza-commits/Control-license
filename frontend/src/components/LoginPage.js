@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 const LoginPage = () => {
   const { user, login, register } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [demoCredentials, setDemoCredentials] = useState(null);
