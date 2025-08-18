@@ -59,20 +59,41 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      console.log('Iniciando login com:', loginData);
-      const result = await login(loginData);
-      console.log('Resultado do login:', result);
+      console.log('=== INICIANDO LOGIN ===');
+      console.log('Dados do login:', loginData);
       
-      if (result && result.success) {
-        // Se chegou até aqui, significa que o login foi bem-sucedido
-        // Vamos forçar o redirecionamento aqui mesmo
-        console.log('Login sucesso - redirecionando...');
-        window.location.replace('/dashboard');
+      // Testar a requisição diretamente
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData)
+      });
+      
+      console.log('Resposta do fetch:', response);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        
+        // Salvar token e dados do usuário
+        localStorage.setItem('token', data.access_token);
+        
+        // Redirecionar imediatamente
+        console.log('Redirecionando para dashboard...');
+        window.location.href = '/dashboard';
+        
       } else {
-        console.error('Login falhou:', result);
+        console.error('Resposta não ok:', response.status, response.statusText);
+        const errorData = await response.json();
+        console.error('Erro detalhado:', errorData);
+        toast.error(errorData.detail || 'Login falhou');
       }
+      
     } catch (error) {
-      console.error('Erro no handleLogin:', error);
+      console.error('Erro capturado:', error);
+      toast.error(`Erro de login: ${error.message}`);
     }
     
     setIsLoading(false);
