@@ -99,6 +99,12 @@ const MaintenanceModule = () => {
     }
   };
 
+  // Função para garantir URL correto (máscara)
+  const getApiUrl = (endpoint) => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+    return `${backendUrl}/api/${endpoint}`;
+  };
+
   // Funções para RBAC
   const fetchRbacData = async () => {
     try {
@@ -114,17 +120,19 @@ const MaintenanceModule = () => {
       }
       
       console.log('Buscando dados RBAC com token válido...');
+      console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
       
+      // Usar fetch direto com URLs absolutos (máscara de URL)
       const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
-        axios.get('/rbac/roles', {
+        fetch(getApiUrl('rbac/roles'), {
           headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('/rbac/permissions', {
+        }).then(res => res.json()),
+        fetch(getApiUrl('rbac/permissions'), {
           headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('/users', {
+        }).then(res => res.json()),
+        fetch(getApiUrl('users'), {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        }).then(res => res.json())
       ]);
 
       const rolesData = rolesResponse.data;
