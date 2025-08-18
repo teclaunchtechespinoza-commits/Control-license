@@ -80,6 +80,7 @@ const LoginPage = () => {
         const data = await response.json();
         
         // Salvar dados de autenticação
+        localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
