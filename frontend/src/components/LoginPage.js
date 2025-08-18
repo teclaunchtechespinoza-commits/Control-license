@@ -60,10 +60,10 @@ const LoginPage = () => {
     const result = await login(loginData);
     console.log('Login result:', result);
     
-    // Se o login foi bem-sucedido, forçar redirecionamento
+    // Se o login foi bem-sucedido, usar navigate em vez de window.location
     if (result && result.success) {
-      console.log('Login successful, forcing redirect to dashboard');
-      window.location.href = '/dashboard';
+      console.log('Login successful, navigating to dashboard');
+      navigate('/dashboard', { replace: true });
     }
     
     setIsLoading(false);
