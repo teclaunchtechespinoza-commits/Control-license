@@ -73,6 +73,7 @@ const AuthProvider = ({ children }) => {
       
       const { access_token, user: userData } = response.data;
       
+      localStorage.setItem('access_token', access_token);
       localStorage.setItem('token', access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(userData);
