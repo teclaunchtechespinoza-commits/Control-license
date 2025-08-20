@@ -37,6 +37,12 @@ const MaintenanceModule = () => {
   const [totalLines, setTotalLines] = useState(0);
   const [showingLines, setShowingLines] = useState(0);
 
+  // Estados para RBAC
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [rbacLoading, setRbacLoading] = useState(false);
+
   // Estados para logs avançados e monitoramento
   const [advancedLogs, setAdvancedLogs] = useState([]);
   const [logFilters, setLogFilters] = useState({
@@ -143,32 +149,6 @@ const MaintenanceModule = () => {
       }
     }
   };
-
-  // useEffect para monitoramento automático
-  useEffect(() => {
-    // Carregar logs avançados periodicamente
-    const logsInterval = setInterval(() => {
-      if (!logsLoading) {
-        fetchAdvancedLogs();
-      }
-    }, 30000); // A cada 30 segundos
-
-    // Health check periódico
-    const healthInterval = setInterval(() => {
-      checkSystemHealth();
-    }, 60000); // A cada 1 minuto
-
-    // Detectar loops de erro
-    const loopDetectionInterval = setInterval(() => {
-      detectLoopErrors();
-    }, 20000); // A cada 20 segundos
-
-    return () => {
-      clearInterval(logsInterval);
-      clearInterval(healthInterval);
-      clearInterval(loopDetectionInterval);
-    };
-  }, [logsLoading, advancedLogs]);
 
   // Estados para painel de status
   const [statusStats, setStatusStats] = useState({
