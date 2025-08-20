@@ -1602,13 +1602,76 @@ async def get_roles(current_user: User = Depends(require_permission("rbac.read")
 
 @api_router.post("/rbac/roles", response_model=Role)
 async def create_role(role_data: CreateRoleRequest, current_user: User = Depends(require_permission("rbac.manage"))):
-    role = Role(
-        name=role_data.name,
-        description=role_data.description,
-        permissions=role_data.permissions
-    )
-    await db.roles.insert_one(role.dict())
-    return role
+    try:
+        # Verificar duplicatas ANTES de criar
+        duplicate_check = await check_role_duplicates(role_data.name)
+        
+        if duplicate_check.get("has_duplicates"):
+            existing = duplicate_check["existing_role"]
+            
+            log_advanced_error(
+                ErrorLevel.WARNING,
+                ErrorCategory.DUPLICATE_DATA,
+                f"Tentativa bloqueada de criar role duplicado: {role_data.name}",
+                user_email=current_user.email,
+                details={"existing_role_id": existing["id"], "is_system": existing["is_system"]}
+            )
+            
+            error_msg = f"Já existe um papel com o nome '{role_data.name}'"
+            if existing["is_system"]:
+                error_msg += " (papel do sistema). Escolha um nome diferente."
+            else:
+                error_msg += f". ID existente: {existing['id']}"
+                
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": error_msg,
+                    "type": "DUPLICATE_ROLE",
+                    "existing_role": existing,
+                    "suggestions": [
+                        f"{role_data.name} v2",
+                        f"{role_data.name} Custom",
+                        f"{role_data.name} {datetime.now().strftime('%Y%m%d')}"
+                    ]
+                }
+            )
+        
+        # Continuar com criação normal se não houver duplicatas
+        role_dict = {
+            "id": str(uuid.uuid4()),
+            "tenant_id": current_user.tenant_id,
+            "name": role_data.name,
+            "description": role_data.description,
+            "permissions": role_data.permissions,
+            "is_system": False,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        result = await db.roles.insert_one(role_dict)
+        
+        log_advanced_error(
+            ErrorLevel.INFO,
+            ErrorCategory.SYSTEM,
+            f"Role criado com sucesso: {role_data.name}",
+            user_email=current_user.email,
+            details={"role_id": role_dict["id"], "permissions_count": len(role_data.permissions)}
+        )
+        
+        return role_dict
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_advanced_error(
+            ErrorLevel.ERROR,
+            ErrorCategory.DATABASE,
+            f"Erro ao criar role: {role_data.name}",
+            user_email=current_user.email,
+            exception=e
+        )
+        raise HTTPException(status_code=500, detail="Erro interno ao criar papel")
 
 @api_router.put("/rbac/roles/{role_id}", response_model=Role)
 async def update_role(role_id: str, role_data: UpdateRoleRequest, current_user: User = Depends(require_permission("rbac.manage"))):
