@@ -1,0 +1,96 @@
+yarn run v1.22.22
+$ node server.js
+19:38:34 [32minfo[39m: 🚀 WhatsApp Service started on port 3001 {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: 📱 Health check: http://localhost:3001/health {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: 🚀 Initializing WhatsApp Service... {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: ✅ WhatsApp Service initialized successfully {"service":"whatsapp-service"}
+19:38:34 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:39:34 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:39:54 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:40:14 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:40:34 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:40:54 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:41:14 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:41:14 [32minfo[39m: ⏳ Reconnecting in 5s... (attempt 1/5) {"service":"whatsapp-service"}
+19:41:19 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:41:19 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:41:20 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:42:20 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:42:40 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:43:00 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:43:20 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:43:40 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:44:00 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:44:00 [32minfo[39m: ⏳ Reconnecting in 10s... (attempt 2/5) {"service":"whatsapp-service"}
+19:44:10 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:44:10 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:44:10 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:45:10 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:45:30 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:45:50 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:46:06 [32minfo[39m: 🔄 Restarting WhatsApp connection... {"service":"whatsapp-service"}
+19:46:06 [33mwarn[39m: Connection closed due to 401, reconnecting: false {"service":"whatsapp-service"}
+19:46:06 [31merror[39m: ❌ Max reconnection attempts reached or logged out {"service":"whatsapp-service"}
+19:46:06 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:46:06 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:46:06 [32minfo[39m: ✅ WhatsApp connection restarted successfully {"service":"whatsapp-service"}
+19:46:07 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:47:07 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:47:27 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:47:47 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:48:07 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:48:27 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:48:47 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:48:47 [32minfo[39m: ⏳ Reconnecting in 5s... (attempt 1/5) {"service":"whatsapp-service"}
+19:48:52 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:48:52 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:48:52 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:49:52 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:50:12 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:50:32 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:50:52 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:51:12 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:51:32 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:51:32 [32minfo[39m: ⏳ Reconnecting in 10s... (attempt 2/5) {"service":"whatsapp-service"}
+19:51:42 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:51:42 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:51:43 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:52:43 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:53:03 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:53:23 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:53:43 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:54:03 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:54:23 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:54:23 [32minfo[39m: ⏳ Reconnecting in 15s... (attempt 3/5) {"service":"whatsapp-service"}
+19:54:38 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:54:38 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:54:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:55:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:55:59 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:56:19 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:56:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:56:59 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:57:19 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+19:57:19 [32minfo[39m: ⏳ Reconnecting in 20s... (attempt 4/5) {"service":"whatsapp-service"}
+19:57:39 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+19:57:39 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+19:57:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:58:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:58:59 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:59:19 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:59:39 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+19:59:59 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:00:19 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+20:00:19 [32minfo[39m: ⏳ Reconnecting in 25s... (attempt 5/5) {"service":"whatsapp-service"}
+20:00:44 [32minfo[39m: 📱 Initializing Baileys WhatsApp connection... {"service":"whatsapp-service"}
+20:00:44 [32minfo[39m: ✅ Baileys WhatsApp handler initialized {"service":"whatsapp-service"}
+20:00:44 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:01:44 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:02:04 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:02:25 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:02:45 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:03:05 [32minfo[39m: 📱 QR Code generated - scan with WhatsApp {"service":"whatsapp-service"}
+20:03:25 [33mwarn[39m: Connection closed due to 408, reconnecting: true {"service":"whatsapp-service"}
+20:03:25 [31merror[39m: ❌ Max reconnection attempts reached or logged out {"service":"whatsapp-service"}
