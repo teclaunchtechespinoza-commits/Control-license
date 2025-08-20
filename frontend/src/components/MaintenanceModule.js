@@ -265,8 +265,75 @@ const MaintenanceModule = () => {
     }
   };
 
+  // Função para verificar duplicatas antes de criar role
+  const checkRoleDuplicates = async (roleName) => {
+    try {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      const response = await fetch(getApiUrl('system/check-duplicates/role'), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        return result;
+      }
+      
+      return { has_duplicates: false };
+    } catch (error) {
+      console.error('Erro ao verificar duplicatas:', error);
+      return { has_duplicates: false };
+    }
+  };
+
   const createRole = async () => {
     try {
+      // PASSO 1: Verificar duplicatas ANTES de tentar criar
+      if (newRole.name.trim()) {
+        console.log('🔍 Verificando duplicatas para role:', newRole.name);
+        
+        const duplicateCheck = await checkRoleDuplicates(newRole.name);
+        
+        if (duplicateCheck.has_duplicates) {
+          const existing = duplicateCheck.existing_role;
+          const systemWarning = existing.is_system ? ' (PAPEL DO SISTEMA)' : '';
+          
+          // Mostrar erro detalhado com sugestões
+          toast.error(
+            `❌ JÁ EXISTE: "${newRole.name}"${systemWarning}`,
+            {
+              description: `Papel já existe. ID: ${existing.id}`,
+              action: {
+                label: "Ver Sugestões",
+                onClick: () => {
+                  const suggestions = duplicateCheck.suggestions || [
+                    `${newRole.name} v2`,
+                    `${newRole.name} Custom`,
+                    `${newRole.name} ${new Date().getFullYear()}`
+                  ];
+                  
+                  toast.info(
+                    "💡 Sugestões de nomes alternativos:",
+                    {
+                      description: suggestions.join(', '),
+                      duration: 8000
+                    }
+                  );
+                }
+              },
+              duration: 6000
+            }
+          );
+          
+          // NÃO prosseguir com a criação
+          return;
+        }
+      }
+      
+      // PASSO 2: Prosseguir com criação se não houver duplicatas
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
       const response = await fetch(getApiUrl('rbac/roles'), {
@@ -279,16 +346,49 @@ const MaintenanceModule = () => {
       });
 
       if (response.ok) {
-        toast.success('Papel criado com sucesso');
+        const createdRole = await response.json();
+        toast.success(
+          `✅ Papel "${createdRole.name}" criado com sucesso!`,
+          {
+            description: `ID: ${createdRole.id}`,
+            duration: 4000
+          }
+        );
+        
         setRoleDialogOpen(false);
         setNewRole({ name: '', description: '', permissions: [] });
         await fetchRbacData();
       } else {
-        throw new Error('Failed to create role');
+        const errorData = await response.json();
+        
+        // Tratar erro estruturado do backend
+        if (errorData.detail && typeof errorData.detail === 'object') {
+          const detail = errorData.detail;
+          
+          if (detail.type === 'DUPLICATE_ROLE') {
+            toast.error(
+              `❌ ${detail.message}`,
+              {
+                description: `Sugestões: ${detail.suggestions?.join(', ') || 'Tente um nome diferente'}`,
+                duration: 6000
+              }
+            );
+          } else {
+            toast.error(`❌ Erro: ${detail.message || errorData.detail}`);
+          }
+        } else {
+          toast.error(`❌ Erro ao criar papel: ${errorData.detail || 'Erro desconhecido'}`);
+        }
       }
     } catch (error) {
-      console.error('Failed to create role:', error);
-      toast.error('Erro ao criar papel');
+      console.error('Erro na criação de papel:', error);
+      toast.error(
+        '❌ Erro de conexão ao criar papel',
+        {
+          description: 'Verifique sua conexão e tente novamente',
+          duration: 4000
+        }
+      );
     }
   };
 
