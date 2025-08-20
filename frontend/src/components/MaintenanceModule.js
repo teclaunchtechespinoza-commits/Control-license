@@ -37,11 +37,138 @@ const MaintenanceModule = () => {
   const [totalLines, setTotalLines] = useState(0);
   const [showingLines, setShowingLines] = useState(0);
 
-  // Estados para RBAC
-  const [roles, setRoles] = useState([]);
-  const [permissions, setPermissions] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [rbacLoading, setRbacLoading] = useState(false);
+  // Estados para logs avançados e monitoramento
+  const [advancedLogs, setAdvancedLogs] = useState([]);
+  const [logFilters, setLogFilters] = useState({
+    level: '',
+    category: '',
+    limit: 50
+  });
+  const [systemHealth, setSystemHealth] = useState(null);
+  const [logsLoading, setLogsLoading] = useState(false);
+
+  // Função para carregar logs avançados
+  const fetchAdvancedLogs = async () => {
+    try {
+      setLogsLoading(true);
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      
+      const queryParams = new URLSearchParams();
+      if (logFilters.level) queryParams.append('level', logFilters.level);
+      if (logFilters.category) queryParams.append('category', logFilters.category);
+      queryParams.append('limit', logFilters.limit.toString());
+      
+      const response = await fetch(`${getApiUrl('system/logs/advanced')}?${queryParams}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAdvancedLogs(data.logs || []);
+        console.log('📊 Logs avançados carregados:', data);
+      } else {
+        throw new Error('Failed to fetch advanced logs');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar logs avançados:', error);
+      toast.error('Erro ao carregar logs avançados');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  // Função para verificar saúde do sistema
+  const checkSystemHealth = async () => {
+    try {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      
+      const response = await fetch(getApiUrl('system/health-check'), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const health = await response.json();
+        setSystemHealth(health);
+        
+        // Alertar sobre problemas críticos
+        if (health.overall_status !== 'healthy') {
+          toast.warning(
+            `⚠️ Sistema com status: ${health.overall_status.toUpperCase()}`,
+            {
+              description: health.alerts?.join(', ') || 'Verifique os componentes',
+              duration: 8000
+            }
+          );
+        }
+        
+        console.log('💚 Health check realizado:', health);
+      } else {
+        throw new Error('Health check failed');
+      }
+    } catch (error) {
+      console.error('Erro no health check:', error);
+      toast.error('Erro ao verificar saúde do sistema');
+    }
+  };
+
+  // Função para detectar erros em loop e alertar
+  const detectLoopErrors = () => {
+    if (advancedLogs.length === 0) return;
+    
+    // Detectar padrões de erro repetitivos
+    const recentLogs = advancedLogs.slice(0, 10);
+    const errorLogs = recentLogs.filter(log => log.level === 'ERROR' || log.level === 'CRITICAL');
+    
+    if (errorLogs.length >= 5) {
+      // Mais de 5 erros nos últimos 10 logs - possível loop
+      const errorMessages = errorLogs.map(log => log.message);
+      const uniqueErrors = [...new Set(errorMessages)];
+      
+      if (uniqueErrors.length < errorMessages.length / 2) {
+        // Muitos erros similares - provável loop
+        toast.error(
+          '🔄 LOOP DE ERRO DETECTADO!',
+          {
+            description: `${errorLogs.length} erros similares detectados. Verifique o sistema.`,
+            action: {
+              label: "Ver Detalhes",
+              onClick: () => {
+                console.error('🔄 Loop de erros detectado:', errorLogs);
+                toast.info(`Erros repetitivos: ${uniqueErrors.join(', ')}`);
+              }
+            },
+            duration: 10000
+          }
+        );
+      }
+    }
+  };
+
+  // useEffect para monitoramento automático
+  useEffect(() => {
+    // Carregar logs avançados periodicamente
+    const logsInterval = setInterval(() => {
+      if (!logsLoading) {
+        fetchAdvancedLogs();
+      }
+    }, 30000); // A cada 30 segundos
+
+    // Health check periódico
+    const healthInterval = setInterval(() => {
+      checkSystemHealth();
+    }, 60000); // A cada 1 minuto
+
+    // Detectar loops de erro
+    const loopDetectionInterval = setInterval(() => {
+      detectLoopErrors();
+    }, 20000); // A cada 20 segundos
+
+    return () => {
+      clearInterval(logsInterval);
+      clearInterval(healthInterval);
+      clearInterval(loopDetectionInterval);
+    };
+  }, [logsLoading, advancedLogs]);
 
   // Estados para painel de status
   const [statusStats, setStatusStats] = useState({
