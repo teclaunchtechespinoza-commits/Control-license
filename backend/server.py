@@ -128,6 +128,171 @@ from maintenance_logger import MaintenanceLogger
 # Initialize maintenance logger
 maintenance_logger = MaintenanceLogger()
 
+# Sistema de Prevenção de Duplicatas e Logs Avançados
+import traceback
+from datetime import datetime
+from enum import Enum
+
+class ErrorLevel(str, Enum):
+    CRITICAL = "CRITICAL"
+    ERROR = "ERROR"  
+    WARNING = "WARNING"
+    INFO = "INFO"
+
+class ErrorCategory(str, Enum):
+    DUPLICATE_DATA = "DUPLICATE_DATA"
+    AUTHENTICATION = "AUTHENTICATION"
+    AUTHORIZATION = "AUTHORIZATION"
+    DATABASE = "DATABASE"
+    NETWORK = "NETWORK"
+    VALIDATION = "VALIDATION"
+    SYSTEM = "SYSTEM"
+
+# Log estruturado para monitoramento avançado
+def log_advanced_error(level: ErrorLevel, category: ErrorCategory, message: str, 
+                      user_email: str = None, details: dict = None, exception: Exception = None):
+    timestamp = datetime.utcnow().isoformat()
+    
+    log_entry = {
+        "timestamp": timestamp,
+        "level": level.value,
+        "category": category.value,
+        "message": message,
+        "user_email": user_email,
+        "details": details or {},
+        "stack_trace": traceback.format_exc() if exception else None
+    }
+    
+    # Log para arquivo específico baseado na categoria
+    log_message = f"[{timestamp}] [{level.value}] [{category.value}] {message}"
+    if user_email:
+        log_message += f" | User: {user_email}"
+    if details:
+        log_message += f" | Details: {details}"
+        
+    # Escrever para maintenance_logger
+    maintenance_logger.info(log_message)
+    
+    # Se for CRITICAL, também alertar no console
+    if level == ErrorLevel.CRITICAL:
+        print(f"🚨 CRITICAL ERROR: {log_message}")
+        
+    return log_entry
+
+# Verificação de duplicatas para usuários
+async def check_user_duplicates(email: str, name: str = None, exclude_id: str = None) -> dict:
+    """
+    Verifica duplicatas de usuários por email e opcionalmente por nome
+    Retorna informações sobre duplicatas encontradas
+    """
+    try:
+        query_filter = {"tenant_id": "default"}  # Ajustar conforme necessidade
+        
+        # Verificar email duplicado
+        email_query = {**query_filter, "email": email}
+        if exclude_id:
+            email_query["id"] = {"$ne": exclude_id}
+            
+        existing_user = await db.users.find_one(email_query)
+        
+        result = {
+            "has_duplicates": False,
+            "duplicate_email": None,
+            "duplicate_name": None,
+            "suggestions": []
+        }
+        
+        if existing_user:
+            result["has_duplicates"] = True
+            result["duplicate_email"] = {
+                "id": existing_user["id"],
+                "email": existing_user["email"], 
+                "name": existing_user["name"],
+                "is_active": existing_user.get("is_active", False)
+            }
+            
+            # Log da tentativa de duplicação
+            log_advanced_error(
+                ErrorLevel.WARNING,
+                ErrorCategory.DUPLICATE_DATA,
+                f"Tentativa de criar usuário com email duplicado: {email}",
+                details={"existing_user_id": existing_user["id"], "existing_name": existing_user["name"]}
+            )
+            
+            # Sugerir emails alternativos
+            base_email = email.split('@')[0]
+            domain = email.split('@')[1]
+            result["suggestions"] = [
+                f"{base_email}1@{domain}",
+                f"{base_email}.new@{domain}",
+                f"{base_email}_{datetime.now().strftime('%Y%m%d')}@{domain}"
+            ]
+        
+        # Verificar nome similar (opcional)
+        if name and not result["has_duplicates"]:
+            name_query = {**query_filter, "name": {"$regex": f"^{name}$", "$options": "i"}}
+            if exclude_id:
+                name_query["id"] = {"$ne": exclude_id}
+                
+            similar_name = await db.users.find_one(name_query)
+            if similar_name:
+                result["duplicate_name"] = {
+                    "id": similar_name["id"],
+                    "email": similar_name["email"],
+                    "name": similar_name["name"]
+                }
+                
+        return result
+        
+    except Exception as e:
+        log_advanced_error(
+            ErrorLevel.ERROR,
+            ErrorCategory.DATABASE,
+            "Erro ao verificar duplicatas de usuário",
+            details={"email": email, "name": name},
+            exception=e
+        )
+        return {"has_duplicates": False, "error": str(e)}
+
+# Verificação de duplicatas para roles
+async def check_role_duplicates(name: str, exclude_id: str = None) -> dict:
+    """Verifica duplicatas de roles por nome"""
+    try:
+        query_filter = {"tenant_id": "default", "name": {"$regex": f"^{name}$", "$options": "i"}}
+        if exclude_id:
+            query_filter["id"] = {"$ne": exclude_id}
+            
+        existing_role = await db.roles.find_one(query_filter)
+        
+        if existing_role:
+            log_advanced_error(
+                ErrorLevel.WARNING,
+                ErrorCategory.DUPLICATE_DATA,
+                f"Tentativa de criar role com nome duplicado: {name}",
+                details={"existing_role_id": existing_role["id"]}
+            )
+            
+            return {
+                "has_duplicates": True,
+                "existing_role": {
+                    "id": existing_role["id"],
+                    "name": existing_role["name"],
+                    "is_system": existing_role.get("is_system", False)
+                }
+            }
+            
+        return {"has_duplicates": False}
+        
+    except Exception as e:
+        log_advanced_error(
+            ErrorLevel.ERROR,
+            ErrorCategory.DATABASE,
+            "Erro ao verificar duplicatas de role",
+            details={"name": name},
+            exception=e
+        )
+        return {"has_duplicates": False, "error": str(e)}
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
