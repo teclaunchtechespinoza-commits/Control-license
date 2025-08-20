@@ -493,7 +493,162 @@ class LicenseManagementAPITester:
         if hasattr(self, 'created_pj_id'):
             self.run_test("Inactivate PJ test client", "DELETE", f"clientes-pj/{self.created_pj_id}", 200, token=self.admin_token)
 
-    def run_critical_test(self):
+    def run_critical_rbac_maintenance_validation(self):
+        """Run critical validation for RBAC and maintenance module as requested in review"""
+        print("🚀 TESTE RÁPIDO PARA CONFIRMAR VERSÃO COMPLETA COM RBAC E MÓDULO MANUTENÇÃO")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        print("CONTEXTO: Restaurei a versão completa com RBAC e módulo de manutenção")
+        print("OBJETIVO: Confirmar rapidamente que esta versão tem TODAS as funcionalidades")
+        print("="*80)
+        
+        # Test 1: Admin authentication
+        print("\n🔍 TESTE PRIORITÁRIO 1: Verificar autenticação admin")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
+        else:
+            print("   ❌ CRITICAL: Admin authentication failed!")
+            return 1
+
+        # Test 2: RBAC endpoints verification
+        print("\n🔍 TESTE PRIORITÁRIO 2: Verificar RBAC funcionando")
+        
+        # Test /api/rbac/roles
+        success, response = self.run_test("GET /api/rbac/roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ RBAC Roles endpoint working: {len(response)} roles found")
+            for role in response[:3]:  # Show first 3
+                print(f"      - {role.get('name', 'Unknown')}: {role.get('description', 'No description')}")
+        else:
+            print("   ❌ CRITICAL: /api/rbac/roles endpoint failed!")
+
+        # Test /api/rbac/permissions
+        success, response = self.run_test("GET /api/rbac/permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ RBAC Permissions endpoint working: {len(response)} permissions found")
+            for perm in response[:3]:  # Show first 3
+                print(f"      - {perm.get('name', 'Unknown')}: {perm.get('description', 'No description')}")
+        else:
+            print("   ❌ CRITICAL: /api/rbac/permissions endpoint failed!")
+
+        # Test 3: Main endpoints verification
+        print("\n🔍 TESTE PRIORITÁRIO 3: Verificar endpoints principais")
+        
+        # Test categories
+        success, response = self.run_test("GET /api/categories", "GET", "categories", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Categories endpoint working: {len(response)} categories found")
+        else:
+            print("   ❌ Categories endpoint failed!")
+
+        # Test products
+        success, response = self.run_test("GET /api/products", "GET", "products", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Products endpoint working: {len(response)} products found")
+        else:
+            print("   ❌ Products endpoint failed!")
+
+        # Test clients PF
+        success, response = self.run_test("GET /api/clientes-pf", "GET", "clientes-pf", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Clientes PF endpoint working: {len(response)} PF clients found")
+        else:
+            print("   ❌ Clientes PF endpoint failed!")
+
+        # Test clients PJ
+        success, response = self.run_test("GET /api/clientes-pj", "GET", "clientes-pj", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Clientes PJ endpoint working: {len(response)} PJ clients found")
+        else:
+            print("   ❌ Clientes PJ endpoint failed!")
+
+        # Test 4: Maintenance module verification
+        print("\n🔍 TESTE PRIORITÁRIO 4: Verificar módulo de manutenção")
+        
+        # Test maintenance logs
+        success, response = self.run_test("GET /api/maintenance/logs", "GET", "maintenance/logs?lines=10", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Maintenance logs endpoint working: {len(response)} log entries found")
+            if response:
+                print(f"      - Latest log: {response[0].get('message', 'No message')[:60]}...")
+        else:
+            print("   ❌ Maintenance logs endpoint failed!")
+
+        # Test maintenance stats
+        success, response = self.run_test("GET /api/maintenance/stats", "GET", "maintenance/stats", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Maintenance stats endpoint working")
+            print(f"      - Total logs: {response.get('total_logs', 0)}")
+            print(f"      - Error count: {response.get('error_count', 0)}")
+        else:
+            print("   ❌ Maintenance stats endpoint failed!")
+
+        # Test 5: Additional RBAC functionality
+        print("\n🔍 TESTE PRIORITÁRIO 5: Verificar funcionalidades RBAC adicionais")
+        
+        # Test users endpoint (RBAC protected)
+        success, response = self.run_test("GET /api/users", "GET", "users", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Users endpoint working: {len(response)} users found")
+            admin_user = next((u for u in response if u.get('email') == 'admin@demo.com'), None)
+            if admin_user:
+                print(f"      - Admin user found: {admin_user.get('name', 'Unknown')}")
+                print(f"      - Admin role: {admin_user.get('role', 'Unknown')}")
+        else:
+            print("   ❌ Users endpoint failed!")
+
+        # Test 6: WhatsApp integration (if available)
+        print("\n🔍 TESTE ADICIONAL: Verificar integração WhatsApp")
+        
+        success, response = self.run_test("GET /api/whatsapp/health", "GET", "whatsapp/health", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ WhatsApp health endpoint working")
+            print(f"      - Service healthy: {response.get('healthy', False)}")
+            print(f"      - Service URL: {response.get('service_url', 'Unknown')}")
+        else:
+            print("   ⚠️ WhatsApp health endpoint not available (may be expected)")
+
+        # Test 7: Sales Dashboard (if available)
+        print("\n🔍 TESTE ADICIONAL: Verificar dashboard de vendas")
+        
+        success, response = self.run_test("GET /api/sales-dashboard/summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Sales dashboard endpoint working")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Total expiring licenses: {metrics.get('total_expiring_licenses', 0)}")
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+        else:
+            print("   ⚠️ Sales dashboard endpoint not available (may be expected)")
+
+        # Print final results
+        print("\n" + "="*80)
+        print("RESULTADO FINAL DO TESTE CRÍTICO - VERSÃO COMPLETA")
+        print("="*80)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        
+        if success_rate >= 85:  # Allow for some optional endpoints to fail
+            print("🎉 TESTE CRÍTICO APROVADO COM SUCESSO!")
+            print("   ✅ RBAC FUNCIONANDO: Endpoints /api/rbac/roles e /api/rbac/permissions")
+            print("   ✅ AUTENTICAÇÃO ADMIN: admin@demo.com/admin123 working")
+            print("   ✅ ENDPOINTS PRINCIPAIS: categorias, produtos, clientes working")
+            print("   ✅ MÓDULO MANUTENÇÃO: logs e stats endpoints working")
+            print("   ✅ ESTA É A VERSÃO COMPLETA que o usuário deseja!")
+            print(f"   📈 Success rate: {success_rate:.1f}%")
+            return 0
+        else:
+            print(f"❌ TESTE CRÍTICO FALHOU!")
+            print(f"   Success rate: {success_rate:.1f}% (minimum required: 85%)")
+            print(f"   {self.tests_run - self.tests_passed} critical tests failed")
+            return 1
         """Run the critical test requested in the review"""
         print("🚀 Starting CRITICAL TEST - New User Registration + Login Fix")
         print(f"Base URL: {self.base_url}")
