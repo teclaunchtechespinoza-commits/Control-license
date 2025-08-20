@@ -2222,37 +2222,6 @@ async def advanced_health_check(current_user: User = Depends(require_permission(
             exception=e
         )
         raise HTTPException(status_code=500, detail="Falha no health check do sistema")
-    try:
-        user_permissions = await get_user_permissions(current_user.email)
-        
-        # Buscar dados do usuário
-        user_doc = await db.users.find_one({"email": current_user.email})
-        rbac_info = user_doc.get('rbac', {}) if user_doc else {}
-        role_ids = rbac_info.get('roles', [])
-        
-        # Buscar roles e limpar ObjectIds
-        roles_data = []
-        if role_ids:
-            roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
-            # Remover ObjectId para evitar erro de serialização
-            for role in roles:
-                if '_id' in role:
-                    del role['_id']
-                roles_data.append(role)
-        
-        # Limpar ObjectId do usuário também
-        clean_rbac_info = dict(rbac_info)
-        
-        return {
-            "user_email": current_user.email,
-            "user_permissions": user_permissions,
-            "rbac_info": clean_rbac_info,
-            "roles_data": roles_data,
-            "permission_check_rbac_read": check_permission(user_permissions, "rbac.read"),
-            "permission_check_users_read": check_permission(user_permissions, "users.read")
-        }
-    except Exception as e:
-        return {"error": str(e), "type": type(e).__name__}
 
 # ================================
 # DASHBOARD DE VENDAS - ENDPOINTS
