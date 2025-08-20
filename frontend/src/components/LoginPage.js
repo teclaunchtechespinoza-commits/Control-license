@@ -67,7 +67,7 @@ const LoginPage = () => {
       }
       
       // Fazer login usando fetch direto
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://licensehub-10.preview.emergentagent.com';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
