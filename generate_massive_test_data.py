@@ -239,7 +239,7 @@ class MassiveDataGenerator:
                 "endereco_principal": {
                     "logradouro": fake.street_name(),
                     "numero": str(random.randint(1, 9999)),
-                    "complemento": fake.secondary_address() if random.choice([True, False]) else None,
+                    "complemento": f"Apto {random.randint(1, 999)}" if random.choice([True, False]) else None,
                     "bairro": fake.neighborhood(),
                     "cidade": fake.city(),
                     "estado": fake.state_abbr(),
