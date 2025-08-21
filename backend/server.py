@@ -3180,6 +3180,28 @@ async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
             # Garantir campos obrigatórios
             if not client.get("id"):
                 continue
+            
+            # Normalizar client_type
+            client_type = client.get("client_type", "pj")
+            if client_type.upper() == "PF":
+                client["client_type"] = "pf"
+            elif client_type.upper() == "PJ":
+                client["client_type"] = "pj"
+            else:
+                client["client_type"] = "pj"  # padrão
+            
+            # Normalizar regime_tributario
+            regime = client.get("regime_tributario", "")
+            if "simples" in regime.lower():
+                client["regime_tributario"] = "simples"
+            elif "presumido" in regime.lower():
+                client["regime_tributario"] = "lucro_presumido"
+            elif "real" in regime.lower():
+                client["regime_tributario"] = "lucro_real"
+            elif "mei" in regime.lower():
+                client["regime_tributario"] = "mei"
+            else:
+                client["regime_tributario"] = "simples"  # padrão
                 
             # Para usuários não-admin, aplicar mascaramento básico de CNPJ
             if current_user.role != UserRole.ADMIN:
@@ -3187,7 +3209,11 @@ async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
                 if len(cnpj) >= 14:
                     client["cnpj"] = cnpj[:2] + "***" + cnpj[-2:]
             
-            result.append(PessoaJuridica(**client))
+            try:
+                result.append(PessoaJuridica(**client))
+            except Exception as e:
+                logger.warning(f"Skipping invalid client PJ {client.get('id')}: {e}")
+                continue
         
         return result
     except Exception as e:
