@@ -540,19 +540,19 @@ const RegistryModule = () => {
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="categories" className="flex items-center space-x-2">
             <FolderOpen className="w-4 h-4" />
-            <span>Categorias</span>
+            <span>Categorias ({categories.length})</span>
           </TabsTrigger>
           <TabsTrigger value="companies" className="flex items-center space-x-2">
             <Building className="w-4 h-4" />
-            <span>Empresas</span>
+            <span>Empresas ({companies.length})</span>
           </TabsTrigger>
           <TabsTrigger value="products" className="flex items-center space-x-2">
             <Package className="w-4 h-4" />
-            <span>Produtos</span>
+            <span>Produtos ({products.length})</span>
           </TabsTrigger>
           <TabsTrigger value="plans" className="flex items-center space-x-2">
             <CreditCard className="w-4 h-4" />
-            <span>Planos</span>
+            <span>Planos ({licensePlans.length})</span>
           </TabsTrigger>
         </TabsList>
 
