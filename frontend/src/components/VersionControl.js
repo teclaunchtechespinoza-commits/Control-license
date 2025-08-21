@@ -20,7 +20,7 @@ import {
   Clock,
   Zap
 } from 'lucide-react';
-import { getVersionInfo, VERSION_CONFIG } from '../config/version';
+import { getVersionInfo, VERSION_CONFIG, getLicensingInfo } from '../config/version';
 
 // Badge de status da versão
 const StatusBadge = ({ status }) => {
