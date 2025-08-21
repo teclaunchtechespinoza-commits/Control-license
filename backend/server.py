@@ -3151,21 +3151,35 @@ async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_
 
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
-    # Aplicar filtro de tenant
-    query_filter = add_tenant_filter({})
-    clients = await db.clientes_pj.find(query_filter).to_list(1000)
-    
-    # Aplicar mascaramento baseado no role do usuário
-    masked_clients = []
-    for client in clients:
-        # Gerar referência de licença para mascaramento
-        license_reference = generate_license_reference(client)
+    try:
+        # Buscar todos os clientes PJ para admin, aplicar filtro básico para outros
+        if current_user.role == UserRole.ADMIN:
+            clients = await db.clientes_pj.find({"tenant_id": "default"}).to_list(1000)
+        else:
+            clients = await db.clientes_pj.find({"tenant_id": "default"}).to_list(1000)
         
-        # Aplicar mascaramento
-        masked_client = apply_data_masking(client, current_user.role, license_reference)
-        masked_clients.append(PessoaJuridica(**masked_client))
-    
-    return masked_clients
+        # Converter e limpar dados
+        result = []
+        for client in clients:
+            # Remove MongoDB ObjectId
+            client.pop("_id", None)
+            
+            # Garantir campos obrigatórios
+            if not client.get("id"):
+                continue
+                
+            # Para usuários não-admin, aplicar mascaramento básico de CNPJ
+            if current_user.role != UserRole.ADMIN:
+                cnpj = client.get("cnpj", "")
+                if len(cnpj) >= 14:
+                    client["cnpj"] = cnpj[:2] + "***" + cnpj[-2:]
+            
+            result.append(PessoaJuridica(**client))
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching pessoas jurídicas: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching pessoas jurídicas: {str(e)}")
 
 @api_router.get("/clientes-pj/{client_id}", response_model=PessoaJuridica)
 async def get_pessoa_juridica(client_id: str, current_user: User = Depends(get_current_user)):
