@@ -10,6 +10,71 @@ export const VERSION_CONFIG = {
   releaseDate: "2025-08-21",
   buildNumber: "20250821001",
   
+  // Informações da empresa e licenciamento
+  company: {
+    name: "Autotech Services Importações LTDA",
+    shortName: "AutoTech",
+    contact: {
+      support: "autotechserviceimport@gmail.com",
+      legal: "autotechserviceimport@gmail.com", 
+      documentation: "autotechserviceimport@gmail.com"
+    },
+    copyright: "© 2025 AutoTech. Todos os direitos reservados.",
+    website: null // Pode ser adicionado futuramente
+  },
+  
+  // Informações do software
+  software: {
+    name: "Sistema de Gerenciamento de Licenças",
+    englishName: "License Management System",
+    description: "Sistema completo de gerenciamento de licenças empresariais com multi-tenancy, RBAC e integração WhatsApp Business para conversão de vendas.",
+    license: "Licença Proprietária",
+    licenseTerms: "Software proprietário da AutoTech Services. Uso restrito aos termos de licenciamento.",
+    
+    // Tecnologias utilizadas
+    technologies: {
+      backend: ["FastAPI (Python)", "Motor (MongoDB)", "JWT Authentication", "Pydantic", "Redis"],
+      frontend: ["React 18", "Tailwind CSS", "Radix UI", "React Router", "Axios"],
+      database: ["MongoDB com Motor (AsyncIO)"],
+      integrations: ["WhatsApp Business API (Baileys)", "Node.js Microservice"],
+      architecture: ["Full-stack RESTful", "Multi-tenancy", "RBAC", "Microserviços"],
+      utilities: ["Sistema de Logs", "WCAG 2.1", "Versionamento Semântico"]
+    },
+    
+    // Recursos principais do sistema
+    features: [
+      "Sistema completo de gerenciamento de licenças empresariais",
+      "Dashboard de vendas com métricas em tempo real",
+      "Alertas automatizados de renovação com priorização",
+      "Integração WhatsApp Business API para conversão de vendas",
+      "Sistema multi-tenancy pronto para SaaS",
+      "Controle de acesso baseado em funções (RBAC) completo",
+      "Gerenciamento avançado de clientes PF e PJ",
+      "Sistema de notificações inteligente",
+      "Cadastros centralizados (categorias, produtos, empresas)",
+      "APIs RESTful para integrações externas",
+      "Sistema de logs e auditoria completo",
+      "Interface responsiva e acessível (WCAG 2.1)",
+      "Mascaramento de dados sensíveis (LGPD)",
+      "Sistema de versionamento e controle de mudanças",
+      "Backup automático e recuperação de dados",
+      "Relatórios e análises avançadas",
+      "Gestão de usuários e permissões granulares",
+      "Configuração multi-empresa (tenant)",
+      "Sistema de help e onboarding integrado",
+      "Otimização para alta performance e escalabilidade"
+    ],
+    
+    // Conformidades e certificações
+    compliance: [
+      "LGPD - Lei Geral de Proteção de Dados",
+      "WCAG 2.1 - Diretrizes de Acessibilidade",
+      "Boas práticas de segurança em APIs",
+      "Padrões REST para integrações",
+      "Versionamento semântico"
+    ]
+  },
+  
   // Changelog da versão atual
   changelog: {
     "1.3.0": {
