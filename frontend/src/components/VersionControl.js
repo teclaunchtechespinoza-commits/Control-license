@@ -263,6 +263,47 @@ const VersionModal = ({ children, open, setOpen }) => {
             </div>
           </div>
         </div>
+        
+        {/* Licensing Tab */}
+        {activeTab === 'licensing' && (
+          <div className="space-y-6">
+            {Object.entries(licensingInfo.sections).map(([key, section]) => (
+              <div key={key} className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-800">{section.title}</h3>
+                
+                {section.items && (
+                  <div className="grid grid-cols-1 gap-3 p-4 bg-gray-50 rounded-lg">
+                    {Object.entries(section.items).map(([label, value]) => (
+                      <div key={label}>
+                        <label className="text-sm font-medium text-gray-600">{label}</label>
+                        {Array.isArray(value) ? (
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 ml-2">
+                            {value.map((item, idx) => (
+                              <li key={idx}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-gray-700">{value}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {section.content && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    {section.content.map((line, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 mb-2 last:mb-0">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
