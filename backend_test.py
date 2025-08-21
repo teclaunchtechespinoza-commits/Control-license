@@ -4619,3 +4619,60 @@ if __name__ == "__main__":
         exit_code = tester.run_race_condition_fix_tests()
     
     sys.exit(exit_code)
+    def run_license_endpoint_fix_test(self):
+        """Run the specific license endpoint fix test as requested in review"""
+        print("🚀 TESTE RÁPIDO - CORREÇÃO DO PROBLEMA DE LICENÇAS")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        print("CONTEXTO: Usuário reportou erro 'Nenhuma licença encontrada' no painel administrativo")
+        print("CORREÇÃO: Problema de validação Pydantic no endpoint /api/licenses foi corrigido")
+        print("OBJETIVO: Confirmar que a correção resolve o problema reportado pelo usuário")
+        print("="*80)
+        
+        # Run the specific license endpoint test
+        success = self.test_license_endpoint_fix()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("RESULTADO FINAL DO TESTE RÁPIDO")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if success:
+            print("🎉 TESTE RÁPIDO APROVADO COM SUCESSO ABSOLUTO!")
+            print("   A correção do endpoint de licenças está funcionando perfeitamente.")
+            print("   O usuário não deve mais ver 'Nenhuma licença encontrada'.")
+            return 0
+        else:
+            print(f"❌ TESTE RÁPIDO FALHOU!")
+            print(f"   {self.tests_run - self.tests_passed} tests failed")
+            print("   A correção pode não estar funcionando completamente.")
+            return 1
+
+if __name__ == "__main__":
+    import sys
+    
+    tester = LicenseManagementAPITester()
+    
+    if len(sys.argv) > 1:
+        test_type = sys.argv[1]
+        if test_type == "license-fix":
+            exit_code = tester.run_license_endpoint_fix_test()
+        elif test_type == "rbac":
+            exit_code = tester.run_critical_rbac_maintenance_validation()
+        elif test_type == "whatsapp":
+            exit_code = tester.run_whatsapp_integration_phase1_tests()
+        elif test_type == "sales":
+            exit_code = tester.run_sales_dashboard_tests()
+        elif test_type == "notifications":
+            exit_code = tester.run_notification_system_tests()
+        elif test_type == "multi-tenancy":
+            exit_code = tester.run_multi_tenancy_tests()
+        else:
+            print("Available test types: license-fix, rbac, whatsapp, sales, notifications, multi-tenancy")
+            exit_code = 1
+    else:
+        # Run the license fix test by default for this review
+        exit_code = tester.run_license_endpoint_fix_test()
+    
+    sys.exit(exit_code)
