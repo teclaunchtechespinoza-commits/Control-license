@@ -2418,7 +2418,7 @@ async def send_whatsapp_renewal_message(
             contact_method="whatsapp",
             contacted_by=current_user.id,
             notes=f"Mensagem de renovação enviada via WhatsApp - Tipo: {alert_type}",
-            outcome="answered" if whatsapp_message.status == "sent" else "no_answer"
+            outcome="answered" if whatsapp_message.get("status") == "sent" else "no_answer"
         )
         
         # Log da atividade
