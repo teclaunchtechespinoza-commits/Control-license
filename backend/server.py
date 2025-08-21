@@ -2452,17 +2452,17 @@ async def send_whatsapp_renewal_message(
         maintenance_logger.log("whatsapp_renewal_sent", {
             "alert_id": alert_id,
             "client_id": client_data.get('id'),
-            "status": whatsapp_message.status,
+            "status": whatsapp_message.get("status", "unknown"),
             "sent_by": current_user.id,
             "alert_type": alert_type
         })
         
         return {
             "message": "Mensagem WhatsApp enviada com sucesso",
-            "whatsapp_status": whatsapp_message.status,
+            "whatsapp_status": whatsapp_message.get("status", "unknown"),
             "alert_type": alert_type,
-            "phone_number": whatsapp_message.phone_number,
-            "message_id": whatsapp_message.id
+            "phone_number": whatsapp_message.get("phone_number", ""),
+            "message_id": whatsapp_message.get("id", "")
         }
         
     except Exception as e:
