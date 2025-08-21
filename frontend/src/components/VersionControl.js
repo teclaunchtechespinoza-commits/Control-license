@@ -337,18 +337,25 @@ export const HeaderVersion = () => {
 };
 
 // Componente completo para páginas administrativas
-export const AdminVersionInfo = () => (
-  <div className="bg-white border rounded-lg p-4">
-    <h3 className="text-sm font-medium text-gray-700 mb-3">Informações da Versão</h3>
-    <VersionDisplay showDetailed showStatus showDate />
-    <VersionModal>
-      <Button variant="outline" size="sm" className="mt-3">
-        <Info className="w-4 h-4 mr-2" />
-        Ver Detalhes
-      </Button>
-    </VersionModal>
-  </div>
-);
+export const AdminVersionInfo = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white border rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Informações da Versão</h3>
+          <VersionDisplay showDetailed showStatus showDate />
+        </div>
+        <VersionModal open={open} setOpen={setOpen}>
+          <Button variant="outline" size="sm">
+            <GitBranch className="w-4 h-4 mr-2" />
+            Ver Detalhes
+          </Button>
+        </VersionModal>
+      </div>
+    </div>
+  );
+};
 
 export { VersionDisplay, StatusBadge, VersionModal };
 export default VersionDisplay;
