@@ -661,7 +661,11 @@ const ClientsModule = () => {
       await axios.delete(endpoint);
       toast.success(`Cliente ${activeTab.toUpperCase()} inativado com sucesso!`);
       setDeleteConfirmId(null);
-      fetchAllClients();
+      
+      // Force refresh with small delay
+      setTimeout(() => {
+        fetchAllClients();
+      }, 100);
     } catch (error) {
       console.error('Failed to delete client:', error);
       
