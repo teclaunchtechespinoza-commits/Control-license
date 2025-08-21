@@ -4856,7 +4856,9 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         test_type = sys.argv[1].lower()
         
-        if test_type == "race-condition":
+        if test_type == "critical-fixes":
+            exit_code = tester.run_critical_fixes_verification()
+        elif test_type == "race-condition":
             exit_code = tester.run_race_condition_fix_tests()
         elif test_type == "critical":
             exit_code = tester.run_critical_validation_tests()
@@ -4879,11 +4881,11 @@ if __name__ == "__main__":
         elif test_type == "frontend-backend":
             exit_code = tester.run_frontend_backend_communication_tests()
         else:
-            print("Usage: python backend_test.py [race-condition|critical|rbac|rbac-investigation|whatsapp|sales|all|frontend-backend]")
+            print("Usage: python backend_test.py [critical-fixes|race-condition|critical|rbac|rbac-investigation|whatsapp|sales|all|frontend-backend]")
             exit_code = 1
     else:
-        # Default: run race condition fix tests as requested in review
-        exit_code = tester.run_race_condition_fix_tests()
+        # Default: run critical fixes verification as requested in review
+        exit_code = tester.run_critical_fixes_verification()
     
     sys.exit(exit_code)
     def run_license_endpoint_fix_test(self):
