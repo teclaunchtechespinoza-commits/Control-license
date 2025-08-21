@@ -278,11 +278,44 @@ const VersionModal = ({ children, open, setOpen }) => {
                       <div key={label}>
                         <label className="text-sm font-medium text-gray-600">{label}</label>
                         {Array.isArray(value) ? (
-                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 ml-2">
-                            {value.map((item, idx) => (
-                              <li key={idx}>{item}</li>
-                            ))}
-                          </ul>
+                          key === 'features' ? (
+                            // Layout especial para recursos principais
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                              {value.map((item, idx) => (
+                                <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    {getFeatureIcon(idx)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 leading-tight">{item}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : key === 'compliance' ? (
+                            // Layout especial para conformidades
+                            <div className="grid grid-cols-1 gap-2 mt-2">
+                              {value.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-3 p-2 bg-green-50 rounded-md border border-green-200">
+                                  <div className="flex-shrink-0">
+                                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm font-medium text-green-800">{item}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            // Layout padrão para outras listas
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 ml-2">
+                              {value.map((item, idx) => (
+                                <li key={idx}>{item}</li>
+                              ))}
+                            </ul>
+                          )
                         ) : (
                           <p className="text-sm text-gray-700">{value}</p>
                         )}
