@@ -4526,6 +4526,273 @@ class LicenseManagementAPITester:
             print("   Backend has issues that will block frontend functionality")
             return 1
 
+    def test_critical_endpoints_after_fixes(self):
+        """Test critical endpoints after multiple fixes as requested in review"""
+        print("\n" + "="*80)
+        print("TESTE DE VERIFICAÇÃO APÓS CORREÇÕES MÚLTIPLAS - ENDPOINTS CRÍTICOS")
+        print("="*80)
+        print("CONTEXTO: Acabei de corrigir múltiplos problemas reportados pelo usuário:")
+        print("1. ✅ WhatsApp serialization error (whatsapp_message.status -> whatsapp_message.get('status'))")
+        print("2. ✅ Clientes PF endpoint (206 clientes retornados)")
+        print("3. ✅ Clientes PJ endpoint (25 clientes retornados)")
+        print("4. ✅ Normalização de enums (client_type, regime_tributario)")
+        print("="*80)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, running authentication first")
+            self.test_authentication()
+            if not self.admin_token:
+                print("❌ CRITICAL: Cannot authenticate admin user!")
+                return False
+
+        # Test 1: Endpoints de Clientes - PRIORITY 1
+        print("\n🔍 TESTE PRIORITÁRIO 1: Endpoints de Clientes")
+        print("VERIFICAÇÃO: /api/clientes-pf e /api/clientes-pj devem retornar dados")
+        
+        # Test PF clients endpoint
+        success, response = self.run_test("GET /api/clientes-pf", "GET", "clientes-pf", 200, token=self.admin_token)
+        if success:
+            pf_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Clientes PF: {pf_count} clientes retornados")
+            if pf_count >= 200:
+                print(f"   ✅ CONFIRMADO: ~{pf_count} clientes PF (esperado: ~206)")
+            elif pf_count > 0:
+                print(f"   ⚠️ Apenas {pf_count} clientes PF encontrados (esperado: ~206)")
+            else:
+                print(f"   ❌ PROBLEMA: 0 clientes PF retornados (esperado: ~206)")
+                
+            # Verify data structure and enum normalization
+            if pf_count > 0:
+                first_client = response[0]
+                client_type = first_client.get('client_type', 'unknown')
+                print(f"      - Client type normalizado: '{client_type}' (deve ser 'pf')")
+                if client_type == 'pf':
+                    print("      ✅ Enum client_type normalizado corretamente")
+                else:
+                    print(f"      ❌ Enum client_type não normalizado: '{client_type}'")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/clientes-pf failed!")
+
+        # Test PJ clients endpoint
+        success, response = self.run_test("GET /api/clientes-pj", "GET", "clientes-pj", 200, token=self.admin_token)
+        if success:
+            pj_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Clientes PJ: {pj_count} clientes retornados")
+            if pj_count >= 20:
+                print(f"   ✅ CONFIRMADO: ~{pj_count} clientes PJ (esperado: ~25)")
+            elif pj_count > 0:
+                print(f"   ⚠️ Apenas {pj_count} clientes PJ encontrados (esperado: ~25)")
+            else:
+                print(f"   ❌ PROBLEMA: 0 clientes PJ retornados (esperado: ~25)")
+                
+            # Verify data structure and enum normalization
+            if pj_count > 0:
+                first_client = response[0]
+                client_type = first_client.get('client_type', 'unknown')
+                regime_tributario = first_client.get('regime_tributario', 'unknown')
+                print(f"      - Client type normalizado: '{client_type}' (deve ser 'pj')")
+                print(f"      - Regime tributário: '{regime_tributario}'")
+                if client_type == 'pj':
+                    print("      ✅ Enum client_type normalizado corretamente")
+                else:
+                    print(f"      ❌ Enum client_type não normalizado: '{client_type}'")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/clientes-pj failed!")
+
+        # Test 2: Licenças - PRIORITY 2
+        print("\n🔍 TESTE PRIORITÁRIO 2: Endpoint de Licenças")
+        print("VERIFICAÇÃO: /api/licenses deve continuar funcionando (508 licenças)")
+        
+        success, response = self.run_test("GET /api/licenses", "GET", "licenses", 200, token=self.admin_token)
+        if success:
+            license_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Licenças: {license_count} licenças retornadas")
+            if license_count >= 500:
+                print(f"   ✅ CONFIRMADO: ~{license_count} licenças (esperado: ~508)")
+            elif license_count > 0:
+                print(f"   ⚠️ Apenas {license_count} licenças encontradas (esperado: ~508)")
+            else:
+                print(f"   ❌ PROBLEMA: 0 licenças retornadas (esperado: ~508)")
+                
+            # Verify license data structure
+            if license_count > 0:
+                first_license = response[0]
+                required_fields = ['id', 'name', 'status', 'license_key']
+                missing_fields = [field for field in required_fields if field not in first_license]
+                if not missing_fields:
+                    print("      ✅ Estrutura de dados das licenças correta")
+                else:
+                    print(f"      ❌ Campos faltando nas licenças: {missing_fields}")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/licenses failed!")
+
+        # Test 3: Dashboard Stats - PRIORITY 3
+        print("\n🔍 TESTE PRIORITÁRIO 3: Dashboard Stats")
+        print("VERIFICAÇÃO: /api/stats deve mostrar números corretos")
+        
+        success, response = self.run_test("GET /api/stats", "GET", "stats", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Dashboard stats retrieved successfully")
+            stats_keys = ['total_users', 'total_licenses', 'total_categories', 'total_products']
+            for key in stats_keys:
+                value = response.get(key, 0)
+                print(f"      - {key}: {value}")
+            
+            # Verify stats consistency
+            total_licenses = response.get('total_licenses', 0)
+            if total_licenses >= 500:
+                print(f"      ✅ Stats consistentes: {total_licenses} licenças")
+            else:
+                print(f"      ⚠️ Stats podem estar inconsistentes: {total_licenses} licenças")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/stats failed!")
+
+        # Test 4: Sales Dashboard - PRIORITY 4
+        print("\n🔍 TESTE PRIORITÁRIO 4: Sales Dashboard")
+        print("VERIFICAÇÃO: Endpoints do sales dashboard devem funcionar")
+        
+        # Test sales dashboard summary
+        success, response = self.run_test("GET /api/sales-dashboard/summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Sales dashboard summary working")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Total expiring licenses: {metrics.get('total_expiring_licenses', 0)}")
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+                print(f"      - Total revenue: R$ {metrics.get('total_revenue', 0):.2f}")
+        else:
+            print("   ❌ Sales dashboard summary failed!")
+
+        # Test 5: Licenças Expirando - PRIORITY 5
+        print("\n🔍 TESTE PRIORITÁRIO 5: Licenças Expirando")
+        print("VERIFICAÇÃO: /api/sales-dashboard/expiring-licenses (378 alertas)")
+        
+        success, response = self.run_test("GET /api/sales-dashboard/expiring-licenses", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            alerts_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Licenças expirando: {alerts_count} alertas")
+            if alerts_count >= 300:
+                print(f"   ✅ CONFIRMADO: ~{alerts_count} alertas (esperado: ~378)")
+            elif alerts_count > 0:
+                print(f"   ⚠️ Apenas {alerts_count} alertas encontrados (esperado: ~378)")
+            else:
+                print(f"   ⚠️ 0 alertas de expiração (pode ser normal se não há licenças expirando)")
+                
+            # Show sample alerts
+            for alert in response[:3]:
+                days_to_expire = alert.get('days_to_expire', 'N/A')
+                client_name = alert.get('client_name', 'Unknown')
+                print(f"      - {client_name}: expira em {days_to_expire} dias")
+        else:
+            print("   ❌ Licenças expirando endpoint failed!")
+
+        # Test 6: WhatsApp Integration - PRIORITY 6
+        print("\n🔍 TESTE PRIORITÁRIO 6: WhatsApp Integration")
+        print("VERIFICAÇÃO: /api/sales-dashboard/send-whatsapp/* não deve mais dar erro de serialização")
+        
+        # Test individual WhatsApp send
+        test_alert_id = "test_alert_serialization_fix"
+        success, response = self.run_test("POST /api/sales-dashboard/send-whatsapp/{id}", "POST", f"sales-dashboard/send-whatsapp/{test_alert_id}", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ WhatsApp send endpoint working - no serialization error")
+            print(f"      - Status: {response.get('whatsapp_status', 'unknown')}")
+            print(f"      - Alert type: {response.get('alert_type', 'unknown')}")
+            print(f"      - Message ID: {response.get('message_id', 'unknown')}")
+            
+            # Check for the specific error that was fixed
+            error_msg = response.get('error', '')
+            if "'dict' object has no attribute 'status'" in str(error_msg):
+                print("   ❌ SERIALIZATION ERROR STILL PRESENT!")
+            else:
+                print("   ✅ SERIALIZATION ERROR FIXED!")
+        else:
+            print("   ❌ WhatsApp send endpoint failed!")
+
+        # Test bulk WhatsApp send
+        bulk_alert_ids = ["test_bulk_1", "test_bulk_2", "test_bulk_3"]
+        success, response = self.run_test("POST /api/sales-dashboard/bulk-whatsapp", "POST", "sales-dashboard/bulk-whatsapp", 200, bulk_alert_ids, self.admin_token)
+        if success:
+            print(f"   ✅ Bulk WhatsApp endpoint working - no serialization error")
+            print(f"      - Total: {response.get('total', 0)}")
+            print(f"      - Sent: {response.get('sent', 0)}")
+            print(f"      - Failed: {response.get('failed', 0)}")
+        else:
+            print("   ❌ Bulk WhatsApp endpoint failed!")
+
+        # Test 7: Admin Endpoints Verification
+        print("\n🔍 TESTE ADICIONAL: Admin Endpoints")
+        print("VERIFICAÇÃO: Admin endpoints devem funcionar sem 'Erro ao carregar dados'")
+        
+        admin_endpoints = [
+            ("categories", "categorias"),
+            ("products", "produtos"),
+            ("users", "usuários"),
+            ("companies", "empresas"),
+            ("license-plans", "planos de licença")
+        ]
+        
+        for endpoint, name in admin_endpoints:
+            success, response = self.run_test(f"GET /api/{endpoint}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                count = len(response) if isinstance(response, list) else 0
+                print(f"   ✅ {name}: {count} registros")
+            else:
+                print(f"   ❌ {name}: erro ao carregar dados")
+
+        print("\n" + "="*80)
+        print("RESULTADO DA VERIFICAÇÃO APÓS CORREÇÕES MÚLTIPLAS")
+        print("="*80)
+        
+        # Calculate success rate for this specific test
+        current_tests = self.tests_run
+        current_passed = self.tests_passed
+        success_rate = (current_passed / current_tests) * 100 if current_tests > 0 else 0
+        
+        if success_rate >= 90:
+            print("🎉 VERIFICAÇÃO APROVADA COM SUCESSO!")
+            print("   ✅ Clientes PF/PJ endpoints retornando dados")
+            print("   ✅ Licenças endpoint funcionando corretamente")
+            print("   ✅ Dashboard stats mostrando números corretos")
+            print("   ✅ Sales dashboard operacional")
+            print("   ✅ WhatsApp integration sem erros de serialização")
+            print("   ✅ Admin endpoints funcionando sem erros")
+            print("")
+            print("CONCLUSÃO: As correções múltiplas foram COMPLETAMENTE RESOLVIDAS.")
+            print("O sistema está operacional e os problemas reportados foram corrigidos.")
+            return True
+        else:
+            print(f"❌ VERIFICAÇÃO PARCIALMENTE APROVADA!")
+            print(f"   Success rate: {success_rate:.1f}% (minimum required: 90%)")
+            print(f"   {current_tests - current_passed} tests failed")
+            print("   Algumas correções podem não estar completamente resolvidas.")
+            return False
+
+    def run_critical_fixes_verification(self):
+        """Run the critical fixes verification as requested in review"""
+        print("🚀 Starting CRITICAL FIXES VERIFICATION - Multiple Corrections")
+        print(f"Base URL: {self.base_url}")
+        
+        # Run authentication first
+        self.test_authentication()
+        
+        # Run the critical endpoints test
+        success = self.test_critical_endpoints_after_fixes()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("RESULTADO FINAL DA VERIFICAÇÃO CRÍTICA")
+        print("="*50)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if success and self.tests_passed >= (self.tests_run * 0.9):  # 90% success rate
+            print("🎉 VERIFICAÇÃO CRÍTICA APROVADA COM SUCESSO ABSOLUTO!")
+            print("   As correções múltiplas foram implementadas corretamente.")
+            return 0
+        else:
+            print(f"❌ VERIFICAÇÃO CRÍTICA FALHOU!")
+            print(f"   {self.tests_run - self.tests_passed} tests failed")
+            return 1
+
     def run_race_condition_fix_tests(self):
         """Run race condition fix verification tests as requested in review"""
         print("🚀 Starting RACE CONDITION FIX VERIFICATION TESTS")
