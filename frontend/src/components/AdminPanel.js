@@ -219,7 +219,11 @@ const AdminPanel = () => {
       await axios.delete(`/licenses/${licenseId}`);
       toast.success('Licença excluída com sucesso!');
       setDeleteConfirmId(null);
-      fetchData();
+      
+      // Force refresh with cache invalidation
+      setTimeout(() => {
+        fetchData();
+      }, 100);
     } catch (error) {
       console.error('Failed to delete license:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
