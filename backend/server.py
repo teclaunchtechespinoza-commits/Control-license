@@ -3167,11 +3167,13 @@ async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
 async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
     try:
-        # Buscar todos os clientes PJ para admin, aplicar filtro básico para outros
+        # Buscar apenas clientes ativos por padrão
+        query_filter = {"tenant_id": "default", "status": {"$ne": "inactive"}}
+        
         if current_user.role == UserRole.ADMIN:
-            clients = await db.clientes_pj.find({"tenant_id": "default"}).to_list(1000)
+            clients = await db.clientes_pj.find(query_filter).to_list(1000)
         else:
-            clients = await db.clientes_pj.find({"tenant_id": "default"}).to_list(1000)
+            clients = await db.clientes_pj.find(query_filter).to_list(1000)
         
         # Converter e limpar dados
         result = []
