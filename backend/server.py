@@ -2505,10 +2505,10 @@ async def send_bulk_whatsapp_messages(
                     
                     results.append({
                         "alert_id": alert_id,
-                        "status": "sent" if whatsapp_message.status == "sent" else "failed",
+                        "status": "sent" if whatsapp_message.get("status") == "sent" else "failed",
                         "client_name": client_data.get('nome_completo') or client_data.get('razao_social'),
-                        "phone": whatsapp_message.phone_number,
-                        "message_id": whatsapp_message.id
+                        "phone": whatsapp_message.get("phone_number", ""),
+                        "message_id": whatsapp_message.get("id", "")
                     })
                     
                 else:
