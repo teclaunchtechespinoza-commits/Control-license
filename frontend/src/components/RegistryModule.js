@@ -91,10 +91,10 @@ const RegistryModule = () => {
       // Add cache-busting parameter to prevent cached responses
       const timestamp = Date.now();
       const [categoriesRes, companiesRes, productsRes, plansRes] = await Promise.all([
-        axios.get(`/api/categories?_=${timestamp}`),
-        axios.get(`/api/companies?_=${timestamp}`),
-        axios.get(`/api/products?_=${timestamp}`),
-        axios.get(`/api/license-plans?_=${timestamp}`)
+        axios.get(`/categories?_=${timestamp}`),
+        axios.get(`/companies?_=${timestamp}`),
+        axios.get(`/products?_=${timestamp}`),
+        axios.get(`/license-plans?_=${timestamp}`)
       ]);
       
       setCategories(categoriesRes.data);
