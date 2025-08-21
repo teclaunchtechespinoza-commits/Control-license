@@ -1810,20 +1810,31 @@ async def create_expiration_alert(license_doc):
         # Buscar dados do cliente
         client_name = "Cliente não identificado"
         client_phone = None
+        client_id = None
+        client_type = None
         
         # Tentar buscar cliente PF
         if license_doc.get('client_pf_id'):
             client_pf = await db.clientes_pf.find_one({"id": license_doc['client_pf_id']})
             if client_pf:
                 client_name = client_pf.get('nome_completo', client_name)
-                client_phone = client_pf.get('whatsapp') or client_pf.get('celular')
+                client_phone = client_pf.get('telefone_principal') or client_pf.get('whatsapp')
+                client_id = client_pf.get('id')
+                client_type = "pf"
         
         # Tentar buscar cliente PJ
         elif license_doc.get('client_pj_id'):
             client_pj = await db.clientes_pj.find_one({"id": license_doc['client_pj_id']})
             if client_pj:
                 client_name = client_pj.get('razao_social', client_name)
-                client_phone = client_pj.get('whatsapp') or client_pj.get('celular')
+                client_phone = client_pj.get('telefone_principal') or client_pj.get('whatsapp')
+                client_id = client_pj.get('id')
+                client_type = "pj"
+        
+        # Se não encontrar cliente, criar dados padrão
+        if not client_id:
+            client_id = "unknown"
+            client_type = "pf"
         
         # Determinar prioridade e status
         priority = get_alert_priority(days_to_expire)
