@@ -105,13 +105,13 @@ const AdminPanel = () => {
     try {
       setLoading(true);
       const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
-        axios.get('/api/licenses'),
-        axios.get('/api/users'),
-        axios.get('/api/categories'),
-        axios.get('/api/clientes-pf'),
-        axios.get('/api/clientes-pj'),
-        axios.get('/api/products'),
-        axios.get('/api/license-plans')
+        axios.get('/licenses'),
+        axios.get('/users'),
+        axios.get('/categories'),
+        axios.get('/clientes-pf'),
+        axios.get('/clientes-pj'),
+        axios.get('/products'),
+        axios.get('/license-plans')
       ]);
       
       setLicenses(licensesResponse.data);
