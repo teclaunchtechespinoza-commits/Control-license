@@ -657,7 +657,7 @@ const ClientsModule = () => {
 
   const handleDelete = async (clientId) => {
     try {
-      const endpoint = activeTab === 'pf' ? `/clientes-pf/${clientId}` : `/clientes-pj/${clientId}`;
+      const endpoint = activeTab === 'pf' ? `/api/clientes-pf/${clientId}` : `/api/clientes-pj/${clientId}`;
       await axios.delete(endpoint);
       toast.success(`Cliente ${activeTab.toUpperCase()} inativado com sucesso!`);
       setDeleteConfirmId(null);
