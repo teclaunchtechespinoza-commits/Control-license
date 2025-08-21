@@ -251,9 +251,11 @@ const ClientsModule = () => {
   const fetchAllClients = async () => {
     try {
       setLoading(true);
+      // Add cache-busting parameter
+      const timestamp = Date.now();
       const [pfResponse, pjResponse] = await Promise.all([
-        axios.get('/clientes-pf'),
-        axios.get('/clientes-pj')
+        axios.get(`/clientes-pf?_=${timestamp}`),
+        axios.get(`/clientes-pj?_=${timestamp}`)
       ]);
       
       setClientesPF(pfResponse.data);
