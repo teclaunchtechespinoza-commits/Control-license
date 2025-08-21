@@ -73,12 +73,14 @@ async def create_expiring_licenses():
             
             if sample_clients_pf and random.choice([True, False]):
                 client = random.choice(sample_clients_pf)
-                client_pf_id = client["id"]
-                client_name = client.get("nome_completo", "Cliente PF")
+                if "id" in client:
+                    client_pf_id = client["id"]
+                    client_name = client.get("nome_completo", "Cliente PF")
             elif sample_clients_pj:
                 client = random.choice(sample_clients_pj)
-                client_pj_id = client["id"]
-                client_name = client.get("razao_social", "Cliente PJ")
+                if "id" in client:
+                    client_pj_id = client["id"]
+                    client_name = client.get("razao_social", "Cliente PJ")
             
             # Escolher usuário e produto
             user = random.choice(sample_users)
