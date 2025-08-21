@@ -3441,12 +3441,36 @@ async def create_license(
 
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(current_user: User = Depends(get_current_user)):
-    if current_user.role == UserRole.ADMIN:
-        licenses = await db.licenses.find().to_list(1000)
-    else:
-        licenses = await db.licenses.find({"assigned_user_id": current_user.id}).to_list(1000)
-    
-    return [License(**license) for license in licenses]
+    try:
+        if current_user.role == UserRole.ADMIN:
+            licenses = await db.licenses.find().to_list(1000)
+        else:
+            licenses = await db.licenses.find({"assigned_user_id": current_user.id}).to_list(1000)
+        
+        # Clean up licenses data and handle missing required fields
+        valid_licenses = []
+        for license_data in licenses:
+            # Remove MongoDB ObjectId
+            license_data.pop("_id", None)
+            
+            # Ensure required fields exist
+            if "name" not in license_data or not license_data["name"]:
+                license_data["name"] = f"License {license_data.get('id', 'Unknown')}"
+            
+            if "created_by" not in license_data or not license_data["created_by"]:
+                license_data["created_by"] = "system"
+            
+            # Convert datetime objects to ISO strings
+            for field in ["created_at", "updated_at", "expires_at"]:
+                if field in license_data and isinstance(license_data[field], datetime):
+                    license_data[field] = license_data[field].isoformat()
+            
+            valid_licenses.append(License(**license_data))
+        
+        return valid_licenses
+    except Exception as e:
+        logger.error(f"Error fetching licenses: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching licenses: {str(e)}")
 
 @api_router.get("/licenses/{license_id}", response_model=License)
 async def get_license(license_id: str, current_user: User = Depends(get_current_user)):
