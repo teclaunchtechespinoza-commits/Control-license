@@ -104,14 +104,16 @@ const AdminPanel = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      // Add cache-busting parameter  
+      const timestamp = Date.now();
       const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
-        axios.get('/licenses'),
-        axios.get('/users'),
-        axios.get('/categories'),
-        axios.get('/clientes-pf'),
-        axios.get('/clientes-pj'),
-        axios.get('/products'),
-        axios.get('/license-plans')
+        axios.get(`/licenses?_=${timestamp}`),
+        axios.get(`/users?_=${timestamp}`),
+        axios.get(`/categories?_=${timestamp}`),
+        axios.get(`/clientes-pf?_=${timestamp}`),
+        axios.get(`/clientes-pj?_=${timestamp}`),
+        axios.get(`/products?_=${timestamp}`),
+        axios.get(`/license-plans?_=${timestamp}`)
       ]);
       
       setLicenses(licensesResponse.data);
