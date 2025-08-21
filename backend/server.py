@@ -305,9 +305,19 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-# MongoDB connection
+# MongoDB connection with timeout and keepalive settings
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=5000,  # 5 seconds timeout for server selection
+    connectTimeoutMS=10000,         # 10 seconds connection timeout
+    socketTimeoutMS=60000,          # 60 seconds socket timeout
+    maxPoolSize=10,                 # Maximum 10 connections in pool
+    minPoolSize=1,                  # Minimum 1 connection in pool
+    maxIdleTimeMS=300000,           # 5 minutes max idle time (300000ms)
+    heartbeatFrequencyMS=10000,     # Heartbeat every 10 seconds
+    socketKeepAlive=True            # Enable socket keep alive
+)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app
