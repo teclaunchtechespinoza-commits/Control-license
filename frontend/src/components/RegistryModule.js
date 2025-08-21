@@ -240,7 +240,7 @@ const RegistryModule = () => {
   const handleDelete = async (itemId) => {
     try {
       const config = getTabConfig();
-      await axios.delete(`/api/${config.endpoint}/${itemId}`);
+      await axios.delete(`/${config.endpoint}/${itemId}`);
       toast.success(`${config.title.slice(0, -1)} excluído com sucesso!`);
       setDeleteConfirmId(null);
       
