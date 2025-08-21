@@ -1363,6 +1363,15 @@ async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
             # Garantir campos obrigatórios
             if not client.get("id"):
                 continue
+            
+            # Normalizar client_type
+            client_type = client.get("client_type", "pf")
+            if client_type.upper() == "PF":
+                client["client_type"] = "pf"
+            elif client_type.upper() == "PJ":
+                client["client_type"] = "pj"
+            else:
+                client["client_type"] = "pf"  # padrão
                 
             # Para usuários não-admin, aplicar mascaramento básico de CPF
             if current_user.role != UserRole.ADMIN:
@@ -1370,7 +1379,11 @@ async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
                 if len(cpf) >= 11:
                     client["cpf"] = cpf[:3] + "***" + cpf[-2:]
             
-            result.append(PessoaFisica(**client))
+            try:
+                result.append(PessoaFisica(**client))
+            except Exception as e:
+                logger.warning(f"Skipping invalid client PF {client.get('id')}: {e}")
+                continue
         
         return result
     except Exception as e:
