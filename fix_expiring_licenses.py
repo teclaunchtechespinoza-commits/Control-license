@@ -86,6 +86,9 @@ async def create_expiring_licenses():
             user = random.choice(sample_users)
             product = random.choice(sample_products) if sample_products else None
             
+            # Verificar se usuário tem campo id
+            user_id = user.get("id", str(uuid.uuid4()))
+            
             # Criar licença
             license_data = {
                 "id": str(uuid.uuid4()),
