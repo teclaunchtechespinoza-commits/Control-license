@@ -252,8 +252,8 @@ const ClientsModule = () => {
     try {
       setLoading(true);
       const [pfResponse, pjResponse] = await Promise.all([
-        axios.get('/clientes-pf'),
-        axios.get('/clientes-pj')
+        axios.get('/api/clientes-pf'),
+        axios.get('/api/clientes-pj')
       ]);
       
       setClientesPF(pfResponse.data);
