@@ -315,8 +315,7 @@ client = AsyncIOMotorClient(
     maxPoolSize=10,                 # Maximum 10 connections in pool
     minPoolSize=1,                  # Minimum 1 connection in pool
     maxIdleTimeMS=300000,           # 5 minutes max idle time (300000ms)
-    heartbeatFrequencyMS=10000,     # Heartbeat every 10 seconds
-    socketKeepAlive=True            # Enable socket keep alive
+    heartbeatFrequencyMS=10000      # Heartbeat every 10 seconds
 )
 db = client[os.environ['DB_NAME']]
 
