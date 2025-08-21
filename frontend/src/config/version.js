@@ -1,14 +1,14 @@
 // Sistema de Versionamento do License Manager
 export const VERSION_CONFIG = {
   // Versão atual do sistema
-  version: "1.2.0",
+  version: "1.3.0",
   
   // Status da versão
-  status: "beta", // "stable", "beta", "rc", "alpha", "dev"
+  status: "stable", // "stable", "beta", "rc", "alpha", "dev"
   
   // Informações da versão
-  releaseDate: "2025-01-15",
-  buildNumber: "20250115001",
+  releaseDate: "2025-08-21",
+  buildNumber: "20250821001",
   
   // Changelog da versão atual
   changelog: {
