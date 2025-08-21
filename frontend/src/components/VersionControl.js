@@ -317,18 +317,24 @@ const VersionModal = ({ children, open, setOpen }) => {
 };
 
 // Componente para rodapé
-export const FooterVersion = () => (
-  <VersionModal>
-    <VersionDisplay compact showStatus />
-  </VersionModal>
-);
+export const FooterVersion = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <VersionModal open={open} setOpen={setOpen}>
+      <VersionDisplay compact showStatus />
+    </VersionModal>
+  );
+};
 
 // Componente para header
-export const HeaderVersion = () => (
-  <VersionModal>
-    <VersionDisplay showDate />
-  </VersionModal>
-);
+export const HeaderVersion = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <VersionModal open={open} setOpen={setOpen}>
+      <VersionDisplay showDate />
+    </VersionModal>
+  );
+};
 
 // Componente completo para páginas administrativas
 export const AdminVersionInfo = () => (
