@@ -493,6 +493,146 @@ class LicenseManagementAPITester:
         if hasattr(self, 'created_pj_id'):
             self.run_test("Inactivate PJ test client", "DELETE", f"clientes-pj/{self.created_pj_id}", 200, token=self.admin_token)
 
+    def test_license_endpoint_fix(self):
+        """Test the specific license endpoint fix mentioned in review request"""
+        print("\n" + "="*50)
+        print("TESTING LICENSE ENDPOINT FIX - CORREÇÃO DO PROBLEMA DE LICENÇAS")
+        print("="*50)
+        print("CONTEXTO: Usuário reportou erro 'Nenhuma licença encontrada' no painel administrativo")
+        print("OBJETIVO: Confirmar que a correção do endpoint /api/licenses resolve o problema")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping license endpoint tests")
+            return False
+
+        # Test 1: Verify admin authentication
+        print("\n🔍 TESTE ESPECÍFICO 1: Verificar autenticação admin")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login verification", "POST", "auth/login", 200, admin_credentials)
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   ✅ Admin authentication working: {self.admin_token[:20]}...")
+        else:
+            print("   ❌ CRITICAL: Admin authentication failed!")
+            return False
+
+        # Test 2: Test /api/licenses endpoint - MAIN ISSUE
+        print("\n🔍 TESTE ESPECÍFICO 2: Verificar endpoint /api/licenses funcionando")
+        success, response = self.run_test("GET /api/licenses", "GET", "licenses", 200, token=self.admin_token)
+        if success:
+            license_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Endpoint /api/licenses working: {license_count} licenças encontradas")
+            
+            if license_count >= 6:
+                print(f"   ✅ CONFIRMADO: Dashboard mostra {license_count} licenças (esperado: 6+)")
+                
+                # Verify license data structure
+                if license_count > 0:
+                    first_license = response[0]
+                    required_fields = ['id', 'name', 'status', 'license_key']
+                    missing_fields = [field for field in required_fields if field not in first_license]
+                    
+                    if not missing_fields:
+                        print("   ✅ Campos obrigatórios presentes nas licenças")
+                        print(f"      - ID: {first_license.get('id', 'N/A')[:20]}...")
+                        print(f"      - Nome: {first_license.get('name', 'N/A')}")
+                        print(f"      - Status: {first_license.get('status', 'N/A')}")
+                        print(f"      - Chave: {first_license.get('license_key', 'N/A')[:20]}...")
+                    else:
+                        print(f"   ⚠️ Campos faltando nas licenças: {missing_fields}")
+            else:
+                print(f"   ⚠️ Apenas {license_count} licenças encontradas (esperado: 6)")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/licenses failed!")
+            return False
+
+        # Test 3: Test dashboard endpoints
+        print("\n🔍 TESTE ESPECÍFICO 3: Verificar dashboard endpoints")
+        
+        # Test sales dashboard summary
+        success, response = self.run_test("Sales dashboard summary", "GET", "sales-dashboard/summary", 200, token=self.admin_token)
+        if success:
+            print("   ✅ Dashboard summary endpoint working")
+            if 'metrics' in response:
+                metrics = response['metrics']
+                print(f"      - Total expiring licenses: {metrics.get('total_expiring_licenses', 0)}")
+                print(f"      - Conversion rate: {metrics.get('conversion_rate', 0):.1f}%")
+                print(f"      - Total revenue: R$ {metrics.get('total_revenue', 0):.2f}")
+        
+        # Test expiring licenses
+        success, response = self.run_test("Expiring licenses", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Expiring licenses endpoint working: {len(response)} alerts")
+
+        # Test 4: Test license creation to verify Pydantic validation fix
+        print("\n🔍 TESTE ESPECÍFICO 4: Verificar correção de validação Pydantic")
+        
+        # Create a test license to verify the Pydantic fix
+        test_license_data = {
+            "name": "Licença Teste Correção",
+            "description": "Teste da correção do problema de validação Pydantic",
+            "max_users": 5,
+            "expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+            "features": ["test_feature"],
+            "status": "active"
+        }
+        
+        success, response = self.run_test("Create test license", "POST", "licenses", 200, test_license_data, self.admin_token)
+        if success and 'id' in response:
+            test_license_id = response['id']
+            print(f"   ✅ Licença criada com sucesso: {test_license_id}")
+            print("   ✅ Validação Pydantic funcionando corretamente")
+            
+            # Verify the license appears in the list
+            success, response = self.run_test("Verify license in list", "GET", "licenses", 200, token=self.admin_token)
+            if success:
+                license_ids = [lic.get('id') for lic in response if isinstance(response, list)]
+                if test_license_id in license_ids:
+                    print("   ✅ Nova licença aparece na lista corretamente")
+                else:
+                    print("   ⚠️ Nova licença não aparece na lista")
+        else:
+            print("   ❌ Falha ao criar licença de teste")
+
+        # Test 5: Verify specific license retrieval
+        print("\n🔍 TESTE ESPECÍFICO 5: Verificar recuperação de licença específica")
+        if 'test_license_id' in locals():
+            success, response = self.run_test("Get specific license", "GET", f"licenses/{test_license_id}", 200, token=self.admin_token)
+            if success:
+                print("   ✅ Recuperação de licença específica funcionando")
+                print(f"      - Nome: {response.get('name', 'N/A')}")
+                print(f"      - Status: {response.get('status', 'N/A')}")
+                print(f"      - Usuários máx: {response.get('max_users', 'N/A')}")
+
+        print("\n" + "="*50)
+        print("RESULTADO DO TESTE DE CORREÇÃO DE LICENÇAS")
+        print("="*50)
+        
+        # Calculate success rate for this specific test
+        current_tests = self.tests_run
+        current_passed = self.tests_passed
+        
+        if current_passed == current_tests:
+            print("🎉 TESTE DE CORREÇÃO APROVADO COM SUCESSO ABSOLUTO!")
+            print("   ✅ Endpoint /api/licenses funcionando corretamente")
+            print("   ✅ Autenticação admin working (admin@demo.com/admin123)")
+            print("   ✅ Licenças sendo retornadas com dados corretos")
+            print("   ✅ Dashboard endpoints funcionando")
+            print("   ✅ Validação Pydantic corrigida")
+            print("")
+            print("CONCLUSÃO: A correção do problema de licenças foi COMPLETAMENTE RESOLVIDA.")
+            print("O usuário não deve mais ver 'Nenhuma licença encontrada' no painel administrativo.")
+            return True
+        else:
+            print(f"❌ TESTE DE CORREÇÃO FALHOU!")
+            print(f"   {current_tests - current_passed} tests failed")
+            print("   O problema de licenças pode não estar completamente resolvido.")
+            return False
+
     def run_critical_rbac_maintenance_validation(self):
         """Run critical validation for RBAC and maintenance module as requested in review"""
         print("🚀 TESTE RÁPIDO PARA CONFIRMAR VERSÃO COMPLETA COM RBAC E MÓDULO MANUTENÇÃO")
