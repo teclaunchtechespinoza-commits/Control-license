@@ -115,10 +115,11 @@ const VersionDisplay = ({
 };
 
 // Modal detalhado com changelog
-const VersionModal = ({ children }) => {
-  const [open, setOpen] = useState(false);
+const VersionModal = ({ children, open, setOpen }) => {
+  const [activeTab, setActiveTab] = useState('version');
   const versionInfo = getVersionInfo();
   const currentChangelog = VERSION_CONFIG.changelog[versionInfo.version];
+  const licensingInfo = getLicensingInfo();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
