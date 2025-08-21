@@ -632,11 +632,11 @@ const MaintenanceModule = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="logs" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
-            <span>Logs do Sistema</span>
+            <span>Logs do Sistema ({logs.length})</span>
           </TabsTrigger>
           <TabsTrigger value="rbac" className="flex items-center space-x-2">
             <Shield className="w-4 h-4" />
-            <span>Controle de Acesso (RBAC)</span>
+            <span>Controle de Acesso ({users.length} usuários)</span>
           </TabsTrigger>
           <TabsTrigger value="status" className="flex items-center space-x-2">
             <Activity className="w-4 h-4" />
