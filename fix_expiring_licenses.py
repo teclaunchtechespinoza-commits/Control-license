@@ -104,10 +104,10 @@ async def create_expiring_licenses():
                 "client_pf_id": client_pf_id,
                 "client_pj_id": client_pj_id,
                 "product_id": product["id"] if product else None,
-                "assigned_user_id": user["id"],
+                "assigned_user_id": user_id,
                 "created_at": datetime.utcnow() - timedelta(days=random.randint(30, 365)),
                 "updated_at": datetime.utcnow() - timedelta(days=random.randint(1, 30)),
-                "created_by": user["id"],
+                "created_by": user_id,
                 "issued_date": datetime.utcnow() - timedelta(days=random.randint(30, 365)),
                 
                 # Campos para receita/oportunidade
