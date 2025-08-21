@@ -241,4 +241,87 @@ export const updateVersion = (newVersion, newStatus = "beta", changes = {}) => {
   };
 };
 
+// Função para obter informações de licenciamento formatadas
+export const getLicensingInfo = () => {
+  return {
+    title: "🛈 Informações da Versão e Licenciamento",
+    sections: {
+      identification: {
+        title: "📋 IDENTIFICAÇÃO DO SOFTWARE",
+        items: {
+          "Nome do Software": "Sistema de Gerenciamento de Licenças (License Management System)",
+          "Versão Atual": `${VERSION_CONFIG.version} (${VERSION_CONFIG.status})`,
+          "Data de Lançamento": VERSION_CONFIG.releaseDate,
+          "Build": VERSION_CONFIG.buildNumber,
+          "Desenvolvedor": VERSION_CONFIG.company.name
+        }
+      },
+      
+      technologies: {
+        title: "🛠️ TECNOLOGIAS UTILIZADAS",
+        items: {
+          "Backend": VERSION_CONFIG.software.technologies.backend.join(", "),
+          "Frontend": VERSION_CONFIG.software.technologies.frontend.join(", "),
+          "Banco de Dados": VERSION_CONFIG.software.technologies.database.join(", "),
+          "Integrações": VERSION_CONFIG.software.technologies.integrations.join(", "),
+          "Arquitetura": VERSION_CONFIG.software.technologies.architecture.join(", "),
+          "Utilidades": VERSION_CONFIG.software.technologies.utilities.join(", ")
+        }
+      },
+      
+      licensing: {
+        title: "⚖️ LICENCIAMENTO",
+        content: [
+          `Este software está licenciado sob a ${VERSION_CONFIG.software.license}.`,
+          `${VERSION_CONFIG.software.licenseTerms}`,
+          "",
+          "Funcionalidades Licenciadas:",
+          "• Sistema completo de gerenciamento de licenças empresariais",
+          "• Dashboard de vendas com integração WhatsApp Business",
+          "• Controle de acesso baseado em funções (RBAC)",
+          "• Sistema multi-tenancy para SaaS",
+          "• APIs RESTful para integrações externas"
+        ]
+      },
+      
+      copyright: {
+        title: "🛡️ PATENTE E DIREITOS AUTORAIS",
+        content: [
+          VERSION_CONFIG.company.copyright,
+          "",
+          "Este software pode conter funcionalidades proprietárias e métodos patenteados relacionados ao gerenciamento automatizado de licenças e integração WhatsApp para vendas. O uso, reprodução ou distribuição não autorizada deste sistema pode violar leis de propriedade intelectual brasileiras e internacionais."
+        ]
+      },
+      
+      terms: {
+        title: "📜 TERMOS DE USO E POLÍTICA DE PRIVACIDADE", 
+        content: [
+          "O uso deste software implica na aceitação dos Termos de Uso e da Política de Privacidade da AutoTech Services.",
+          "",
+          "Conformidade LGPD: Este sistema está em conformidade com a Lei Geral de Proteção de Dados (LGPD) brasileira, garantindo a proteção e privacidade dos dados dos usuários."
+        ]
+      },
+      
+      contact: {
+        title: "📞 CONTATO PARA SUPORTE",
+        items: {
+          "Suporte Técnico": VERSION_CONFIG.company.contact.support,
+          "Questões Legais": VERSION_CONFIG.company.contact.legal,
+          "Documentação": VERSION_CONFIG.company.contact.documentation
+        }
+      },
+      
+      features: {
+        title: "🌟 RECURSOS PRINCIPAIS",
+        items: VERSION_CONFIG.software.features
+      },
+      
+      compliance: {
+        title: "✅ CONFORMIDADES",
+        items: VERSION_CONFIG.software.compliance
+      }
+    }
+  };
+};
+
 export default VERSION_CONFIG;
