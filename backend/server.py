@@ -1856,23 +1856,26 @@ async def create_expiration_alert(license_doc):
             alert_type = "T-30"
             status = "pending"
         
-        # Calcular valor de oportunidade de renovação (simulado)
-        renewal_value = license_doc.get('price', 0) or random.uniform(500, 5000)
+        # Calcular valor de oportunidade de renovação
+        renewal_value = license_doc.get('license_value', 0) or license_doc.get('price', 0) or random.uniform(500, 5000)
         
         alert = ExpirationAlert(
             id=str(uuid.uuid4()),
-            license_id=license_doc['id'],
+            client_id=client_id,
+            client_type=client_type,
             client_name=client_name,
-            client_phone=client_phone,
+            license_id=license_doc['id'],
             license_name=license_doc.get('name', 'Licença'),
             expires_at=expires_at,
             days_to_expire=days_to_expire,
+            alert_type=alert_type,
             status=status,
             priority=priority,
+            contact_phone=client_phone,
+            contact_whatsapp=client_phone,  # Usar mesmo telefone para WhatsApp por enquanto
+            current_plan_value=renewal_value,
             renewal_opportunity_value=renewal_value,
-            last_contact_date=None,
-            contact_attempts=0,
-            notes=[]
+            contact_attempts=0
         )
         
         return alert
