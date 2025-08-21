@@ -508,6 +508,7 @@ class LicenseStatus(str, Enum):
     EXPIRED = "expired"
     SUSPENDED = "suspended"
     PENDING = "pending"
+    CANCELLED = "cancelled"
 
 class ClientType(str, Enum):
     PF = "pf"  # Pessoa Física
