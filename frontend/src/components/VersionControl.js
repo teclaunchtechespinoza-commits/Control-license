@@ -141,6 +141,35 @@ const VersionModal = ({ children, open, setOpen }) => {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Tabs Navigation */}
+          <div className="border-b">
+            <nav className="flex gap-4">
+              <button
+                onClick={() => setActiveTab('version')}
+                className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'version' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📊 Versão Atual
+              </button>
+              <button
+                onClick={() => setActiveTab('licensing')}
+                className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'licensing' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                🛈 Licenciamento
+              </button>
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'version' && (
+            <div className="space-y-6">
           {/* Informações da Versão */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
             <div>
