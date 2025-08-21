@@ -244,10 +244,8 @@ const RegistryModule = () => {
       toast.success(`${config.title.slice(0, -1)} excluído com sucesso!`);
       setDeleteConfirmId(null);
       
-      // Add a small delay to ensure backend has processed the deletion
-      setTimeout(() => {
-        fetchAllData();
-      }, 500);
+      // Refresh data immediately
+      fetchAllData();
     } catch (error) {
       console.error(`Failed to delete ${activeTab}:`, error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
