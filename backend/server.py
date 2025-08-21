@@ -1836,9 +1836,25 @@ async def create_expiration_alert(license_doc):
             client_id = "unknown"
             client_type = "pf"
         
-        # Determinar prioridade e status
+        # Determinar prioridade, status e tipo de alerta
         priority = get_alert_priority(days_to_expire)
-        status = "expired" if days_to_expire < 0 else "expiring"
+        
+        # Determinar tipo de alerta baseado nos dias para expirar
+        if days_to_expire < 0:
+            alert_type = "EXPIRED"
+            status = "pending"  # Licença expirada precisa de ação
+        elif days_to_expire <= 1:
+            alert_type = "T-1"
+            status = "pending"
+        elif days_to_expire <= 7:
+            alert_type = "T-7"
+            status = "pending"
+        elif days_to_expire <= 30:
+            alert_type = "T-30"
+            status = "pending"
+        else:
+            alert_type = "T-30"
+            status = "pending"
         
         # Calcular valor de oportunidade de renovação (simulado)
         renewal_value = license_doc.get('price', 0) or random.uniform(500, 5000)
