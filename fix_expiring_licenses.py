@@ -31,6 +31,8 @@ async def create_expiring_licenses():
     sample_users = await db.users.find().limit(5).to_list(5)
     sample_products = await db.products.find().limit(10).to_list(10)
     
+    print(f"Encontrados: {len(sample_users)} usuários, {len(sample_clients_pf)} clientes PF, {len(sample_clients_pj)} clientes PJ")
+    
     if not sample_users:
         print("❌ Nenhum usuário encontrado!")
         return
