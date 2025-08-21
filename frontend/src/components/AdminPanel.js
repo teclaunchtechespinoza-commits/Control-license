@@ -216,7 +216,7 @@ const AdminPanel = () => {
 
   const handleDeleteLicense = async (licenseId) => {
     try {
-      await axios.delete(`/api/licenses/${licenseId}`);
+      await axios.delete(`/licenses/${licenseId}`);
       toast.success('Licença excluída com sucesso!');
       setDeleteConfirmId(null);
       fetchData();
