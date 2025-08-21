@@ -101,6 +101,18 @@ export const VERSION_CONFIG = {
   // Histórico de versões
   versionHistory: [
     {
+      version: "1.3.0",
+      date: "2025-08-21", 
+      status: "stable",
+      description: "Major update - Dashboard de Vendas, correções críticas e padronização completa"
+    },
+    {
+      version: "1.2.0",
+      date: "2025-01-15", 
+      status: "beta",
+      description: "Sistema de cores semânticas e gerenciamento de clientes"
+    },
+    {
       version: "1.1.0",
       date: "2025-01-10", 
       status: "stable",
