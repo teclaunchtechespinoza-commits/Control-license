@@ -3191,7 +3191,7 @@ async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
                 client["client_type"] = "pj"  # padrão
             
             # Normalizar regime_tributario
-            regime = client.get("regime_tributario", "")
+            regime = client.get("regime_tributario", "") or ""
             if "simples" in regime.lower():
                 client["regime_tributario"] = "simples"
             elif "presumido" in regime.lower():
