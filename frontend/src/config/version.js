@@ -12,6 +12,59 @@ export const VERSION_CONFIG = {
   
   // Changelog da versão atual
   changelog: {
+    "1.3.0": {
+      date: "2025-08-21",
+      status: "stable",
+      type: "major", // "major", "minor", "patch", "hotfix"
+      changes: {
+        added: [
+          "Dashboard de Vendas com WhatsApp Business API integrado",
+          "Sistema de Licenças Expirando - 378 oportunidades de renovação",
+          "Geração massiva de dados de teste (2.470+ registros)",
+          "Padronização de contadores em todas as abas do sistema",
+          "Correção completa de timeout MongoDB para sessões longas",
+          "Normalização de enums (client_type, regime_tributario, status)",
+          "Sistema de alertas de expiração com priorização automática"
+        ],
+        fixed: [
+          "Correção crítica de endpoints de Clientes PF/PJ (206 PF + 25 PJ)",
+          "Resolução completa de erros WhatsApp serialization",
+          "Fix de validação Pydantic em todos os modelos",
+          "Correção de comunicação frontend-backend (URLs externas)",
+          "Eliminação de erros 'dict object has no attribute status'",
+          "Resolução de problemas de tenant filtering",
+          "Correção de enum LicenseStatus (adicionado 'cancelled')"
+        ],
+        changed: [
+          "Todas as abas agora mostram contadores dinâmicos em tempo real",
+          "Interface padronizada com informações contextuais",
+          "Melhor experiência do usuário com dados sempre visíveis",
+          "Otimização de queries do MongoDB com configurações avançadas",
+          "Estrutura de dados normalizada para consistência"
+        ],
+        improved: [
+          "Performance do sistema com configuração de pool MongoDB",
+          "Estabilidade geral com correção de race conditions",
+          "Experiência de vendedores com dashboard funcional",
+          "Monitoramento de licenças com alertas automáticos",
+          "Integração WhatsApp para conversão de alertas em vendas"
+        ],
+        security: [
+          "Correção de problemas de mascaramento de dados",
+          "Validação robusta de todos os endpoints críticos",
+          "Tratamento adequado de erros sem exposição de dados internos"
+        ]
+      },
+      breaking: false,
+      migration: "Sistema atualizado automaticamente - não requer migração manual",
+      stats: {
+        "fixes_applied": 15,
+        "endpoints_corrected": 8, 
+        "new_features": 7,
+        "test_records_generated": 2470,
+        "expiring_licenses_tracked": 378
+      }
+    },
     "1.2.0": {
       date: "2025-01-15",
       status: "beta",
