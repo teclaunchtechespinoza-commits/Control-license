@@ -263,6 +263,7 @@ const VersionModal = ({ children, open, setOpen }) => {
             </div>
           </div>
         </div>
+        )}
         
         {/* Licensing Tab */}
         {activeTab === 'licensing' && (
