@@ -722,9 +722,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: 
-    - "Dashboard de Vendas - Frontend Implementation"
-    - "AdminPanel Client Integration"
+  current_focus:
+    - "ClientsModule Form Simplification - Client Registration Forms"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
