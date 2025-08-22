@@ -1590,68 +1590,7 @@ const ClientsModule = () => {
                         </div>
                       </div>
 
-                      {/* Certificado Digital */}
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-2 border-b pb-2">
-                          <Shield className="w-4 h-4" />
-                          <h3 className="font-medium">Certificado Digital para Integrações Fiscais</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-4 gap-4">
-                          <div className="space-y-2">
-                            <Label>Tipo</Label>
-                            <Select 
-                              value={formData.certificado_digital?.tipo || ''} 
-                              onValueChange={(value) => setFormData({
-                                ...formData, 
-                                certificado_digital: {...formData.certificado_digital, tipo: value}
-                              })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="A1">A1</SelectItem>
-                                <SelectItem value="A3">A3</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Número de Série</Label>
-                            <Input
-                              value={formData.certificado_digital?.numero_serie || ''}
-                              onChange={(e) => setFormData({
-                                ...formData, 
-                                certificado_digital: {...formData.certificado_digital, numero_serie: e.target.value}
-                              })}
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Emissor</Label>
-                            <Input
-                              value={formData.certificado_digital?.emissor || ''}
-                              onChange={(e) => setFormData({
-                                ...formData, 
-                                certificado_digital: {...formData.certificado_digital, emissor: e.target.value}
-                              })}
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Validade</Label>
-                            <Input
-                              type="date"
-                              value={formData.certificado_digital?.validade || ''}
-                              onChange={(e) => setFormData({
-                                ...formData, 
-                                certificado_digital: {...formData.certificado_digital, validade: e.target.value}
-                              })}
-                            />
-                          </div>
-                        </div>
-                      </div>
+
 
                       {/* Documentos Societários */}
                       <div className="space-y-4">
