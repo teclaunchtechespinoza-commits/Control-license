@@ -1418,69 +1418,7 @@ const ClientsModule = () => {
                         </div>
                       </div>
 
-                      {/* Inscrições Locais Dinâmicas */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b pb-2">
-                          <div className="flex items-center space-x-2">
-                            <FileCheck className="w-4 h-4" />
-                            <h3 className="font-medium">Alvarás e Inscrições Locais</h3>
-                          </div>
-                          <Button type="button" size="sm" onClick={addInscricaoLocal}>
-                            <Plus className="w-3 h-3 mr-1" />
-                            Adicionar
-                          </Button>
-                        </div>
-                        
-                        {formData.inscricoes_locais?.map((inscricao, index) => (
-                          <div key={index} className="border rounded-lg p-4 relative">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute top-2 right-2 text-red-600"
-                              onClick={() => removeInscricaoLocal(index)}
-                            >
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            
-                            <div className="grid grid-cols-4 gap-4">
-                              <div className="space-y-2">
-                                <Label>Número</Label>
-                                <Input
-                                  value={inscricao.numero}
-                                  onChange={(e) => updateInscricaoLocal(index, 'numero', e.target.value)}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label>Município</Label>
-                                <Input
-                                  value={inscricao.municipio}
-                                  onChange={(e) => updateInscricaoLocal(index, 'municipio', e.target.value)}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label>Tipo</Label>
-                                <Input
-                                  value={inscricao.tipo}
-                                  onChange={(e) => updateInscricaoLocal(index, 'tipo', e.target.value)}
-                                  placeholder="Alvará, Licença, etc."
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label>Validade</Label>
-                                <Input
-                                  type="date"
-                                  value={inscricao.validade}
-                                  onChange={(e) => updateInscricaoLocal(index, 'validade', e.target.value)}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+
 
                       {/* Responsável Legal Expandido */}
                       <div className="space-y-4">
