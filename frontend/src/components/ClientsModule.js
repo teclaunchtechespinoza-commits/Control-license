@@ -1415,14 +1415,6 @@ const ClientsModule = () => {
                               onChange={(e) => setFormData({...formData, inscricao_municipal: e.target.value})}
                             />
                           </div>
-                          
-                          <div className="space-y-2">
-                            <Label>CCM (Cadastro Contribuintes Mobiliários)</Label>
-                            <Input
-                              value={formData.inscricao_municipal_ccm}
-                              onChange={(e) => setFormData({...formData, inscricao_municipal_ccm: e.target.value})}
-                            />
-                          </div>
                         </div>
                       </div>
 
