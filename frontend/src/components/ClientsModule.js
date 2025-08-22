@@ -1933,21 +1933,17 @@ const ClientsModule = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Marca do Equipamento</Label>
-                      <Select
+                      <Input
                         value={formData.license_info?.equipment_brand || ''}
-                        onValueChange={(value) => handleBrandChange(value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a marca" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {equipmentBrands.map(brand => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          license_info: {
+                            ...formData.license_info,
+                            equipment_brand: e.target.value
+                          }
+                        })}
+                        placeholder="Digite a marca do equipamento"
+                      />
                     </div>
                     
                     <div className="space-y-2">
