@@ -726,7 +726,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "ClientsModule Form Simplification - Client Registration Forms"
+    - "UI Cleanup - Remove Emergent Badge and Alvarás Section"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
