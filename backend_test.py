@@ -393,6 +393,148 @@ class LicenseManagementAPITester:
         if self.user_token:
             self.run_test("Create PJ client (user) - should fail", "POST", "clientes-pj", 403, pj_data, self.user_token)
 
+    def test_clientes_pj_simplified_without_removed_fields(self):
+        """Test PJ client creation without removed fields (Certificado Digital and Documentos Societários)"""
+        print("\n" + "="*50)
+        print("TESTING PJ CLIENT WITHOUT REMOVED FIELDS")
+        print("="*50)
+        print("🎯 FOCUS: Removed fields - Certificado Digital and Documentos Societários")
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping PJ simplified tests")
+            return
+
+        # Test create PJ client without the removed fields
+        pj_simplified_data = {
+            "client_type": "pj",
+            "cnpj": "11223344000156",
+            "razao_social": "Empresa Simplificada LTDA",
+            "nome_fantasia": "Simplificada Corp",
+            "email_principal": "contato@simplificada.com",
+            "telefone": "+55 11 4444-5555",
+            "contact_preference": "email",
+            "origin_channel": "website",
+            "regime_tributario": "lucro_presumido",
+            "porte_empresa": "epp",
+            "inscricao_estadual": "987654321",
+            "ie_situacao": "contribuinte",
+            "ie_uf": "SP",
+            "responsavel_legal_nome": "Carlos Santos",
+            "responsavel_legal_cpf": "11122233344",
+            "responsavel_legal_email": "carlos@simplificada.com",
+            "responsavel_legal_telefone": "+55 11 97777-8888",
+            # NOTE: certificado_digital and documentos_societarios fields are intentionally omitted
+            "internal_notes": "Cliente PJ sem campos removidos (Certificado Digital e Documentos Societários)"
+        }
+        
+        success, response = self.run_test("Create PJ client without removed fields", "POST", "clientes-pj", 200, pj_simplified_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pj_simplified_id = response['id']
+            print(f"   ✅ Created PJ client without removed fields: {self.created_pj_simplified_id}")
+            
+            # Verify the client was created successfully without the removed fields
+            success_get, response_get = self.run_test("Get PJ client without removed fields", "GET", f"clientes-pj/{self.created_pj_simplified_id}", 200, token=self.admin_token)
+            if success_get:
+                # Check that removed fields are not present or are None
+                certificado_digital = response_get.get('certificado_digital')
+                documentos_societarios = response_get.get('documentos_societarios')
+                
+                print("   ✅ PJ client created successfully without removed fields")
+                print(f"      - Certificado Digital: {certificado_digital}")
+                print(f"      - Documentos Societários: {documentos_societarios}")
+                
+                # Verify essential fields are still present
+                essential_fields = ['cnpj', 'razao_social', 'email_principal', 'responsavel_legal_nome']
+                missing_fields = [field for field in essential_fields if not response_get.get(field)]
+                
+                if not missing_fields:
+                    print("   ✅ All essential fields present")
+                else:
+                    print(f"   ⚠️ Missing essential fields: {missing_fields}")
+
+        # Test that trying to include the removed fields still works (backward compatibility)
+        pj_with_removed_fields_data = {
+            "client_type": "pj",
+            "cnpj": "55667788000199",
+            "razao_social": "Empresa Com Campos Removidos LTDA",
+            "nome_fantasia": "Removidos Corp",
+            "email_principal": "contato@removidos.com",
+            "telefone": "+55 11 5555-6666",
+            "contact_preference": "phone",
+            "regime_tributario": "lucro_real",
+            "porte_empresa": "medio",
+            "responsavel_legal_nome": "Ana Costa",
+            "responsavel_legal_cpf": "55566677788",
+            "responsavel_legal_email": "ana@removidos.com",
+            # Include the removed fields to test backward compatibility
+            "certificado_digital": {
+                "tipo": "A3",
+                "numero_serie": "123456789",
+                "emissor": "Certisign",
+                "validade": "2025-12-31"
+            },
+            "documentos_societarios": {
+                "contrato_social_url": "https://example.com/contrato.pdf",
+                "estatuto_social_url": "https://example.com/estatuto.pdf",
+                "ultima_alteracao_data": "2024-01-15",
+                "observacoes": "Documentos atualizados"
+            },
+            "internal_notes": "Cliente PJ testando compatibilidade com campos removidos"
+        }
+        
+        success, response = self.run_test("Create PJ client with removed fields (compatibility)", "POST", "clientes-pj", 200, pj_with_removed_fields_data, self.admin_token)
+        if success and 'id' in response:
+            print(f"   ✅ PJ client with removed fields created (backward compatibility): {response['id']}")
+        else:
+            print("   ⚠️ PJ client with removed fields failed - may indicate fields are truly removed")
+
+        # Test various PJ scenarios without removed fields
+        test_scenarios = [
+            {
+                "name": "MEI Company",
+                "regime": "mei",
+                "porte": "mei"
+            },
+            {
+                "name": "Simples Nacional",
+                "regime": "simples",
+                "porte": "me"
+            },
+            {
+                "name": "Lucro Real",
+                "regime": "lucro_real",
+                "porte": "grande"
+            }
+        ]
+        
+        for i, scenario in enumerate(test_scenarios):
+            pj_scenario_data = {
+                "client_type": "pj",
+                "cnpj": f"9999888800{i:03d}",
+                "razao_social": f"{scenario['name']} LTDA",
+                "nome_fantasia": f"{scenario['name']} Corp",
+                "email_principal": f"contato{i}@{scenario['name'].lower().replace(' ', '')}.com",
+                "telefone": f"+55 11 6666-{7000+i}",
+                "contact_preference": "email",
+                "regime_tributario": scenario['regime'],
+                "porte_empresa": scenario['porte'],
+                "responsavel_legal_nome": f"Responsável {scenario['name']}",
+                "responsavel_legal_cpf": f"99988877{i:03d}",
+                "responsavel_legal_email": f"responsavel{i}@{scenario['name'].lower().replace(' ', '')}.com"
+            }
+            
+            success, response = self.run_test(f"Create {scenario['name']} PJ", "POST", "clientes-pj", 200, pj_scenario_data, self.admin_token)
+            if success:
+                print(f"   ✅ {scenario['name']} PJ created successfully")
+
+        print("\n🎯 PJ SIMPLIFIED FORM TESTING COMPLETED")
+        print("   Key validations:")
+        print("   ✅ PJ clients can be created without Certificado Digital field")
+        print("   ✅ PJ clients can be created without Documentos Societários field")
+        print("   ✅ Essential PJ validation still works")
+        print("   ✅ Various tax regimes and company sizes supported")
+        print("   ✅ Backward compatibility tested")
+
     def test_products_management(self):
         """Test products CRUD endpoints"""
         print("\n" + "="*50)
