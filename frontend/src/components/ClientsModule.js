@@ -1948,28 +1948,17 @@ const ClientsModule = () => {
                     
                     <div className="space-y-2">
                       <Label>Modelo do Equipamento</Label>
-                      <Select
+                      <Input
                         value={formData.license_info?.equipment_model || ''}
-                        onValueChange={(value) => setFormData({
+                        onChange={(e) => setFormData({
                           ...formData,
                           license_info: {
                             ...formData.license_info,
-                            equipment_model: value
+                            equipment_model: e.target.value
                           }
                         })}
-                        disabled={!selectedBrandId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o modelo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {equipmentModels.map(model => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        placeholder="Digite o modelo do equipamento"
+                      />
                     </div>
                   </div>
                   
