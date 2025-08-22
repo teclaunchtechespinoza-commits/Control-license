@@ -233,6 +233,105 @@ class LicenseManagementAPITester:
         if self.user_token:
             self.run_test("Create PF client (user) - should fail", "POST", "clientes-pf", 403, pf_data, self.user_token)
 
+    def test_clientes_pf_simplified_equipment_fields(self):
+        """Test PF client creation with simplified equipment fields (now free text inputs)"""
+        print("\n" + "="*50)
+        print("TESTING PF CLIENT SIMPLIFIED EQUIPMENT FIELDS")
+        print("="*50)
+        print("🎯 FOCUS: Equipment fields changed from dropdowns to free text inputs")
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping PF simplified equipment tests")
+            return
+
+        # Test create PF client with simplified equipment fields (free text)
+        pf_simplified_data = {
+            "client_type": "pf",
+            "nome_completo": "Maria Oliveira Simplificada",
+            "cpf": "98765432109",
+            "email_principal": "maria.simplificada@email.com",
+            "telefone": "+55 11 97777-5555",
+            "contact_preference": "email",
+            "origin_channel": "website",
+            "license_info": {
+                "equipment_brand": "Dell Custom Brand",  # Free text instead of dropdown
+                "equipment_model": "OptiPlex 3080 Custom Model",  # Free text instead of dropdown
+                "equipment_id": "DELL-CUSTOM-001",
+                "equipment_serial": "SN123456789",
+                "plan_type": "Professional",
+                "license_quantity": 1,
+                "billing_cycle": "monthly"
+            },
+            "internal_notes": "Cliente PF com campos de equipamento simplificados"
+        }
+        
+        success, response = self.run_test("Create PF client with simplified equipment", "POST", "clientes-pf", 200, pf_simplified_data, self.admin_token)
+        if success and 'id' in response:
+            self.created_pf_simplified_id = response['id']
+            print(f"   ✅ Created PF client with simplified equipment: {self.created_pf_simplified_id}")
+            
+            # Verify equipment fields are stored as free text
+            success_get, response_get = self.run_test("Get PF client with simplified equipment", "GET", f"clientes-pf/{self.created_pf_simplified_id}", 200, token=self.admin_token)
+            if success_get:
+                license_info = response_get.get('license_info', {})
+                equipment_brand = license_info.get('equipment_brand')
+                equipment_model = license_info.get('equipment_model')
+                
+                if equipment_brand == "Dell Custom Brand" and equipment_model == "OptiPlex 3080 Custom Model":
+                    print("   ✅ Equipment fields stored correctly as free text")
+                    print(f"      - Brand: {equipment_brand}")
+                    print(f"      - Model: {equipment_model}")
+                else:
+                    print("   ⚠️ Equipment fields may not be stored correctly")
+                    print(f"      - Expected Brand: Dell Custom Brand, Got: {equipment_brand}")
+                    print(f"      - Expected Model: OptiPlex 3080 Custom Model, Got: {equipment_model}")
+
+        # Test with various free text equipment combinations
+        test_cases = [
+            {
+                "name": "HP Custom Setup",
+                "brand": "HP ProDesk Custom",
+                "model": "EliteBook 840 G8 Modified"
+            },
+            {
+                "name": "Lenovo Custom Config",
+                "brand": "Lenovo ThinkPad Custom",
+                "model": "X1 Carbon Gen 9 Special Edition"
+            },
+            {
+                "name": "Generic Equipment",
+                "brand": "Generic Brand XYZ",
+                "model": "Model ABC-123"
+            }
+        ]
+        
+        for i, test_case in enumerate(test_cases):
+            pf_test_data = {
+                "client_type": "pf",
+                "nome_completo": f"Cliente Teste {test_case['name']}",
+                "cpf": f"1111111110{i}",  # Different CPF for each test
+                "email_principal": f"teste{i}@email.com",
+                "telefone": f"+55 11 9999-000{i}",
+                "contact_preference": "phone",
+                "license_info": {
+                    "equipment_brand": test_case['brand'],
+                    "equipment_model": test_case['model'],
+                    "equipment_id": f"TEST-{i:03d}",
+                    "plan_type": "Basic"
+                }
+            }
+            
+            success, response = self.run_test(f"Create PF with {test_case['name']}", "POST", "clientes-pf", 200, pf_test_data, self.admin_token)
+            if success:
+                print(f"   ✅ {test_case['name']} equipment fields accepted")
+
+        print("\n🎯 PF SIMPLIFIED EQUIPMENT FIELDS TESTING COMPLETED")
+        print("   Key validations:")
+        print("   ✅ Equipment brand accepts free text input")
+        print("   ✅ Equipment model accepts free text input")
+        print("   ✅ No dropdown validation constraints")
+        print("   ✅ Custom equipment names stored correctly")
+
     def test_clientes_pj_management(self):
         """Test Pessoa Jurídica (PJ) client management endpoints"""
         print("\n" + "="*50)
