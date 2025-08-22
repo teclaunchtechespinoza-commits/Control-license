@@ -5449,7 +5449,9 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1:
         test_type = sys.argv[1]
-        if test_type == "license-fix":
+        if test_type == "client-form-simplification":
+            exit_code = tester.run_client_form_simplification_tests()
+        elif test_type == "license-fix":
             exit_code = tester.run_license_endpoint_fix_test()
         elif test_type == "rbac":
             exit_code = tester.run_critical_rbac_maintenance_validation()
@@ -5462,10 +5464,18 @@ if __name__ == "__main__":
         elif test_type == "multi-tenancy":
             exit_code = tester.run_multi_tenancy_tests()
         else:
-            print("Available test types: license-fix, rbac, whatsapp, sales, notifications, multi-tenancy")
+            print("Available test types:")
+            print("  client-form-simplification - Test client form simplification changes")
+            print("  license-fix - Test license endpoint fix")
+            print("  rbac - Test RBAC system")
+            print("  whatsapp - Test WhatsApp integration")
+            print("  sales - Test sales dashboard")
+            print("  notifications - Test notification system")
+            print("  multi-tenancy - Test multi-tenancy system")
             exit_code = 1
     else:
-        # Run the license fix test by default for this review
-        exit_code = tester.run_license_endpoint_fix_test()
+        # Run the client form simplification test by default for this review
+        print("Running default test: Client Form Simplification")
+        exit_code = tester.run_client_form_simplification_tests()
     
     sys.exit(exit_code)
