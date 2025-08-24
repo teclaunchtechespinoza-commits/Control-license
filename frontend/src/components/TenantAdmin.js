@@ -117,7 +117,7 @@ const TenantAdmin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`/api/tenants/${selectedTenant.id}`, editForm);
+      await axios.put(`/tenants/${selectedTenant.id}`, editForm);
       setShowEditForm(false);
       setSelectedTenant(null);
       fetchTenants();
