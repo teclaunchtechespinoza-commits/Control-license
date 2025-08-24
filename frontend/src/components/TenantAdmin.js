@@ -93,7 +93,7 @@ const TenantAdmin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('/api/tenants', createForm);
+      await axios.post('/tenants', createForm);
       setShowCreateForm(false);
       setCreateForm({
         name: '',
