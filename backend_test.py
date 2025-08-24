@@ -1132,7 +1132,7 @@ class LicenseManagementAPITester:
                 "name": "Test Tenant SaaS",
                 "subdomain": "testsaas",
                 "contact_email": "admin@testsaas.com",
-                "plan": "BASIC",
+                "plan": "basic",
                 "admin_name": "Test Admin",
                 "admin_email": "testadmin@testsaas.com",
                 "admin_password": "testpass123"
