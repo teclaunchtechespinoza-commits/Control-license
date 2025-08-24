@@ -186,7 +186,7 @@ async def check_user_duplicates(email: str, name: str = None, exclude_id: str = 
     Retorna informações sobre duplicatas encontradas
     """
     try:
-        query_filter = {"tenant_id": "default"}  # Ajustar conforme necessidade
+        query_filter = add_tenant_filter({})
         
         # Verificar email duplicado
         email_query = {**query_filter, "email": email}
