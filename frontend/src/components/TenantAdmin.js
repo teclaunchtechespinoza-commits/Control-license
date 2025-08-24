@@ -149,7 +149,7 @@ const TenantAdmin = () => {
   const handleActivateTenant = async (tenantId) => {
     setLoading(true);
     try {
-      await axios.post(`/api/tenants/${tenantId}/activate`);
+      await axios.post(`/tenants/${tenantId}/activate`);
       fetchTenants();
       setError(null);
     } catch (err) {
