@@ -211,7 +211,7 @@ const Navbar = () => {
                 <DropdownMenuSeparator />
                 
                 {/* Mobile Navigation Items */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                   <Link to="/dashboard">
                     <DropdownMenuItem>
                       <Home className="mr-2 h-4 w-4" />
@@ -224,12 +224,18 @@ const Navbar = () => {
                       <span>Minhas Licenças</span>
                     </DropdownMenuItem>
                   </Link>
+                  <Link to="/vendas">
+                    <DropdownMenuItem>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      <span>Dashboard Vendas</span>
+                    </DropdownMenuItem>
+                  </Link>
                   {user?.role === 'admin' && (
                     <>
                       <Link to="/admin">
                         <DropdownMenuItem>
                           <UserCog className="mr-2 h-4 w-4" />
-                          <span>Admin Panel</span>
+                          <span>Admin</span>
                         </DropdownMenuItem>
                       </Link>
                       <Link to="/clientes">
@@ -244,11 +250,38 @@ const Navbar = () => {
                           <span>Cadastros</span>
                         </DropdownMenuItem>
                       </Link>
+                      <Link to="/manutencao">
+                        <DropdownMenuItem>
+                          <FileText className="mr-2 h-4 w-4" />
+                          <span>Manutenção</span>
+                        </DropdownMenuItem>
+                      </Link>
                     </>
+                  )}
+                  {user?.role === 'super_admin' && (
+                    <Link to="/tenants">
+                      <DropdownMenuItem>
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Multi-Tenant</span>
+                      </DropdownMenuItem>
+                    </Link>
                   )}
                   <DropdownMenuSeparator />
                 </div>
 
+                {/* Tenant Selector for Mobile/Tablet */}
+                <div className="xl:hidden mb-2">
+                  {user?.role === 'super_admin' && (
+                    <>
+                      <DropdownMenuLabel>Tenant Atual</DropdownMenuLabel>
+                      <div className="px-2 py-1">
+                        <TenantSelector currentUser={user} />
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                </div>
+                
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
@@ -258,10 +291,7 @@ const Navbar = () => {
                   <span>Configurações</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={logout}
-                  className="text-red-600 focus:text-red-600"
-                >
+                <DropdownMenuItem onClick={logout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>
                 </DropdownMenuItem>
