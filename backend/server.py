@@ -1111,6 +1111,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = await db.users.find_one({"email": email})
     if user is None:
         raise credentials_exception
+    
+    # MIGRAÇÃO AUTOMÁTICA: Adicionar tenant_id se não existe
+    if "tenant_id" not in user or not user["tenant_id"]:
+        # Migrar usuário para tenant padrão
+        await db.users.update_one(
+            {"email": email},
+            {"$set": {"tenant_id": "default"}}
+        )
+        user["tenant_id"] = "default"
+        logger.info(f"User {email} migrated to default tenant")
+    
     return User(**user)
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
