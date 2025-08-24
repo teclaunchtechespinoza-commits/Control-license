@@ -39,7 +39,7 @@ const TenantSelector = ({ currentUser }) => {
 
   const fetchAvailableTenants = async () => {
     try {
-      const response = await axios.get('/api/tenants');
+      const response = await axios.get('/tenants');
       setAvailableTenants(response.data);
     } catch (err) {
       console.error('Erro ao carregar tenants disponíveis:', err);
