@@ -82,7 +82,7 @@ const TenantAdmin = () => {
 
   const fetchTenantStats = async (tenantId) => {
     try {
-      const response = await axios.get(`/api/tenants/${tenantId}/stats`);
+      const response = await axios.get(`/tenants/${tenantId}/stats`);
       setTenantStats(response.data);
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
