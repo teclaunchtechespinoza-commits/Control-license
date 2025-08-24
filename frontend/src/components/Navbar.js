@@ -141,6 +141,19 @@ const Navbar = () => {
               </>
             )}
             
+            {user?.role === 'super_admin' && (
+              <Link to="/tenants">
+                <Button
+                  variant={isActive('/tenants') ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Building className="w-4 h-4" />
+                  <span>Multi-Tenant</span>
+                </Button>
+              </Link>
+            )}
+            
             {/* Global Refresh Button */}
             <Button
               onClick={() => {
