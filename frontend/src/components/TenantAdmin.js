@@ -444,7 +444,7 @@ const TenantAdmin = () => {
 
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <License className="w-8 h-8 text-green-600 mr-3" />
+                  <Key className="w-8 h-8 text-green-600 mr-3" />
                   <div>
                     <div className="text-2xl font-bold text-green-900">{tenantStats.usage.current_licenses}</div>
                     <div className="text-green-600 text-sm">Licenças</div>
