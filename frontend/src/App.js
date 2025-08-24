@@ -140,7 +140,7 @@ const AuthProvider = ({ children }) => {
 };
 
 // Protected Route Component
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -151,7 +151,11 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/login" />;
   }
 
-  if (adminOnly && user.role !== 'admin') {
+  if (superAdminOnly && user.role !== 'super_admin') {
+    return <Navigate to="/dashboard" />;
+  }
+
+  if (adminOnly && user.role !== 'admin' && user.role !== 'super_admin') {
     return <Navigate to="/dashboard" />;
   }
 
