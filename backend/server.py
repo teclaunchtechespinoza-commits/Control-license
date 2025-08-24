@@ -1212,6 +1212,61 @@ async def login(user_credentials: UserLogin):
     user = User(**user_doc)
     return Token(access_token=access_token, token_type="bearer", user=user)
 
+# Initialize System - Create default data on first run
+async def initialize_system():
+    """Inicializa dados padrão do sistema se não existirem"""
+    try:
+        # Verificar se já existe um super admin
+        super_admin = await db.users.find_one({"role": "super_admin"})
+        if not super_admin:
+            # Criar super admin padrão
+            super_admin_data = {
+                "id": str(uuid.uuid4()),
+                "tenant_id": "system",  # Super admin é do tenant system
+                "email": "superadmin@autotech.com",
+                "name": "Super Administrator",
+                "role": "super_admin",
+                "is_active": True,
+                "created_at": datetime.utcnow(),
+                "password_hash": get_password_hash("superadmin123")  # Senha: superadmin123
+            }
+            await db.users.insert_one(super_admin_data)
+            logger.info("Super admin criado: superadmin@autotech.com / superadmin123")
+        
+        # Criar tenant padrão se não existir
+        default_tenant = await db.tenants.find_one({"id": "default"})
+        if not default_tenant:
+            tenant_data = {
+                "id": "default",
+                "name": "AutoTech Services - Sistema Principal",
+                "subdomain": "autotech",
+                "contact_email": "admin@autotech.com",
+                "status": TenantStatus.ACTIVE,
+                "plan": TenantPlan.ENTERPRISE,
+                "max_users": -1,  # Ilimitado
+                "max_licenses": -1,  # Ilimitado
+                "max_clients": -1,  # Ilimitado
+                "features": get_plan_config(TenantPlan.ENTERPRISE)["features"],
+                "created_at": datetime.utcnow(),
+                "is_active": True,
+                "current_users": 0,
+                "current_licenses": 0,
+                "current_clients": 0
+            }
+            await db.tenants.insert_one(tenant_data)
+            logger.info("Tenant padrão criado: default (AutoTech Services)")
+            
+        logger.info("Sistema inicializado com sucesso")
+        
+    except Exception as e:
+        logger.error(f"Erro ao inicializar sistema: {e}")
+
+# Executar inicialização na startup
+import asyncio
+@app.on_event("startup")
+async def startup_event():
+    await initialize_system()
+
 @api_router.get("/auth/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
