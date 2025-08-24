@@ -1795,6 +1795,313 @@ async def assign_direct_permissions(request: AssignPermissionRequest, current_us
     
     return {"message": "Direct permissions assigned successfully"}
 
+# ======================================
+# TENANT MANAGEMENT ENDPOINTS - Multi-Tenancy SaaS
+# ======================================
+
+@api_router.get("/tenants", response_model=List[Tenant])
+async def get_tenants(current_user: User = Depends(get_current_user)):
+    """Lista todos os tenants - apenas super admins podem ver todos"""
+    if current_user.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas super administradores podem listar tenants"
+        )
+    
+    tenants = await db.tenants.find().to_list(1000)
+    return [Tenant(**tenant) for tenant in tenants]
+
+@api_router.get("/tenants/{tenant_id}", response_model=Tenant)
+async def get_tenant(tenant_id: str, current_user: User = Depends(get_current_user)):
+    """Busca um tenant específico"""
+    # Super admin pode ver qualquer tenant, usuário normal só o próprio
+    if current_user.role != "super_admin" and get_current_tenant_id() != tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado ao tenant solicitado"
+        )
+    
+    tenant_doc = await db.tenants.find_one({"id": tenant_id})
+    if not tenant_doc:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    return Tenant(**tenant_doc)
+
+@api_router.post("/tenants", response_model=Tenant)
+async def create_tenant(
+    tenant_data: TenantCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Cria um novo tenant - apenas super admins"""
+    if current_user.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas super administradores podem criar tenants"
+        )
+    
+    # Verificar se subdomain já existe
+    existing_tenant = await db.tenants.find_one({"subdomain": tenant_data.subdomain})
+    if existing_tenant:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Subdomínio '{tenant_data.subdomain}' já está em uso"
+        )
+    
+    # Verificar se email de contato já existe
+    existing_email = await db.tenants.find_one({"contact_email": tenant_data.contact_email})
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Email de contato '{tenant_data.contact_email}' já está em uso"
+        )
+    
+    # Aplicar configurações do plano
+    tenant_dict = tenant_data.dict()
+    tenant_dict = apply_plan_limits(tenant_dict, tenant_data.plan)
+    tenant_dict["created_by"] = current_user.id
+    
+    # Criar tenant
+    tenant = Tenant(**tenant_dict)
+    await db.tenants.insert_one(tenant.dict())
+    
+    # Criar usuário administrador do tenant
+    admin_user_dict = {
+        "id": str(uuid.uuid4()),
+        "tenant_id": tenant.id,
+        "name": tenant_data.admin_name,
+        "email": tenant_data.admin_email,
+        "role": "admin",
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "password_hash": get_password_hash(tenant_data.admin_password)
+    }
+    
+    await db.users.insert_one(admin_user_dict)
+    
+    log_advanced_error(
+        ErrorLevel.INFO,
+        ErrorCategory.SYSTEM,
+        f"Novo tenant criado: {tenant.name} ({tenant.subdomain})",
+        user_email=current_user.email,
+        details={"tenant_id": tenant.id, "admin_email": tenant_data.admin_email, "plan": tenant.plan}
+    )
+    
+    return tenant
+
+@api_router.put("/tenants/{tenant_id}", response_model=Tenant)
+async def update_tenant(
+    tenant_id: str,
+    tenant_update: TenantUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Atualiza um tenant"""
+    # Super admin pode editar qualquer tenant, admin pode editar apenas o próprio
+    if current_user.role != "super_admin":
+        if current_user.role != "admin" or get_current_tenant_id() != tenant_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sem permissão para editar este tenant"
+            )
+    
+    # Buscar tenant existente
+    tenant_doc = await db.tenants.find_one({"id": tenant_id})
+    if not tenant_doc:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    # Preparar dados de atualização
+    update_data = {k: v for k, v in tenant_update.dict().items() if v is not None}
+    
+    # Se mudou o plano, aplicar novos limites
+    if "plan" in update_data:
+        update_data = apply_plan_limits(update_data, update_data["plan"])
+    
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["last_modified_by"] = current_user.id
+    
+    # Atualizar tenant
+    result = await db.tenants.update_one(
+        {"id": tenant_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    # Buscar tenant atualizado
+    updated_tenant = await db.tenants.find_one({"id": tenant_id})
+    
+    log_advanced_error(
+        ErrorLevel.INFO,
+        ErrorCategory.SYSTEM,
+        f"Tenant atualizado: {updated_tenant['name']}",
+        user_email=current_user.email,
+        details={"tenant_id": tenant_id, "changes": list(update_data.keys())}
+    )
+    
+    return Tenant(**updated_tenant)
+
+@api_router.post("/tenants/{tenant_id}/suspend")
+async def suspend_tenant(
+    tenant_id: str,
+    reason: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Suspende um tenant - apenas super admins"""
+    if current_user.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas super administradores podem suspender tenants"
+        )
+    
+    result = await db.tenants.update_one(
+        {"id": tenant_id},
+        {
+            "$set": {
+                "status": TenantStatus.SUSPENDED,
+                "updated_at": datetime.utcnow(),
+                "last_modified_by": current_user.id
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    log_advanced_error(
+        ErrorLevel.WARNING,
+        ErrorCategory.SYSTEM,
+        f"Tenant suspenso: {tenant_id}",
+        user_email=current_user.email,
+        details={"tenant_id": tenant_id, "reason": reason}
+    )
+    
+    return {"message": f"Tenant suspenso com sucesso. Motivo: {reason}"}
+
+@api_router.post("/tenants/{tenant_id}/activate")
+async def activate_tenant(
+    tenant_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Reativa um tenant suspenso - apenas super admins"""
+    if current_user.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas super administradores podem reativar tenants"
+        )
+    
+    result = await db.tenants.update_one(
+        {"id": tenant_id},
+        {
+            "$set": {
+                "status": TenantStatus.ACTIVE,
+                "updated_at": datetime.utcnow(),
+                "last_modified_by": current_user.id
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    log_advanced_error(
+        ErrorLevel.INFO,
+        ErrorCategory.SYSTEM,
+        f"Tenant reativado: {tenant_id}",
+        user_email=current_user.email,
+        details={"tenant_id": tenant_id}
+    )
+    
+    return {"message": "Tenant reativado com sucesso"}
+
+@api_router.get("/tenants/{tenant_id}/stats")
+async def get_tenant_stats(
+    tenant_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Busca estatísticas de uso de um tenant"""
+    # Super admin pode ver qualquer tenant, admin pode ver apenas o próprio
+    if current_user.role != "super_admin":
+        if current_user.role != "admin" or get_current_tenant_id() != tenant_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sem permissão para ver estatísticas deste tenant"
+            )
+    
+    # Buscar tenant
+    tenant_doc = await db.tenants.find_one({"id": tenant_id})
+    if not tenant_doc:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado")
+    
+    # Calcular estatísticas
+    tenant_filter = {"tenant_id": tenant_id}
+    
+    stats = {
+        "tenant_info": {
+            "id": tenant_id,
+            "name": tenant_doc["name"],
+            "plan": tenant_doc["plan"],
+            "status": tenant_doc["status"],
+            "created_at": tenant_doc["created_at"]
+        },
+        "usage": {
+            "current_users": await db.users.count_documents(tenant_filter),
+            "current_licenses": await db.licenses.count_documents(tenant_filter),
+            "current_clients_pf": await db.clientes_pf.count_documents(tenant_filter),
+            "current_clients_pj": await db.clientes_pj.count_documents(tenant_filter),
+            "categories": await db.categories.count_documents(tenant_filter),
+            "products": await db.products.count_documents(tenant_filter)
+        },
+        "limits": {
+            "max_users": tenant_doc.get("max_users", 0),
+            "max_licenses": tenant_doc.get("max_licenses", 0),
+            "max_clients": tenant_doc.get("max_clients", 0)
+        },
+        "features": tenant_doc.get("features", {}),
+        "compliance": {}
+    }
+    
+    # Calcular compliance com limites
+    usage = stats["usage"]
+    limits = stats["limits"]
+    
+    stats["compliance"] = {
+        "users_ok": usage["current_users"] <= limits["max_users"] if limits["max_users"] > 0 else True,
+        "licenses_ok": usage["current_licenses"] <= limits["max_licenses"] if limits["max_licenses"] > 0 else True,
+        "clients_ok": (usage["current_clients_pf"] + usage["current_clients_pj"]) <= limits["max_clients"] if limits["max_clients"] > 0 else True
+    }
+    
+    return stats
+
+@api_router.get("/my-tenant", response_model=Tenant)
+async def get_my_tenant(current_user: User = Depends(get_current_user)):
+    """Retorna informações do tenant do usuário atual"""
+    tenant_id = get_current_tenant_id()
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="Tenant não encontrado no contexto")
+    
+    tenant_doc = await db.tenants.find_one({"id": tenant_id})
+    if not tenant_doc:
+        # Se não existe tenant, criar um padrão para migração
+        default_tenant = {
+            "id": "default",
+            "name": "AutoTech Services - Sistema Principal",
+            "subdomain": "autotech",
+            "contact_email": "admin@autotech.com",
+            "status": TenantStatus.ACTIVE,
+            "plan": TenantPlan.ENTERPRISE,
+            "max_users": -1,  # Ilimitado
+            "max_licenses": -1,  # Ilimitado
+            "max_clients": -1,  # Ilimitado
+            "features": get_plan_config(TenantPlan.ENTERPRISE)["features"],
+            "created_at": datetime.utcnow(),
+            "is_active": True
+        }
+        
+        await db.tenants.insert_one(default_tenant)
+        tenant_doc = default_tenant
+    
+    return Tenant(**tenant_doc)
+
 # ================================
 # HELPER FUNCTIONS FOR SALES DASHBOARD
 # ================================
