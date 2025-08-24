@@ -173,9 +173,14 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Tenant Selector */}
+            <div className="hidden lg:block">
+              <TenantSelector currentUser={user} />
+            </div>
+
             {/* User Role Badge */}
-            <Badge variant={user?.role === 'admin' ? 'default' : 'secondary'}>
-              {user?.role === 'admin' ? 'Admin' : 'Usuário'}
+            <Badge variant={user?.role === 'admin' ? 'default' : user?.role === 'super_admin' ? 'destructive' : 'secondary'}>
+              {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'Usuário'}
             </Badge>
 
             {/* User Dropdown */}
