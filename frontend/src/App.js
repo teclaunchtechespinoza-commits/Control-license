@@ -13,6 +13,7 @@ import RegistryModule from './components/RegistryModule';
 import ClientsModule from './components/ClientsModule';
 import MaintenanceModule from './components/MaintenanceModule';
 import SalesDashboard from './components/SalesDashboard';
+import TenantAdmin from './components/TenantAdmin';
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 import { HelpProvider } from './components/help/HelpProvider';
