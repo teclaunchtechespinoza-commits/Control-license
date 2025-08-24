@@ -134,7 +134,7 @@ const TenantAdmin = () => {
     
     setLoading(true);
     try {
-      await axios.post(`/api/tenants/${tenantId}/suspend`, null, {
+      await axios.post(`/tenants/${tenantId}/suspend`, null, {
         params: { reason }
       });
       fetchTenants();
