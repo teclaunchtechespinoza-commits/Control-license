@@ -70,7 +70,7 @@ const TenantAdmin = () => {
   const fetchTenants = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/tenants');
+      const response = await axios.get('/tenants');
       setTenants(response.data);
       setError(null);
     } catch (err) {
