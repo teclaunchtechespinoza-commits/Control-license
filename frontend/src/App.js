@@ -235,6 +235,14 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                <Route 
+                  path="/tenants" 
+                  element={
+                    <ProtectedRoute superAdminOnly>
+                      <TenantAdmin />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
               </Routes>
             </div>
