@@ -726,7 +726,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "UI Cleanup - Remove Emergent Badge and Alvarás Section"
+    - "Multi-Tenancy SaaS Implementation - Phase 1"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
