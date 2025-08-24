@@ -30,7 +30,7 @@ const TenantSelector = ({ currentUser }) => {
 
   const fetchMyTenant = async () => {
     try {
-      const response = await axios.get('/api/my-tenant');
+      const response = await axios.get('/my-tenant');
       setMyTenant(response.data);
     } catch (err) {
       console.error('Erro ao carregar tenant atual:', err);
