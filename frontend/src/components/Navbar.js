@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
 import { Button } from './ui/button';
+import TenantSelector from './TenantSelector';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
