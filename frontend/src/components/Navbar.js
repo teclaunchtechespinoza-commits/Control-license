@@ -45,10 +45,10 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 flex-shrink-0">
             <Link to="/dashboard" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
@@ -59,16 +59,16 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Navigation Links - Compacted */}
+          <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-3xl">
             <Link to="/dashboard">
               <Button
                 variant={isActive('/dashboard') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-1 px-2"
               >
                 <Home className="w-4 h-4" />
-                <span>Dashboard</span>
+                <span className="text-xs">Dashboard</span>
               </Button>
             </Link>
             
@@ -76,10 +76,10 @@ const Navbar = () => {
               <Button
                 variant={isActive('/licenses') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-1 px-2"
               >
                 <FileText className="w-4 h-4" />
-                <span>Minhas Licenças</span>
+                <span className="text-xs">Licenças</span>
               </Button>
             </Link>
 
@@ -87,10 +87,10 @@ const Navbar = () => {
               <Button
                 variant={isActive('/vendas') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-1 px-2"
               >
                 <TrendingUp className="w-4 h-4" />
-                <span>Dashboard Vendas</span>
+                <span className="text-xs">Vendas</span>
               </Button>
             </Link>
             
@@ -100,10 +100,10 @@ const Navbar = () => {
                   <Button
                     variant={isActive('/admin') ? 'default' : 'ghost'}
                     size="sm"
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 px-2"
                   >
                     <UserCog className="w-4 h-4" />
-                    <span>Admin</span>
+                    <span className="text-xs">Admin</span>
                   </Button>
                 </Link>
                 
@@ -111,10 +111,10 @@ const Navbar = () => {
                   <Button
                     variant={isActive('/clientes') ? 'default' : 'ghost'}
                     size="sm"
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 px-2"
                   >
                     <Users className="w-4 h-4" />
-                    <span>Clientes</span>
+                    <span className="text-xs">Clientes</span>
                   </Button>
                 </Link>
                 
@@ -122,10 +122,10 @@ const Navbar = () => {
                   <Button
                     variant={isActive('/cadastros') ? 'default' : 'ghost'}
                     size="sm"
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 px-2"
                   >
                     <Tag className="w-4 h-4" />
-                    <span>Cadastros</span>
+                    <span className="text-xs">Cadastros</span>
                   </Button>
                 </Link>
                 
@@ -133,10 +133,10 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-1 px-2"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Manutenção</span>
+                    <span className="text-xs">Manutenção</span>
                   </Button>
                 </Link>
               </>
@@ -147,10 +147,10 @@ const Navbar = () => {
                 <Button
                   variant={isActive('/tenants') ? 'default' : 'ghost'}
                   size="sm"
-                  className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                  className="flex items-center space-x-1 px-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
                 >
                   <Building className="w-4 h-4" />
-                  <span>Multi-Tenant</span>
+                  <span className="text-xs">Multi-Tenant</span>
                 </Button>
               </Link>
             )}
@@ -163,24 +163,27 @@ const Navbar = () => {
               }}
               variant="ghost"
               size="sm"
-              className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50"
-              title="Atualizar página e dados"
+              className="flex items-center space-x-1 px-2"
+              title="Atualizar Página"
             >
               <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">Atualizar</span>
+              <span className="text-xs hidden xl:inline">Atualizar</span>
             </Button>
           </div>
 
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
-            {/* Tenant Selector */}
-            <div className="hidden lg:block">
+          {/* User Menu - Compact */}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {/* Tenant Selector - Only for large screens */}
+            <div className="hidden xl:block">
               <TenantSelector currentUser={user} />
             </div>
 
-            {/* User Role Badge */}
-            <Badge variant={user?.role === 'admin' ? 'default' : user?.role === 'super_admin' ? 'destructive' : 'secondary'}>
-              {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'Usuário'}
+            {/* User Role Badge - Compact */}
+            <Badge 
+              variant={user?.role === 'admin' ? 'default' : user?.role === 'super_admin' ? 'destructive' : 'secondary'}
+              className="text-xs px-2 py-1"
+            >
+              {user?.role === 'super_admin' ? 'SA' : user?.role === 'admin' ? 'Admin' : 'User'}
             </Badge>
 
             {/* User Dropdown */}
