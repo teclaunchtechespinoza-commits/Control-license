@@ -500,6 +500,7 @@ async def get_user_permissions(user_email: str) -> List[str]:
     return list(all_permissions)
 
 class UserRole(str, Enum):
+    SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
     USER = "user"
 
