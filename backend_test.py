@@ -1170,7 +1170,10 @@ class LicenseManagementAPITester:
                 "name": "Unauthorized Tenant",
                 "subdomain": "unauthorized",
                 "contact_email": "test@unauthorized.com",
-                "plan": "FREE"
+                "plan": "free",
+                "admin_name": "Unauthorized Admin",
+                "admin_email": "unauthorized@test.com",
+                "admin_password": "password123"
             }
             self.run_test("POST /api/tenants (regular admin) - should fail", "POST", "tenants", 403, restricted_tenant_data, self.admin_token)
         else:
