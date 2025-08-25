@@ -163,7 +163,8 @@ const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false })
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="pt-16">
+      <QuickAccessPanel />
+      <div className="pt-16 pl-16">
         {children}
       </div>
     </div>
