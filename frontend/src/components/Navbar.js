@@ -217,6 +217,17 @@ const Navbar = ({ currentLayout, layouts, onLayoutChange }) => {
                       </DropdownMenuItem>
                     );
                   })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      localStorage.removeItem('preferredLayout');
+                      onLayoutChange('original');
+                    }}
+                    className="text-gray-500"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    <span>Resetar Layout</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
