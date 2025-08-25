@@ -52,8 +52,25 @@ const LayoutSwitcher = ({ children }) => {
 
   // Save layout preference
   const changeLayout = (layoutId) => {
-    setCurrentLayout(layoutId);
-    localStorage.setItem('preferredLayout', layoutId);
+    try {
+      // Validate layout ID
+      if (!layoutId || !layouts.find(l => l.id === layoutId)) {
+        console.warn('Invalid layout ID:', layoutId);
+        return;
+      }
+      
+      setCurrentLayout(layoutId);
+      localStorage.setItem('preferredLayout', layoutId);
+      
+      // Force page refresh for layout changes to take effect properly
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      console.error('Error changing layout:', error);
+      // Fallback to original layout
+      setCurrentLayout('original');
+    }
   };
 
   const getCurrentLayout = () => {
