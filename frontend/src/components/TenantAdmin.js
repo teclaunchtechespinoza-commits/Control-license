@@ -99,7 +99,7 @@ const TenantAdmin = () => {
         name: '',
         subdomain: '',
         contact_email: '',
-        plan: 'FREE',
+        plan: 'free',
         admin_name: '',
         admin_email: '',
         admin_password: ''
@@ -107,7 +107,33 @@ const TenantAdmin = () => {
       fetchTenants();
       setError(null);
     } catch (err) {
-      setError('Erro ao criar tenant: ' + (err.response?.data?.detail || err.message));
+      console.error('Erro ao criar tenant:', err.response?.data);
+      
+      let errorMessage = 'Erro ao criar tenant: ';
+      
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          // Pydantic validation errors
+          const errors = err.response.data.detail.map(error => {
+            if (error.loc && error.msg) {
+              const field = error.loc[error.loc.length - 1];
+              return `${field}: ${error.msg}`;
+            }
+            return error.msg || 'Erro de validação';
+          });
+          errorMessage += errors.join(', ');
+        } else {
+          errorMessage += err.response.data.detail;
+        }
+      } else if (err.response?.data?.message) {
+        errorMessage += err.response.data.message;
+      } else if (err.message) {
+        errorMessage += err.message;
+      } else {
+        errorMessage += 'Erro desconhecido';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
