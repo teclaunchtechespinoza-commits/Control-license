@@ -32,7 +32,7 @@ import {
   Grid3x3
 } from 'lucide-react';
 
-const Navbar = ({ currentLayout, layouts, onLayoutChange }) => {
+const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
@@ -46,17 +46,6 @@ const Navbar = ({ currentLayout, layouts, onLayoutChange }) => {
   };
 
   const isActive = (path) => location.pathname === path;
-
-  const layoutIcons = {
-    'original': Layout,
-    'sidebar': Menu,
-    'floating': Layers,
-    'cascade': Grid3x3
-  };
-
-  const getCurrentLayoutName = () => {
-    return layouts?.find(l => l.id === currentLayout)?.name || 'Clássico';
-  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
