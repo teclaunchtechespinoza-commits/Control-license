@@ -158,11 +158,19 @@ const LayoutSwitcher = ({ children }) => {
         <div className="relative">
           <button
             onClick={() => setShowSwitcher(!showSwitcher)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-2xl hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-110 transform"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-2xl hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-110 transform group"
             title="Trocar Layout"
           >
             <Settings className="w-5 h-5" />
+            
+            {/* Pulse animation to draw attention */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
           </button>
+
+          {/* Tooltip */}
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            4 Layouts Disponíveis
+          </div>
 
           {showSwitcher && <LayoutSwitcherMenu />}
         </div>
@@ -170,14 +178,19 @@ const LayoutSwitcher = ({ children }) => {
 
       {/* Layout Switcher Button - Alternative (Top Right) */}
       <div className="fixed top-20 right-4 z-50">
-        <div className="relative">
+        <div className="relative group">
           <button
             onClick={() => setShowSwitcher(!showSwitcher)}
-            className="bg-white/90 backdrop-blur-md text-gray-700 p-2 rounded-lg shadow-lg hover:bg-white transition-all border border-gray-200/50"
+            className="bg-white/95 backdrop-blur-md text-gray-700 p-2 rounded-lg shadow-lg hover:bg-white transition-all border border-gray-200/50 hover:border-blue-300"
             title="Layouts Disponíveis"
           >
             <Eye className="w-4 h-4" />
           </button>
+          
+          {/* Badge */}
+          <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">4</span>
+          </div>
         </div>
       </div>
 
