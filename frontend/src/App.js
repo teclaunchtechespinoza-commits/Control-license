@@ -15,6 +15,7 @@ import MaintenanceModule from './components/MaintenanceModule';
 import SalesDashboard from './components/SalesDashboard';
 import TenantAdmin from './components/TenantAdmin';
 import Navbar from './components/Navbar';
+import QuickAccessPanel from './components/QuickAccessPanel';
 import LoadingSpinner from './components/LoadingSpinner';
 import { HelpProvider } from './components/help/HelpProvider';
 
