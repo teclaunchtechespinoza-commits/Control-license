@@ -42,7 +42,7 @@ const TenantAdmin = () => {
   const [editForm, setEditForm] = useState({
     name: '',
     contact_email: '',
-    plan: 'FREE',
+    plan: 'free',
     max_users: 5,
     max_licenses: 100,
     max_clients: 50
