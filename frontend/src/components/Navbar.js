@@ -25,7 +25,11 @@ import {
   Users,
   RotateCcw,
   TrendingUp,
-  Building
+  Building,
+  Layout,
+  Menu,
+  Layers,
+  Grid3x3
 } from 'lucide-react';
 
 const Navbar = () => {
