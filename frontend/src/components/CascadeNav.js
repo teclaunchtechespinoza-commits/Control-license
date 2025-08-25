@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import TenantSelector from './TenantSelector';
 
-const CascadeNav = () => {
+const CascadeNav = ({ currentLayout, layouts, onLayoutChange }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [hoveredCard, setHoveredCard] = useState(null);
