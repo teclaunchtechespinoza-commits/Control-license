@@ -154,11 +154,11 @@ const LayoutSwitcher = ({ children }) => {
       </div>
 
       {/* Layout Switcher Button */}
-      <div className="fixed bottom-4 left-4 z-50">
+      <div className="fixed bottom-20 left-4 z-50">
         <div className="relative">
           <button
             onClick={() => setShowSwitcher(!showSwitcher)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-2xl hover:from-blue-700 hover:to-purple-700 transition-all"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-2xl hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-110 transform"
             title="Trocar Layout"
           >
             <Settings className="w-5 h-5" />
