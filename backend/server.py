@@ -171,7 +171,7 @@ def log_advanced_error(level: ErrorLevel, category: ErrorCategory, message: str,
         log_message += f" | Details: {details}"
         
     # Escrever para maintenance_logger
-    maintenance_logger.info(log_message)
+    maintenance_logger.info("TENANT_OPERATION", log_message)
     
     # Se for CRITICAL, também alertar no console
     if level == ErrorLevel.CRITICAL:
