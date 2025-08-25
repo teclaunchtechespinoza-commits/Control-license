@@ -81,11 +81,11 @@ const LayoutSwitcher = ({ children }) => {
         <CascadeNav />
         
         {/* Layout Switcher Button */}
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-20 right-6 z-50">
           <div className="relative">
             <button
               onClick={() => setShowSwitcher(!showSwitcher)}
-              className="bg-white/90 backdrop-blur-md text-gray-700 p-3 rounded-full shadow-2xl hover:bg-white transition-all border border-gray-200/50"
+              className="bg-white/95 backdrop-blur-md text-gray-700 p-3 rounded-xl shadow-2xl hover:bg-white transition-all border border-gray-200/50 hover:scale-105 transform"
               title="Trocar Layout"
             >
               <Eye className="w-5 h-5" />
