@@ -49,10 +49,10 @@ const TenantAdmin = () => {
   });
 
   const plans = [
-    { value: 'FREE', label: 'Gratuito', color: 'bg-gray-100 text-gray-800' },
-    { value: 'BASIC', label: 'Básico', color: 'bg-blue-100 text-blue-800' },
-    { value: 'PROFESSIONAL', label: 'Profissional', color: 'bg-purple-100 text-purple-800' },
-    { value: 'ENTERPRISE', label: 'Empresarial', color: 'bg-green-100 text-green-800' }
+    { value: 'free', label: 'Gratuito', color: 'bg-gray-100 text-gray-800' },
+    { value: 'basic', label: 'Básico', color: 'bg-blue-100 text-blue-800' },
+    { value: 'professional', label: 'Profissional', color: 'bg-purple-100 text-purple-800' },
+    { value: 'enterprise', label: 'Empresarial', color: 'bg-green-100 text-green-800' }
   ];
 
   const statuses = {
