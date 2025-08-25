@@ -187,7 +187,40 @@ const Navbar = ({ currentLayout, layouts, onLayoutChange }) => {
           </div>
 
           {/* User Menu - Compact */}
-          <div className="flex items-center space-x-2 flex-shrink-0">
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            
+            {/* Layout Switcher */}
+            {layouts && onLayoutChange && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-1 px-2">
+                    {React.createElement(layoutIcons[currentLayout] || Layout, { className: "w-4 h-4" })}
+                    <span className="text-xs hidden lg:inline">{getCurrentLayoutName()}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Layout da Interface</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {layouts.map((layout) => {
+                    const IconComponent = layoutIcons[layout.id] || Layout;
+                    return (
+                      <DropdownMenuItem
+                        key={layout.id}
+                        onClick={() => onLayoutChange(layout.id)}
+                        className={currentLayout === layout.id ? 'bg-blue-50 text-blue-700' : ''}
+                      >
+                        <IconComponent className="w-4 h-4 mr-2" />
+                        <span>{layout.name}</span>
+                        {currentLayout === layout.id && (
+                          <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full"></div>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             {/* Tenant Selector - Only for large screens */}
             <div className="hidden xl:block">
               <TenantSelector currentUser={user} />
