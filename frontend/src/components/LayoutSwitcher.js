@@ -34,9 +34,19 @@ const LayoutSwitcher = ({ children }) => {
 
   // Load saved layout preference
   useEffect(() => {
-    const savedLayout = localStorage.getItem('preferredLayout');
-    if (savedLayout && layouts.find(l => l.id === savedLayout)) {
-      setCurrentLayout(savedLayout);
+    try {
+      const savedLayout = localStorage.getItem('preferredLayout');
+      // Force original layout as default if no valid saved layout
+      if (savedLayout && layouts.find(l => l.id === savedLayout)) {
+        setCurrentLayout(savedLayout);
+      } else {
+        // Always default to original layout
+        setCurrentLayout('original');
+        localStorage.setItem('preferredLayout', 'original');
+      }
+    } catch (error) {
+      // Fallback to original if localStorage fails
+      setCurrentLayout('original');
     }
   }, []);
 
