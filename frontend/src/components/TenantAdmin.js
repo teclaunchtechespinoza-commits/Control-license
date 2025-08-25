@@ -33,7 +33,7 @@ const TenantAdmin = () => {
     name: '',
     subdomain: '',
     contact_email: '',
-    plan: 'FREE',
+    plan: 'free',
     admin_name: '',
     admin_email: '',
     admin_password: ''
