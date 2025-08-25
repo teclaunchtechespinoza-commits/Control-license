@@ -78,7 +78,8 @@ const TenantSelector = ({ currentUser }) => {
   };
 
   const getPlanInfo = (plan) => {
-    return plans[plan] || plans['FREE'];
+    const normalizedPlan = plan?.toUpperCase();
+    return plans[normalizedPlan] || plans['FREE'];
   };
 
   if (!myTenant) {
