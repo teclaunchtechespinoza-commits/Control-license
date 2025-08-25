@@ -55,6 +55,17 @@ const TenantAdmin = () => {
     { value: 'enterprise', label: 'Empresarial', color: 'bg-green-100 text-green-800' }
   ];
 
+  const getPlanInfo = (plan) => {
+    const normalizedPlan = plan?.toUpperCase();
+    const planMap = {
+      'FREE': plans[0],
+      'BASIC': plans[1], 
+      'PROFESSIONAL': plans[2],
+      'ENTERPRISE': plans[3]
+    };
+    return planMap[normalizedPlan] || plans[0];
+  };
+
   const statuses = {
     'ACTIVE': { label: 'Ativo', color: 'bg-green-100 text-green-800', icon: CheckCircle },
     'INACTIVE': { label: 'Inativo', color: 'bg-gray-100 text-gray-800', icon: Clock },
