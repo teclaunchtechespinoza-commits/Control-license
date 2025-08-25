@@ -4,51 +4,30 @@ import Navbar from './Navbar';
 import ModernSidebar from './ModernSidebar';
 import FloatingNav from './FloatingNav';
 import CascadeNav from './CascadeNav';
-import { 
-  Layout, 
-  Menu, 
-  Layers, 
-  Grid3x3, 
-  Settings,
-  Eye
-} from 'lucide-react';
 
 const LayoutSwitcher = ({ children }) => {
   const { user } = useAuth();
   const [currentLayout, setCurrentLayout] = useState('original');
-  const [showSwitcher, setShowSwitcher] = useState(false);
 
   const layouts = [
     {
       id: 'original',
-      name: 'Layout Original',
-      description: 'Navbar horizontal clássica',
-      icon: Layout,
-      color: 'bg-blue-600',
+      name: 'Clássico',
       component: Navbar
     },
     {
       id: 'sidebar',
-      name: 'Sidebar Moderna',
-      description: 'Menu lateral colapsável com contexto',
-      icon: Menu,
-      color: 'bg-green-600',
+      name: 'Sidebar',
       component: ModernSidebar
     },
     {
       id: 'floating',
-      name: 'Navegação Flutuante',
-      description: 'Header compacto + menu flutuante',
-      icon: Layers,
-      color: 'bg-purple-600',
+      name: 'Flutuante',
       component: FloatingNav
     },
     {
       id: 'cascade',
-      name: 'Navegação em Cascata',
-      description: 'Cards hierárquicos em níveis',
-      icon: Grid3x3,
-      color: 'bg-indigo-600',
+      name: 'Cascata',
       component: CascadeNav
     }
   ];
@@ -65,7 +44,6 @@ const LayoutSwitcher = ({ children }) => {
   const changeLayout = (layoutId) => {
     setCurrentLayout(layoutId);
     localStorage.setItem('preferredLayout', layoutId);
-    setShowSwitcher(false);
   };
 
   const getCurrentLayout = () => {
@@ -76,131 +54,23 @@ const LayoutSwitcher = ({ children }) => {
 
   // Special handling for cascade layout (full page)
   if (currentLayout === 'cascade') {
-    return (
-      <>
-        <CascadeNav />
-        
-        {/* Layout Switcher Button */}
-        <div className="fixed top-20 right-6 z-50">
-          <div className="relative">
-            <button
-              onClick={() => setShowSwitcher(!showSwitcher)}
-              className="bg-white/95 backdrop-blur-md text-gray-700 p-3 rounded-xl shadow-2xl hover:bg-white transition-all border border-gray-200/50 hover:scale-105 transform"
-              title="Trocar Layout"
-            >
-              <Eye className="w-5 h-5" />
-            </button>
-
-            {showSwitcher && <LayoutSwitcherMenu />}
-          </div>
-        </div>
-      </>
-    );
+    return <CascadeNav />;
   }
 
   // Regular layouts with navigation + content
-  const LayoutSwitcherMenu = () => (
-    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <h3 className="font-bold text-lg mb-1">Escolher Layout</h3>
-        <p className="text-sm opacity-90">Personalize sua experiência</p>
-      </div>
-      
-      <div className="p-2">
-        {layouts.map((layout) => (
-          <button
-            key={layout.id}
-            onClick={() => changeLayout(layout.id)}
-            className={`w-full flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors text-left ${
-              currentLayout === layout.id ? 'bg-blue-50 border border-blue-200' : ''
-            }`}
-          >
-            <div className={`w-10 h-10 ${layout.color} rounded-lg flex items-center justify-center mr-3`}>
-              <layout.icon className="w-5 h-5 text-white" />
-            </div>
-            
-            <div className="flex-1">
-              <div className={`font-medium ${currentLayout === layout.id ? 'text-blue-900' : 'text-gray-900'}`}>
-                {layout.name}
-              </div>
-              <div className={`text-sm ${currentLayout === layout.id ? 'text-blue-700' : 'text-gray-500'}`}>
-                {layout.description}
-              </div>
-            </div>
-            
-            {currentLayout === layout.id && (
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-            )}
-          </button>
-        ))}
-      </div>
-      
-      <div className="p-4 bg-gray-50 border-t">
-        <p className="text-xs text-gray-500 text-center">
-          Sua preferência será salva automaticamente
-        </p>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Component */}
-      <LayoutComponent />
+      {/* Pass layout controls to the navbar */}
+      <LayoutComponent 
+        currentLayout={currentLayout}
+        layouts={layouts}
+        onLayoutChange={changeLayout}
+      />
 
       {/* Main Content */}
       <div className={`${currentLayout === 'sidebar' ? '' : 'pt-16'} ${currentLayout === 'floating' ? 'pb-24' : ''}`}>
         {children}
       </div>
-
-      {/* Layout Switcher Button - Primary (Bottom Left) */}
-      <div className="fixed bottom-20 left-4 z-50">
-        <div className="relative">
-          <button
-            onClick={() => setShowSwitcher(!showSwitcher)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-2xl hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-110 transform group"
-            title="Trocar Layout"
-          >
-            <Settings className="w-5 h-5" />
-            
-            {/* Pulse animation to draw attention */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
-          </button>
-
-          {/* Tooltip */}
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            4 Layouts Disponíveis
-          </div>
-
-          {showSwitcher && <LayoutSwitcherMenu />}
-        </div>
-      </div>
-
-      {/* Layout Switcher Button - Alternative (Top Right) */}
-      <div className="fixed top-20 right-4 z-50">
-        <div className="relative group">
-          <button
-            onClick={() => setShowSwitcher(!showSwitcher)}
-            className="bg-white/95 backdrop-blur-md text-gray-700 p-2 rounded-lg shadow-lg hover:bg-white transition-all border border-gray-200/50 hover:border-blue-300"
-            title="Layouts Disponíveis"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          
-          {/* Badge */}
-          <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">4</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Overlay */}
-      {showSwitcher && (
-        <div 
-          className="fixed inset-0 z-40"
-          onClick={() => setShowSwitcher(false)}
-        />
-      )}
     </div>
   );
 };
