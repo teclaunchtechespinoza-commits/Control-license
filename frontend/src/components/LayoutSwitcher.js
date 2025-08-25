@@ -7,6 +7,7 @@ import CascadeNav from './CascadeNav';
 
 const LayoutSwitcher = ({ children }) => {
   const { user } = useAuth();
+  // Always start with original layout as default
   const [currentLayout, setCurrentLayout] = useState('original');
 
   const layouts = [
