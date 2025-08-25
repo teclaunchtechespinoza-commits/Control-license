@@ -272,8 +272,24 @@ const CascadeNav = ({ currentLayout, layouts, onLayoutChange }) => {
               </div>
             </div>
 
-            {/* User Info + Tenant */}
+            {/* User Info + Tenant + Layout Switcher */}
             <div className="flex items-center space-x-4">
+              
+              {/* Layout Switcher */}
+              {layouts && onLayoutChange && (
+                <select 
+                  value={currentLayout}
+                  onChange={(e) => onLayoutChange(e.target.value)}
+                  className="bg-white/80 border border-gray-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {layouts.map((layout) => (
+                    <option key={layout.id} value={layout.id}>
+                      {layout.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              
               {user?.role === 'super_admin' && (
                 <div className="hidden lg:block">
                   <TenantSelector currentUser={user} />
