@@ -153,7 +153,7 @@ const LayoutSwitcher = ({ children }) => {
         {children}
       </div>
 
-      {/* Layout Switcher Button */}
+      {/* Layout Switcher Button - Primary (Bottom Left) */}
       <div className="fixed bottom-20 left-4 z-50">
         <div className="relative">
           <button
@@ -165,6 +165,19 @@ const LayoutSwitcher = ({ children }) => {
           </button>
 
           {showSwitcher && <LayoutSwitcherMenu />}
+        </div>
+      </div>
+
+      {/* Layout Switcher Button - Alternative (Top Right) */}
+      <div className="fixed top-20 right-4 z-50">
+        <div className="relative">
+          <button
+            onClick={() => setShowSwitcher(!showSwitcher)}
+            className="bg-white/90 backdrop-blur-md text-gray-700 p-2 rounded-lg shadow-lg hover:bg-white transition-all border border-gray-200/50"
+            title="Layouts Disponíveis"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
