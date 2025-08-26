@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
+import axios from 'axios';
 import { Button } from './ui/button';
 import TenantSelector from './TenantSelector';
 import { 
