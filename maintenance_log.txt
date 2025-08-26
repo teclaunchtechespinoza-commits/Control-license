@@ -2,3 +2,4 @@
 [2025-08-26 03:05:40] [INFO] system - test_activity: {"action": "testing_log_generation", "user": "system_admin", "timestamp": "now"}
 [2025-08-26 03:05:40] [ERROR] system - test_error: {"error_type": "test"} ERROR: This is a test error
 [2025-08-26 03:05:40] [DEBUG] system - test_debug: {"debug_info": "testing debug logs"}
+[2025-08-26 03:06:43] [INFO] direct_test - test_from_app_dir: {"test": "testing from app directory"}
