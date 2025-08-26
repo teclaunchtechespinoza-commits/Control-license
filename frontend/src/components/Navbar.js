@@ -37,6 +37,25 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [licenseCount, setLicenseCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch license count on component mount
+  useEffect(() => {
+    const fetchLicenseCount = async () => {
+      try {
+        const response = await axios.get('/licenses');
+        setLicenseCount(response.data.length);
+      } catch (error) {
+        console.error('Error fetching license count:', error);
+        setLicenseCount(0); // Fallback to 0 if error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLicenseCount();
+  }, []);
 
   const getInitials = (name) => {
     return name
