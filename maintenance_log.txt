@@ -4,3 +4,5 @@
 [2025-08-26 03:09:14] [INFO] products - create_product_success: {"product_id": "b7e8f359-27a6-4cd7-b927-701a48533059", "product_name": "Produto DEFINITIVO Test", "insert_result": "68ad255a44fff037b51ffc8a"}
 [2025-08-26 03:09:31] [DEBUG] products - get_products_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com"}
 [2025-08-26 03:09:31] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
+[2025-08-26 03:10:53] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
+[2025-08-26 03:10:53] [INFO] system - notification_jobs_started: {"status": "operational", "worker_id": "notification_processor", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]}
