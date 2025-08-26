@@ -6,3 +6,7 @@
 [2025-08-26 03:09:31] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
 [2025-08-26 03:10:53] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
 [2025-08-26 03:10:53] [INFO] system - notification_jobs_started: {"status": "operational", "worker_id": "notification_processor", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]}
+[2025-08-26 03:16:48] [INFO] products - create_product_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com", "product_data": {"name": "Produto Teste Log", "version": "1.0.0", "description": "Produto criado para testar geração de logs", "category_id": null, "price": 99.99, "currency": "BRL", "features": ["test_feature"], "requirements": null}}
+[2025-08-26 03:16:48] [ERROR] products - create_product_duplicate: {"product_name": "Produto Teste Log", "existing_id": null} ERROR: Product with same name already exists
+[2025-08-26 03:16:48] [DEBUG] products - get_products_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com"}
+[2025-08-26 03:16:48] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
