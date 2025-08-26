@@ -5929,7 +5929,11 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1:
         test_type = sys.argv[1]
-        if test_type == "client-form-simplification":
+        if test_type == "super-admin-fix":
+            # Test the specific Super Admin permissions critical fix
+            success = tester.test_super_admin_permissions_critical_fix()
+            exit_code = 0 if success else 1
+        elif test_type == "client-form-simplification":
             exit_code = tester.run_client_form_simplification_tests()
         elif test_type == "license-fix":
             exit_code = tester.run_license_endpoint_fix_test()
@@ -5945,6 +5949,7 @@ if __name__ == "__main__":
             exit_code = tester.run_multi_tenancy_tests()
         else:
             print("Available test types:")
+            print("  super-admin-fix - Test Super Admin permissions critical fix")
             print("  client-form-simplification - Test client form simplification changes")
             print("  license-fix - Test license endpoint fix")
             print("  rbac - Test RBAC system")
