@@ -155,14 +155,31 @@ const Navbar = () => {
                       <Link key={item.path} to={item.path}>
                         <DropdownMenuItem className={`flex items-start space-x-3 py-3 ${
                           isActive(item.path) ? 'bg-blue-50 text-blue-700' : ''
-                        }`}>
-                          <item.icon className="w-4 h-4 mt-0.5 text-gray-500" />
+                        } ${item.special ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-l-4 border-purple-400' : ''}`}>
+                          <item.icon className={`w-4 h-4 mt-0.5 ${
+                            item.special ? 'text-purple-600' : 'text-gray-500'
+                          }`} />
                           <div className="flex-1">
-                            <div className="font-medium text-sm">{item.label}</div>
-                            <div className="text-xs text-gray-500">{item.description}</div>
+                            <div className={`font-medium text-sm flex items-center ${
+                              item.special ? 'text-purple-900' : ''
+                            }`}>
+                              {item.label}
+                              {item.special && (
+                                <span className="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                  SaaS
+                                </span>
+                              )}
+                            </div>
+                            <div className={`text-xs ${
+                              item.special ? 'text-purple-700' : 'text-gray-500'
+                            }`}>
+                              {item.description}
+                            </div>
                           </div>
                           {isActive(item.path) && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
+                            <div className={`w-2 h-2 rounded-full mt-1 ${
+                              item.special ? 'bg-purple-600' : 'bg-blue-600'
+                            }`}></div>
                           )}
                         </DropdownMenuItem>
                       </Link>
