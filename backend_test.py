@@ -2961,25 +2961,37 @@ class LicenseManagementAPITester:
             
             success, response = self.run_test("GET /api/maintenance/logs (after operations)", "GET", "maintenance/logs?lines=20", 200, token=self.super_admin_token)
             if success:
-                log_count = len(response) if isinstance(response, list) else 0
+                logs = response.get('logs', []) if isinstance(response, dict) else response
+                log_count = len(logs) if isinstance(logs, list) else 0
                 print(f"   ✅ Logs após operações: {log_count} entradas encontradas")
                 
                 # Look for recent logs related to our operations
                 recent_logs = []
-                for log_entry in response[:10]:  # Check first 10 logs
-                    message = log_entry.get('message', '').lower()
-                    if any(keyword in message for keyword in ['create_product', 'get_products', 'get_users', 'produto teste log']):
-                        recent_logs.append(log_entry)
+                for log_entry in logs[:10]:  # Check first 10 logs
+                    if isinstance(log_entry, str):
+                        message = log_entry.lower()
+                        if any(keyword in message for keyword in ['create_product', 'get_products', 'get_users', 'produto teste log']):
+                            recent_logs.append(log_entry)
+                    else:
+                        message = log_entry.get('message', '').lower()
+                        if any(keyword in message for keyword in ['create_product', 'get_products', 'get_users', 'produto teste log']):
+                            recent_logs.append(log_entry)
                 
                 if recent_logs:
                     print(f"   ✅ LOGS PERSISTEM: {len(recent_logs)} logs relacionados às operações encontrados")
                     for log in recent_logs[:3]:
-                        print(f"      - {log.get('message', 'N/A')[:80]}...")
+                        if isinstance(log, str):
+                            print(f"      - {log[:80]}...")
+                        else:
+                            print(f"      - {log.get('message', 'N/A')[:80]}...")
                 else:
                     print("   ⚠️ Não foram encontrados logs específicos das operações recentes")
                     print("   📝 Logs mais recentes:")
-                    for log in response[:3]:
-                        print(f"      - {log.get('message', 'N/A')[:80]}...")
+                    for log in logs[:3]:
+                        if isinstance(log, str):
+                            print(f"      - {log[:80]}...")
+                        else:
+                            print(f"      - {log.get('message', 'N/A')[:80]}...")
 
         # Test 5: Verificar Endpoints Críticos
         print("\n🔍 TESTE 5: Verificar Endpoints Críticos Continuam Funcionando")
