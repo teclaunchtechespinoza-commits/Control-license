@@ -109,9 +109,10 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo and Brand */}
+          
+          {/* Logo */}
           <div className="flex items-center space-x-3 flex-shrink-0">
             <Link to="/dashboard" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -123,127 +124,69 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Navigation Links - Compacted */}
-          <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-3xl">
-            <Link to="/dashboard">
-              <Button
-                variant={isActive('/dashboard') ? 'default' : 'ghost'}
-                size="sm"
-                className="flex items-center space-x-1 px-2"
-              >
-                <Home className="w-4 h-4" />
-                <span className="text-xs">Dashboard</span>
-              </Button>
-            </Link>
-            
-            <Link to="/licenses">
-              <Button
-                variant={isActive('/licenses') ? 'default' : 'ghost'}
-                size="sm"
-                className="flex items-center space-x-1 px-2"
-              >
-                <FileText className="w-4 h-4" />
-                <span className="text-xs">Licenças</span>
-              </Button>
-            </Link>
-
-            <Link to="/vendas">
-              <Button
-                variant={isActive('/vendas') ? 'default' : 'ghost'}
-                size="sm"
-                className="flex items-center space-x-1 px-2"
-              >
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-xs">Vendas</span>
-              </Button>
-            </Link>
-            
-            {user?.role === 'admin' && (
-              <>
-                <Link to="/admin">
-                  <Button
-                    variant={isActive('/admin') ? 'default' : 'ghost'}
-                    size="sm"
-                    className="flex items-center space-x-1 px-2"
-                  >
-                    <UserCog className="w-4 h-4" />
-                    <span className="text-xs">Admin</span>
-                  </Button>
-                </Link>
-                
-                <Link to="/clientes">
-                  <Button
-                    variant={isActive('/clientes') ? 'default' : 'ghost'}
-                    size="sm"
-                    className="flex items-center space-x-1 px-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    <span className="text-xs">Clientes</span>
-                  </Button>
-                </Link>
-                
-                <Link to="/cadastros">
-                  <Button
-                    variant={isActive('/cadastros') ? 'default' : 'ghost'}
-                    size="sm"
-                    className="flex items-center space-x-1 px-2"
-                  >
-                    <Tag className="w-4 h-4" />
-                    <span className="text-xs">Cadastros</span>
-                  </Button>
-                </Link>
-                
-                <Link to="/manutencao">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center space-x-1 px-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span className="text-xs">Manutenção</span>
-                  </Button>
-                </Link>
-              </>
-            )}
-            
-            {user?.role === 'super_admin' && (
-              <Link to="/tenants">
-                <Button
-                  variant={isActive('/tenants') ? 'default' : 'ghost'}
-                  size="sm"
-                  className="flex items-center space-x-1 px-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                >
-                  <Building className="w-4 h-4" />
-                  <span className="text-xs">Multi-Tenant</span>
-                </Button>
-              </Link>
-            )}
-            
-            {/* Global Refresh Button */}
-            <Button
-              onClick={() => {
-                console.log('Global refresh triggered');
-                window.location.reload();
-              }}
-              variant="ghost"
-              size="sm"
-              className="flex items-center space-x-1 px-2"
-              title="Atualizar Página"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span className="text-xs hidden xl:inline">Atualizar</span>
-            </Button>
+          {/* Navigation Groups */}
+          <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
+            {allGroups.map((group) => (
+              <div key={group.id} className="relative">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className={`flex items-center space-x-2 px-3 py-2 ${
+                        group.special ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200' : ''
+                      }`}
+                    >
+                      <group.icon className={`w-4 h-4 ${group.color}`} />
+                      <span className="text-sm font-medium">{group.label}</span>
+                      {group.badge && (
+                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                          {group.badge}
+                        </span>
+                      )}
+                      <ChevronDown className="w-3 h-3 text-gray-400" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent align="center" className="w-64">
+                    <DropdownMenuLabel className="flex items-center space-x-2">
+                      <group.icon className={`w-4 h-4 ${group.color}`} />
+                      <span>{group.label}</span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    {group.items.map((item) => (
+                      <Link key={item.path} to={item.path}>
+                        <DropdownMenuItem className={`flex items-start space-x-3 py-3 ${
+                          isActive(item.path) ? 'bg-blue-50 text-blue-700' : ''
+                        }`}>
+                          <item.icon className="w-4 h-4 mt-0.5 text-gray-500" />
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{item.label}</div>
+                            <div className="text-xs text-gray-500">{item.description}</div>
+                          </div>
+                          {isActive(item.path) && (
+                            <div className="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
+                          )}
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
           </div>
 
-          {/* User Menu - Compact */}
+          {/* User Menu */}
           <div className="flex items-center space-x-3 flex-shrink-0">
             
-            {/* Tenant Selector - Only for large screens */}
-            <div className="hidden xl:block">
-              <TenantSelector currentUser={user} />
-            </div>
+            {/* Tenant Selector */}
+            {user?.role === 'super_admin' && (
+              <div className="hidden lg:block">
+                <TenantSelector currentUser={user} />
+              </div>
+            )}
 
-            {/* User Role Badge - Compact */}
+            {/* User Role Badge */}
             <Badge 
               variant={user?.role === 'admin' ? 'default' : user?.role === 'super_admin' ? 'destructive' : 'secondary'}
               className="text-xs px-2 py-1"
@@ -276,75 +219,23 @@ const Navbar = () => {
                 <DropdownMenuSeparator />
                 
                 {/* Mobile Navigation Items */}
-                <div className="lg:hidden">
-                  <Link to="/dashboard">
-                    <DropdownMenuItem>
-                      <Home className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to="/licenses">
-                    <DropdownMenuItem>
-                      <FileText className="mr-2 h-4 w-4" />
-                      <span>Minhas Licenças</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to="/vendas">
-                    <DropdownMenuItem>
-                      <TrendingUp className="mr-2 h-4 w-4" />
-                      <span>Dashboard Vendas</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  {user?.role === 'admin' && (
-                    <>
-                      <Link to="/admin">
-                        <DropdownMenuItem>
-                          <UserCog className="mr-2 h-4 w-4" />
-                          <span>Admin</span>
-                        </DropdownMenuItem>
-                      </Link>
-                      <Link to="/clientes">
-                        <DropdownMenuItem>
-                          <Users className="mr-2 h-4 w-4" />
-                          <span>Clientes</span>
-                        </DropdownMenuItem>
-                      </Link>
-                      <Link to="/cadastros">
-                        <DropdownMenuItem>
-                          <Tag className="mr-2 h-4 w-4" />
-                          <span>Cadastros</span>
-                        </DropdownMenuItem>
-                      </Link>
-                      <Link to="/manutencao">
-                        <DropdownMenuItem>
-                          <FileText className="mr-2 h-4 w-4" />
-                          <span>Manutenção</span>
-                        </DropdownMenuItem>
-                      </Link>
-                    </>
-                  )}
-                  {user?.role === 'super_admin' && (
-                    <Link to="/tenants">
-                      <DropdownMenuItem>
-                        <Building className="mr-2 h-4 w-4" />
-                        <span>Multi-Tenant</span>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  <DropdownMenuSeparator />
-                </div>
-
-                {/* Tenant Selector for Mobile/Tablet */}
-                <div className="xl:hidden mb-2">
-                  {user?.role === 'super_admin' && (
-                    <>
-                      <DropdownMenuLabel>Tenant Atual</DropdownMenuLabel>
-                      <div className="px-2 py-1">
-                        <TenantSelector currentUser={user} />
-                      </div>
+                <div className="md:hidden">
+                  {allGroups.map((group) => (
+                    <div key={group.id}>
+                      <DropdownMenuLabel className="text-xs text-gray-500 uppercase tracking-wider">
+                        {group.label}
+                      </DropdownMenuLabel>
+                      {group.items.map((item) => (
+                        <Link key={item.path} to={item.path}>
+                          <DropdownMenuItem>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.label}</span>
+                          </DropdownMenuItem>
+                        </Link>
+                      ))}
                       <DropdownMenuSeparator />
-                    </>
-                  )}
+                    </div>
+                  ))}
                 </div>
                 
                 <DropdownMenuItem>
