@@ -2902,17 +2902,22 @@ class LicenseManagementAPITester:
         if hasattr(self, 'super_admin_token'):
             success, response = self.run_test("GET /api/maintenance/logs", "GET", "maintenance/logs?lines=10", 200, token=self.super_admin_token)
             if success:
-                log_count = len(response) if isinstance(response, list) else 0
-                print(f"   ✅ Logs endpoint working: {log_count} log entries found")
+                logs = response.get('logs', []) if isinstance(response, dict) else response
+                log_count = len(logs) if isinstance(logs, list) else 0
+                total_lines = response.get('total_lines', 0) if isinstance(response, dict) else 0
+                print(f"   ✅ Logs endpoint working: {log_count} log entries found (total: {total_lines})")
                 
                 if log_count > 0:
                     print("   ✅ LOGS NÃO ESTÃO VAZIOS - Sistema de logs funcionando!")
                     print("   📝 Últimas entradas de log:")
-                    for i, log_entry in enumerate(response[:3]):  # Show first 3 logs
-                        timestamp = log_entry.get('timestamp', 'N/A')
-                        message = log_entry.get('message', 'N/A')
-                        level = log_entry.get('level', 'N/A')
-                        print(f"      {i+1}. [{timestamp}] [{level}] {message[:80]}...")
+                    for i, log_entry in enumerate(logs[:3]):  # Show first 3 logs
+                        if isinstance(log_entry, str):
+                            print(f"      {i+1}. {log_entry[:80]}...")
+                        else:
+                            timestamp = log_entry.get('timestamp', 'N/A')
+                            message = log_entry.get('message', 'N/A')
+                            level = log_entry.get('level', 'N/A')
+                            print(f"      {i+1}. [{timestamp}] [{level}] {message[:80]}...")
                 else:
                     print("   ❌ PROBLEMA PERSISTE: Logs ainda estão vazios!")
                     return False
