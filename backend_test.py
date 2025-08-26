@@ -5947,6 +5947,8 @@ if __name__ == "__main__":
             exit_code = tester.run_notification_system_tests()
         elif test_type == "multi-tenancy":
             exit_code = tester.run_multi_tenancy_tests()
+        elif test_type == "logging":
+            exit_code = tester.run_critical_logging_test()
         else:
             print("Available test types:")
             print("  super-admin-fix - Test Super Admin permissions critical fix")
@@ -5957,6 +5959,7 @@ if __name__ == "__main__":
             print("  sales - Test sales dashboard")
             print("  notifications - Test notification system")
             print("  multi-tenancy - Test multi-tenancy system")
+            print("  logging - Test logging system fix")
             exit_code = 1
     else:
         # Run the client form simplification test by default for this review
