@@ -37,9 +37,6 @@ const TenantSelector = ({ currentUser }) => {
       // Definir header X-Tenant-ID para próximas requisições
       axios.defaults.headers.common['X-Tenant-ID'] = tenantId;
       
-      // Atualizar contexto local
-      const selectedTenant = availableTenants.find(t => t.id === tenantId);
-      setMyTenant(selectedTenant);
       setIsOpen(false);
       
       // Recarregar página para aplicar o novo contexto de tenant
