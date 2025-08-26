@@ -85,7 +85,7 @@ const Navbar = () => {
       label: 'Licenças',
       icon: FileText,
       color: 'text-green-600', 
-      badge: '6',
+      badge: loading ? '...' : licenseCount > 0 ? licenseCount.toString() : null,
       items: [
         { label: 'Minhas Licenças', path: '/licenses', icon: FileText, description: 'Licenças do usuário' },
         { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
