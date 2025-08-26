@@ -60,7 +60,7 @@ const TenantSelector = ({ currentUser }) => {
     return plans[normalizedPlan] || plans['FREE'];
   };
 
-  if (!myTenant) {
+  if (!myTenant || tenantLoading) {
     return (
       <div className="flex items-center space-x-2 text-gray-500">
         <Building className="w-4 h-4 animate-pulse" />
