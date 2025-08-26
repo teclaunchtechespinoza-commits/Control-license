@@ -69,6 +69,14 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Helper function to format badge count
+  const formatBadgeCount = (count) => {
+    if (count === 0) return null;
+    if (count < 100) return count.toString();
+    if (count < 1000) return count.toString();
+    return '999+'; // Show 999+ for very large numbers
+  };
+
   const navigationGroups = [
     {
       id: 'overview',
@@ -85,9 +93,14 @@ const Navbar = () => {
       label: 'Licenças',
       icon: FileText,
       color: 'text-green-600', 
-      badge: loading ? '...' : licenseCount > 0 ? licenseCount.toString() : null,
+      badge: loading ? '...' : formatBadgeCount(licenseCount),
       items: [
-        { label: 'Minhas Licenças', path: '/licenses', icon: FileText, description: 'Licenças do usuário' },
+        { 
+          label: 'Minhas Licenças', 
+          path: '/licenses', 
+          icon: FileText, 
+          description: loading ? 'Carregando...' : `${licenseCount} licenças no sistema`
+        },
         { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
       ]
     }
