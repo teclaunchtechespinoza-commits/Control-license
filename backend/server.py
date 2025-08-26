@@ -122,10 +122,7 @@ def apply_data_masking(client_data: dict, user_role: str, license_reference: str
     
     return masked_data
 
-# Import maintenance logger from parent directory
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import maintenance logger
 from maintenance_logger import MaintenanceLogger
 
 # Initialize maintenance logger
