@@ -88,7 +88,9 @@ const Navbar = () => {
           label: 'Minhas Licenças', 
           path: '/licenses', 
           icon: FileText, 
-          description: loading ? 'Carregando...' : `${licenseCount} licenças no sistema`
+          description: licensesLoading ? 'Carregando...' : 
+                      licensesError ? 'Erro ao carregar' : 
+                      `${licenseCount} licenças no sistema`
         },
         { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
       ]
