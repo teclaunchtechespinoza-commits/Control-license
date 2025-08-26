@@ -36,6 +36,7 @@ import {
 const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const getInitials = (name) => {
     return name
@@ -47,6 +48,64 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+
+  const navigationGroups = [
+    {
+      id: 'overview',
+      label: 'Visão Geral',
+      icon: Home,
+      color: 'text-blue-600',
+      items: [
+        { label: 'Dashboard', path: '/dashboard', icon: BarChart3, description: 'Painel principal' },
+        { label: 'Métricas', path: '/vendas', icon: TrendingUp, description: 'Vendas e relatórios' }
+      ]
+    },
+    {
+      id: 'licenses',
+      label: 'Licenças',
+      icon: FileText,
+      color: 'text-green-600', 
+      badge: '6',
+      items: [
+        { label: 'Minhas Licenças', path: '/licenses', icon: FileText, description: 'Licenças do usuário' },
+        { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
+      ]
+    }
+  ];
+
+  const adminGroups = (user?.role === 'admin' || user?.role === 'super_admin') ? [
+    {
+      id: 'management',
+      label: 'Administração',
+      icon: UserCog,
+      color: 'text-orange-600',
+      items: [
+        { label: 'Painel Admin', path: '/admin', icon: UserCog, description: 'Gestão de usuários' },
+        { label: 'Clientes', path: '/clientes', icon: Users, description: 'PF e PJ' },
+        { label: 'Cadastros', path: '/cadastros', icon: Tag, description: 'Categorias e produtos' },
+        { label: 'Manutenção', path: '/manutencao', icon: Activity, description: 'Logs do sistema' }
+      ]
+    }
+  ] : [];
+
+  const superAdminGroups = (user?.role === 'super_admin') ? [
+    {
+      id: 'tenants',
+      label: 'Multi-Tenant',
+      icon: Building,
+      color: 'text-purple-600',
+      special: true,
+      items: [
+        { label: 'Gerenciar Tenants', path: '/tenants', icon: Building, description: 'Sistema SaaS' }
+      ]
+    }
+  ] : [];
+
+  const allGroups = [...navigationGroups, ...adminGroups, ...superAdminGroups];
+
+  const toggleDropdown = (groupId) => {
+    setActiveDropdown(activeDropdown === groupId ? null : groupId);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
