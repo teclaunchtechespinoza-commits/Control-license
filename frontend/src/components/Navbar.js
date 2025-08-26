@@ -82,7 +82,7 @@ const Navbar = () => {
       label: 'Licenças',
       icon: FileText,
       color: 'text-green-600', 
-      badge: loading ? '...' : formatBadgeCount(licenseCount),
+      badge: licensesLoading ? '...' : formatBadgeCount(licenseCount),
       items: [
         { 
           label: 'Minhas Licenças', 
