@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { initializePreloader } from './utils/preloader';
 import { FooterVersion } from './components/VersionControl';
 import { toast, Toaster } from 'sonner';
 
