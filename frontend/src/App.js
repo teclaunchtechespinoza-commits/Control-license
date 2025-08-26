@@ -93,6 +93,9 @@ const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(userData);
       
+      // Initialize preloader after successful login
+      initializePreloader();
+      
       toast.success(`Welcome back, ${userData.name}!`);
       console.log('Login completado com sucesso');
       
