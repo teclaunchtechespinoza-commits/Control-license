@@ -15,7 +15,9 @@ from notification_system import (
     get_default_template, calculate_notification_trigger_dates
 )
 
-# Import maintenance logger
+# Import maintenance logger from parent directory
+import sys
+sys.path.insert(0, '/app')
 from maintenance_logger import MaintenanceLogger
 
 # Initialize maintenance logger
