@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
 import { Button } from './ui/button';
@@ -26,10 +26,11 @@ import {
   RotateCcw,
   TrendingUp,
   Building,
-  Layout,
-  Menu,
-  Layers,
-  Grid3x3
+  ChevronDown,
+  BarChart3,
+  Activity,
+  Eye,
+  Package
 } from 'lucide-react';
 
 const Navbar = () => {
