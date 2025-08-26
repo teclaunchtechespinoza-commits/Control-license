@@ -131,13 +131,19 @@ const Navbar = () => {
                       variant="ghost"
                       className={`flex items-center space-x-2 px-3 py-2 ${
                         group.special ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200' : ''
-                      }`}
+                      } ${group.id === 'management' && user?.role === 'super_admin' ? 'relative' : ''}`}
                     >
                       <group.icon className={`w-4 h-4 ${group.color}`} />
                       <span className="text-sm font-medium">{group.label}</span>
                       {group.badge && (
                         <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
                           {group.badge}
+                        </span>
+                      )}
+                      {/* Super Admin indicator for Administration group */}
+                      {group.id === 'management' && user?.role === 'super_admin' && (
+                        <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded-full">
+                          SA+
                         </span>
                       )}
                       <ChevronDown className="w-3 h-3 text-gray-400" />
