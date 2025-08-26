@@ -1272,6 +1272,65 @@ async def startup_event():
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# System Stats Endpoint
+class SystemStats(BaseModel):
+    total_users: int
+    total_licenses: int
+    total_clients: int
+    total_categories: int
+    total_products: int
+    active_users: int
+    expired_licenses: int
+    pending_licenses: int
+    system_status: str = "operational"
+
+@api_router.get("/stats", response_model=SystemStats)
+async def get_system_stats(current_user: User = Depends(get_current_user)):
+    """Get system-wide statistics"""
+    try:
+        # Apply tenant filter for data isolation
+        tenant_filter = add_tenant_filter({})
+        
+        # Count documents
+        total_users = await db.users.count_documents(tenant_filter)
+        total_licenses = await db.licenses.count_documents(tenant_filter)
+        
+        # Count clients (PF + PJ)
+        pf_clients = await db.clientes_pf.count_documents(tenant_filter)
+        pj_clients = await db.clientes_pj.count_documents(tenant_filter)
+        total_clients = pf_clients + pj_clients
+        
+        total_categories = await db.categories.count_documents({**tenant_filter, "is_active": True})
+        total_products = await db.products.count_documents({**tenant_filter, "is_active": True})
+        
+        # Active users
+        active_users = await db.users.count_documents({**tenant_filter, "is_active": True})
+        
+        # License stats
+        expired_licenses = await db.licenses.count_documents({
+            **tenant_filter, 
+            "status": "expired"
+        })
+        pending_licenses = await db.licenses.count_documents({
+            **tenant_filter, 
+            "status": "pending"
+        })
+        
+        return SystemStats(
+            total_users=total_users,
+            total_licenses=total_licenses,
+            total_clients=total_clients,
+            total_categories=total_categories,
+            total_products=total_products,
+            active_users=active_users,
+            expired_licenses=expired_licenses,
+            pending_licenses=pending_licenses,
+            system_status="operational"
+        )
+    except Exception as e:
+        logger.error(f"Error getting system stats: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving system statistics")
+
 # User Management Routes (keeping existing)
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user: User = Depends(get_current_admin_user)):
