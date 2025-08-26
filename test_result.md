@@ -105,6 +105,17 @@
 user_problem_statement: "Complete License Management System with comprehensive PJ (Pessoa Jurídica) client management. The system needs secure authentication, multi-user functionality, and detailed client registration including CNPJ validation, company information, addresses, legal representatives, and integration with license management."
 
 backend:
+  - task: "Super Admin Permissions Critical Fix"
+    implemented: true  
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLEMA CRÍTICO IDENTIFICADO: Super Admin superadmin@autotech.com tem 0 permissões devido ao campo 'rbac' não estar definido no banco de dados. CORREÇÕES APLICADAS: 1) ✅ Atribuído role 'Super Admin' (ID: 93abaa51-ccb1-444c-a2a2-c9d51699a9a0) ao usuário superadmin@autotech.com com rbac.roles=[role_id], rbac.is_active=true, 2) ✅ Criado endpoint /api/stats que estava faltando e causando erro 404 Not Found, 3) ✅ Verificado que permissão wildcard (*) existe no banco com ID: d41512c9-6776-47ec-b983-cbb7d6fff706. PRÓXIMO PASSO: Testar se endpoints /api/rbac/roles, /api/rbac/permissions, /api/maintenance/logs e /api/stats agora funcionam corretamente para o usuário Super Admin."
   - task: "License Endpoint Pydantic Validation Fix"
     implemented: true
     working: true
