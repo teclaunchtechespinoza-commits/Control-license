@@ -2851,6 +2851,190 @@ class LicenseManagementAPITester:
             print(f"   Success rate: {success_rate:.1f}% - {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def test_super_admin_and_logging_system(self):
+        """Test Super Admin login and logging system as requested in review"""
+        print("\n" + "="*80)
+        print("TESTE COMPLETO - SUPER ADMIN E SISTEMA DE LOGS")
+        print("="*80)
+        print("🎯 CONTEXTO: Usuário reportou dois problemas principais:")
+        print("   1. ✅ Sistema não está operacional - JÁ RESOLVIDO (Super Admin permissions)")
+        print("   2. ❓ Sistema de log está sem mensagens - ACABOU DE SER CORRIGIDO")
+        print("")
+        print("🔧 CORREÇÃO APLICADA PARA LOGS:")
+        print("   - Identificado conflito de importação: backend usava MaintenanceLogger local")
+        print("   - Corrigida importação em server.py e notification_jobs.py")
+        print("   - Removido arquivo local conflitante")
+        print("   - Agora logs são escritos em /app/maintenance_log.txt")
+        print("")
+        print("🧪 TESTE ESPECÍFICO NECESSÁRIO:")
+        print("   1. Login Super Admin: superadmin@autotech.com / superadmin123")
+        print("   2. Verificar Logs Funcionando: GET /api/maintenance/logs deve retornar mensagens")
+        print("   3. Gerar Novos Logs: Fazer operações que geram logs")
+        print("   4. Confirmar Logs Persistem: Verificar se logs aparecem no endpoint")
+        print("   5. Verificar Endpoints Críticos: /api/rbac/roles, /api/stats")
+        print("   6. Teste Completo do Sistema: Verificar se sistema está 100% operacional")
+        print("="*80)
+        
+        # Test 1: Super Admin Login
+        print("\n🔍 TESTE 1: Login Super Admin")
+        super_admin_credentials = {
+            "email": "superadmin@autotech.com",
+            "password": "superadmin123"
+        }
+        success, response = self.run_test("Super Admin login", "POST", "auth/login", 200, super_admin_credentials)
+        if success and 'access_token' in response:
+            self.super_admin_token = response['access_token']
+            print(f"   ✅ Super Admin token obtained: {self.super_admin_token[:20]}...")
+            
+            # Verify super admin details
+            success_me, response_me = self.run_test("Super Admin auth/me", "GET", "auth/me", 200, token=self.super_admin_token)
+            if success_me:
+                print(f"   ✅ Super Admin verified:")
+                print(f"      - Email: {response_me.get('email', 'N/A')}")
+                print(f"      - Name: {response_me.get('name', 'N/A')}")
+                print(f"      - Role: {response_me.get('role', 'N/A')}")
+        else:
+            print("   ❌ CRITICAL: Super Admin authentication failed!")
+            return False
+
+        # Test 2: Verificar Logs Funcionando
+        print("\n🔍 TESTE 2: Verificar Sistema de Logs Funcionando")
+        if hasattr(self, 'super_admin_token'):
+            success, response = self.run_test("GET /api/maintenance/logs", "GET", "maintenance/logs?lines=10", 200, token=self.super_admin_token)
+            if success:
+                log_count = len(response) if isinstance(response, list) else 0
+                print(f"   ✅ Logs endpoint working: {log_count} log entries found")
+                
+                if log_count > 0:
+                    print("   ✅ LOGS NÃO ESTÃO VAZIOS - Sistema de logs funcionando!")
+                    print("   📝 Últimas entradas de log:")
+                    for i, log_entry in enumerate(response[:3]):  # Show first 3 logs
+                        timestamp = log_entry.get('timestamp', 'N/A')
+                        message = log_entry.get('message', 'N/A')
+                        level = log_entry.get('level', 'N/A')
+                        print(f"      {i+1}. [{timestamp}] [{level}] {message[:80]}...")
+                else:
+                    print("   ❌ PROBLEMA PERSISTE: Logs ainda estão vazios!")
+                    return False
+            else:
+                print("   ❌ CRITICAL: Logs endpoint failed!")
+                return False
+
+        # Test 3: Gerar Novos Logs (Fazer operações que geram logs)
+        print("\n🔍 TESTE 3: Gerar Novos Logs - Operações que Geram Logs")
+        if hasattr(self, 'super_admin_token'):
+            # Create a product to generate logs
+            product_data = {
+                "name": "Produto Teste Log",
+                "version": "1.0.0",
+                "description": "Produto criado para testar geração de logs",
+                "price": 99.99,
+                "currency": "BRL",
+                "features": ["test_feature"]
+            }
+            success, response = self.run_test("Create product (generate logs)", "POST", "products", 200, product_data, self.super_admin_token)
+            if success and 'id' in response:
+                self.test_product_id = response['id']
+                print(f"   ✅ Produto criado para gerar logs: {self.test_product_id}")
+            
+            # Get products to generate more logs
+            success, response = self.run_test("Get products (generate logs)", "GET", "products", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Busca de produtos executada: {len(response)} produtos encontrados")
+            
+            # Get users to generate logs
+            success, response = self.run_test("Get users (generate logs)", "GET", "users", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Busca de usuários executada: {len(response)} usuários encontrados")
+
+        # Test 4: Confirmar Logs Persistem
+        print("\n🔍 TESTE 4: Confirmar que Novos Logs Aparecem no Endpoint")
+        if hasattr(self, 'super_admin_token'):
+            # Wait a moment for logs to be written
+            import time
+            time.sleep(2)
+            
+            success, response = self.run_test("GET /api/maintenance/logs (after operations)", "GET", "maintenance/logs?lines=20", 200, token=self.super_admin_token)
+            if success:
+                log_count = len(response) if isinstance(response, list) else 0
+                print(f"   ✅ Logs após operações: {log_count} entradas encontradas")
+                
+                # Look for recent logs related to our operations
+                recent_logs = []
+                for log_entry in response[:10]:  # Check first 10 logs
+                    message = log_entry.get('message', '').lower()
+                    if any(keyword in message for keyword in ['create_product', 'get_products', 'get_users', 'produto teste log']):
+                        recent_logs.append(log_entry)
+                
+                if recent_logs:
+                    print(f"   ✅ LOGS PERSISTEM: {len(recent_logs)} logs relacionados às operações encontrados")
+                    for log in recent_logs[:3]:
+                        print(f"      - {log.get('message', 'N/A')[:80]}...")
+                else:
+                    print("   ⚠️ Não foram encontrados logs específicos das operações recentes")
+                    print("   📝 Logs mais recentes:")
+                    for log in response[:3]:
+                        print(f"      - {log.get('message', 'N/A')[:80]}...")
+
+        # Test 5: Verificar Endpoints Críticos
+        print("\n🔍 TESTE 5: Verificar Endpoints Críticos Continuam Funcionando")
+        if hasattr(self, 'super_admin_token'):
+            # Test /api/rbac/roles
+            success, response = self.run_test("GET /api/rbac/roles", "GET", "rbac/roles", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ RBAC Roles endpoint: {len(response)} roles encontrados")
+            else:
+                print("   ❌ RBAC Roles endpoint failed!")
+                return False
+            
+            # Test /api/stats
+            success, response = self.run_test("GET /api/stats", "GET", "stats", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Stats endpoint working:")
+                print(f"      - Total users: {response.get('total_users', 0)}")
+                print(f"      - Total licenses: {response.get('total_licenses', 0)}")
+                print(f"      - Total clients: {response.get('total_clients', 0)}")
+                print(f"      - System status: {response.get('system_status', 'N/A')}")
+            else:
+                print("   ❌ Stats endpoint failed!")
+                return False
+            
+            # Test /api/rbac/permissions
+            success, response = self.run_test("GET /api/rbac/permissions", "GET", "rbac/permissions", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ RBAC Permissions endpoint: {len(response)} permissions encontradas")
+            else:
+                print("   ❌ RBAC Permissions endpoint failed!")
+                return False
+
+        # Test 6: Teste Completo do Sistema
+        print("\n🔍 TESTE 6: Teste Completo do Sistema - Verificar 100% Operacional")
+        if hasattr(self, 'super_admin_token'):
+            # Test maintenance logs stats
+            success, response = self.run_test("GET /api/maintenance/stats", "GET", "maintenance/stats", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Maintenance stats:")
+                print(f"      - Total logs: {response.get('total_logs', 0)}")
+                print(f"      - Error count: {response.get('error_count', 0)}")
+                print(f"      - Warning count: {response.get('warning_count', 0)}")
+            
+            # Test categories
+            success, response = self.run_test("GET /api/categories", "GET", "categories", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Categories endpoint: {len(response)} categories")
+            
+            # Test clients PF
+            success, response = self.run_test("GET /api/clientes-pf", "GET", "clientes-pf", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Clientes PF endpoint: {len(response)} clients")
+            
+            # Test clients PJ
+            success, response = self.run_test("GET /api/clientes-pj", "GET", "clientes-pj", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Clientes PJ endpoint: {len(response)} clients")
+
+        return True
+
     def run_critical_logging_test(self):
         """Run the critical logging system test as requested in review"""
         print("🚀 TESTE CRÍTICO - SISTEMA DE LOGS CORRIGIDO")
