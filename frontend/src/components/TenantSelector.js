@@ -10,41 +10,21 @@ import {
 } from 'lucide-react';
 
 const TenantSelector = ({ currentUser }) => {
-  const [myTenant, setMyTenant] = useState(null);
-  const [availableTenants, setAvailableTenants] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Use cached API calls
+  const { data: myTenant, loading: tenantLoading, error: tenantError } = useApiCache('/my-tenant', [currentUser?.id]);
+  const { data: availableTenants, loading: tenantsLoading } = useApiCache(
+    currentUser?.role === 'super_admin' ? '/tenants' : null, 
+    [currentUser?.role]
+  );
 
   const plans = {
     'FREE': { label: 'Gratuito', color: 'text-gray-600', bgColor: 'bg-gray-50' },
     'BASIC': { label: 'Básico', color: 'text-blue-600', bgColor: 'bg-blue-50' },
     'PROFESSIONAL': { label: 'Profissional', color: 'text-purple-600', bgColor: 'bg-purple-50' },
     'ENTERPRISE': { label: 'Empresarial', color: 'text-green-600', bgColor: 'bg-green-50' }
-  };
-
-  useEffect(() => {
-    fetchMyTenant();
-    if (currentUser?.role === 'super_admin') {
-      fetchAvailableTenants();
-    }
-  }, [currentUser]);
-
-  const fetchMyTenant = async () => {
-    try {
-      const response = await axios.get('/my-tenant');
-      setMyTenant(response.data);
-    } catch (err) {
-      console.error('Erro ao carregar tenant atual:', err);
-    }
-  };
-
-  const fetchAvailableTenants = async () => {
-    try {
-      const response = await axios.get('/tenants');
-      setAvailableTenants(response.data);
-    } catch (err) {
-      console.error('Erro ao carregar tenants disponíveis:', err);
-    }
   };
 
   const handleTenantSwitch = async (tenantId) => {
