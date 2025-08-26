@@ -83,25 +83,22 @@ const Navbar = () => {
         { label: 'Painel Admin', path: '/admin', icon: UserCog, description: 'Gestão de usuários' },
         { label: 'Clientes', path: '/clientes', icon: Users, description: 'PF e PJ' },
         { label: 'Cadastros', path: '/cadastros', icon: Tag, description: 'Categorias e produtos' },
-        { label: 'Manutenção', path: '/manutencao', icon: Activity, description: 'Logs do sistema' }
+        { label: 'Manutenção', path: '/manutencao', icon: Activity, description: 'Logs do sistema' },
+        // Super Admin exclusive items integrated in the same group
+        ...(user?.role === 'super_admin' ? [
+          { 
+            label: 'Multi-Tenant SaaS', 
+            path: '/tenants', 
+            icon: Building, 
+            description: 'Gestão de tenants',
+            special: true 
+          }
+        ] : [])
       ]
     }
   ] : [];
 
-  const superAdminGroups = (user?.role === 'super_admin') ? [
-    {
-      id: 'tenants',
-      label: 'Multi-Tenant',
-      icon: Building,
-      color: 'text-purple-600',
-      special: true,
-      items: [
-        { label: 'Gerenciar Tenants', path: '/tenants', icon: Building, description: 'Sistema SaaS' }
-      ]
-    }
-  ] : [];
-
-  const allGroups = [...navigationGroups, ...adminGroups, ...superAdminGroups];
+  const allGroups = [...navigationGroups, ...adminGroups];
 
   const toggleDropdown = (groupId) => {
     setActiveDropdown(activeDropdown === groupId ? null : groupId);
