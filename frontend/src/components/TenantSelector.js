@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { useApiCache } from '../hooks/useApiCache';
 import { 
   Building, 
   ChevronDown, 
