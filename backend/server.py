@@ -1521,7 +1521,7 @@ async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
                 client["client_type"] = "pf"  # padrão
                 
             # Para usuários não-admin, aplicar mascaramento básico de CPF
-            if current_user.role != UserRole.ADMIN:
+            if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
                 cpf = client.get("cpf", "")
                 if len(cpf) >= 11:
                     client["cpf"] = cpf[:3] + "***" + cpf[-2:]
