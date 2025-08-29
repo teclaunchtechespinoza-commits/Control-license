@@ -207,6 +207,12 @@ export const VERSION_CONFIG = {
   // Histórico de versões
   versionHistory: [
     {
+      version: "1.3.1",
+      date: "2024-12-29", 
+      status: "stable",
+      description: "Fase 4 - Sistema robusto de autenticação frontend e proteção de rotas"
+    },
+    {
       version: "1.3.0",
       date: "2025-08-21", 
       status: "stable",
