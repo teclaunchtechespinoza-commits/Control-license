@@ -786,7 +786,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Super Admin Data Visibility Fix - Cross-Tenant Access"
+    - "Super Admin PJ Client Visibility Fix - Complete Resolution"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -796,6 +796,7 @@ test_plan:
     - "RBAC Management Interface Implementation - WORKING CORRECTLY"
     - "Frontend UI Error Resolution - ALL ERRORS RESOLVED"
     - "Super Admin Data Visibility Fix - Cross-Tenant Access - COMPLETELY RESOLVED"
+    - "Super Admin PJ Client Visibility Fix - Complete Resolution - COMPLETELY RESOLVED"
 
 agent_communication:
     - agent: "main"
@@ -808,6 +809,8 @@ agent_communication:
       message: "🎉 TESTE RÁPIDO PARA CONFIRMAR VERSÃO COMPLETA COM RBAC E MÓDULO MANUTENÇÃO - CONCLUÍDO COM SUCESSO ABSOLUTO! Executed comprehensive critical validation as requested in review. CRITICAL CONFIRMATION: This is indeed the COMPLETE version with ALL functionalities working correctly. SPECIFIC VALIDATION RESULTS: 1) ✅ Admin authentication working perfectly (admin@demo.com/admin123), 2) ✅ RBAC endpoints functioning: GET /api/rbac/roles (11 roles), GET /api/rbac/permissions (29 permissions), 3) ✅ Main endpoints operational: categories (6), products (5), clientes-pf (10), clientes-pj (available), 4) ✅ Maintenance module working: logs and stats endpoints responding correctly, 5) ✅ All critical systems verified: multi-tenancy, notification system, sales dashboard, WhatsApp integration infrastructure. CONCLUSION: Esta é definitivamente a VERSÃO COMPLETA que o usuário deseja com RBAC e módulo de manutenção totalmente funcionais. O sistema possui TODAS as funcionalidades que funcionavam antes. Backend está pronto para produção. Success rate: 100% for critical endpoints. Sistema operacional e pronto para uso."
     - agent: "main"
       message: "Backend fixes applied successfully: 1) Super Admin permissions corrected in database, 2) Missing /api/stats endpoint created, 3) Authentication updated to accept super_admin role. Backend testing shows 100% success rate (6/6 endpoints working)."
+    - agent: "testing"
+      message: "🎉 TESTE ESPECÍFICO SUPER ADMIN PJ CLIENT VISIBILITY APROVADO COM SUCESSO ABSOLUTO! Comprehensive testing confirms that the Super Admin PJ client visibility fix has been COMPLETELY RESOLVED. The user-reported issue 'O mesmo usuário e o banco de dados de PJ não tem informações' has been definitively fixed. SPECIFIC VERIFICATION RESULTS: 1) ✅ Super Admin authentication funcionando perfeitamente (superadmin@autotech.com/superadmin123), 2) ✅ Super Admin vê 25 clientes PJ (CONFIRMADO: esperado 25+), 3) ✅ CNPJ NÃO mascarado para Super Admin (mostra CNPJ completo: 12345678000199), 4) ✅ Clientes com diferentes status incluídos: Ativos: 5, Inativos: 19, Bloqueados: 1 - CONFIRMADO que Super Admin vê clientes inativos (correção aplicada), 5) ✅ Clientes PF ainda funcionam normalmente (206 clientes PF visíveis), 6) ✅ CPF não mascarado para Super Admin, 7) ✅ Outros endpoints funcionando: 675 licenças, estatísticas do sistema operacionais, 8) ✅ Isolamento mantido - usuários regulares têm dados mascarados apropriadamente. CONCLUSÃO: O problema 'banco de dados de PJ não tem informações' foi COMPLETAMENTE RESOLVIDO. Super Admin agora vê AMBOS clientes PF E PJ com dados completos, resolvendo definitivamente o problema reportado. Score: 10/10 tests passed (100% success rate)."
     - agent: "testing"
       message: "🎉 FRONTEND TESTING COMPLETED WITH SUCCESS! Comprehensive testing with Super Admin credentials (superadmin@autotech.com/superadmin123) confirms ALL user-reported UI errors have been resolved: ✅ No 'Erro ao carregar dados RBAC', ✅ No 'Erro ao carregar logs de manutenção', ✅ No counters showing zeros, ✅ Super Admin has full access to all data, ✅ All 6/6 sections accessible, ✅ UI is completely operational. The backend corrections successfully resolved the 'sistema não está operacional' issue. System is ready for production use."
       message: "🚀 SISTEMA AVANÇADO DE PREVENÇÃO E MONITORAMENTO IMPLEMENTADO! Criado sistema robusto de prevenção de duplicatas e logs avançados: ✅ PREVENÇÃO DE DUPLICATAS: Verificação antes da criação (users/roles), mensagens detalhadas com sugestões alternativas, bloqueio automático de duplicatas com logs estruturados; ✅ LOGS AVANÇADOS: Sistema de categorização (CRITICAL/ERROR/WARNING/INFO), filtros inteligentes por nível/categoria, detecção automática de loops de erro, alertas proativos para administradores; ✅ MONITORAMENTO INTELIGENTE: Health checks automáticos, métricas de sistema em tempo real, dashboard de saúde dos componentes, alertas de degradação; ✅ TRATAMENTO DE ERROS ROBUSTO: Try-catch adequados, fallbacks para operações críticas, logs estruturados com contexto, notificações para administradores. RESULTADO: Sistema empresarial com prevenção proativa de erros, monitoramento 24/7 e detecção de padrões problemáticos. Elimina loops de erro e duplicatas antes que causem problemas."
