@@ -4789,12 +4789,13 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"Database optimization skipped: {e}")
     
-    # Start notification background jobs
-    await start_notification_jobs(db)
-    maintenance_logger.info("system", "notification_jobs_started", {
-        "status": "operational",
-        "worker_id": "notification_processor",
-        "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]
+    # Start robust scheduler system  
+    await start_robust_scheduler()
+    maintenance_logger.info("scheduler", "robust_scheduler_started", {
+        "status": "operational", 
+        "scheduler_type": "apscheduler",
+        "persistence": "mongodb",
+        "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation", "auto_recovery", "cron_scheduling"]
     })
     logger.info("Notification jobs started")
 
