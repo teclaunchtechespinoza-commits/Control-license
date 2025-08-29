@@ -140,6 +140,25 @@ backend:
         - working: true
           agent: "testing"
           comment: "🎉 TESTE DE CORREÇÃO SUPER ADMIN DATA VISIBILITY APROVADO COM SUCESSO! Comprehensive testing confirms that the Super Admin data visibility fix has been COMPLETELY RESOLVED. SPECIFIC VERIFICATION RESULTS: 1) ✅ Super Admin authentication funcionando (superadmin@autotech.com/superadmin123), 2) ✅ Super Admin vê TODOS os dados do sistema: 675 licenças (esperado ~675), 308 produtos (esperado ~308), 81 categorias (esperado ~81), 206 clientes PF (esperado ~206), 211 usuários (esperado ~211), 3) ✅ CPF não mascarado para Super Admin (correção aplicada) - mostra CPF completo como 123***01, 4) ✅ Sistema de bypass cross-tenant funcionando - Super Admin vê dados de todos os tenants, 5) ✅ Isolamento por tenant ainda funciona para usuários regulares - admin@demo.com vê apenas 672 licenças vs 675 do Super Admin, 6) ✅ Estatísticas do sistema funcionando corretamente. CONCLUSÃO: O problema 'banco de dados sem dados' para Super Admin foi COMPLETAMENTE RESOLVIDO. Super Admin agora tem acesso total aos dados do sistema como esperado. Score: 8/8 tests passed (100% success rate)."
+
+  - task: "Super Admin PJ Client Visibility Fix - Complete Resolution"
+    implemented: true  
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "PROBLEMA REPORTADO PELO USUÁRIO: 'O mesmo usuário e o banco de dados de PJ não tem informações' - mesmo problema anterior, mas agora para clientes PJ (Pessoa Jurídica) ao invés de PF. Super Admin não conseguia ver clientes PJ enquanto outros usuários viam dados normalmente."
+        - working: false
+          agent: "main"
+          comment: "PROBLEMAS IDENTIFICADOS NO ENDPOINT /api/clientes-pj (idênticos aos PF): 1) ❌ Filtro de status excluindo clientes inativos (mas maioria está inativa), 2) ❌ Não incluía UserRole.SUPER_ADMIN nas verificações de admin, 3) ❌ CNPJ mascarado para Super Admin causando erros de validação. CORREÇÕES APLICADAS: 1) ✅ Modificado endpoint /api/clientes-pj para Super Admin ver todos os status (inclusive inativos), 2) ✅ Incluído UserRole.SUPER_ADMIN na verificação de permissões de admin, 3) ✅ Corrigido mascaramento de CNPJ para excluir UserRole.SUPER_ADMIN do mascaramento."
+        - working: true
+          agent: "testing"
+          comment: "🎉 TESTE ESPECÍFICO SUPER ADMIN PJ CLIENT VISIBILITY APROVADO COM SUCESSO ABSOLUTO! Comprehensive testing confirms that the Super Admin PJ client visibility fix has been COMPLETELY RESOLVED. SPECIFIC VERIFICATION RESULTS: 1) ✅ Super Admin authentication funcionando perfeitamente (superadmin@autotech.com/superadmin123), 2) ✅ Super Admin vê 25 clientes PJ (CONFIRMADO: esperado 25+), 3) ✅ CNPJ NÃO mascarado para Super Admin (mostra CNPJ completo: 12345678000199), 4) ✅ Clientes com diferentes status incluídos: Ativos: 5, Inativos: 19, Bloqueados: 1 - CONFIRMADO que Super Admin vê clientes inativos (correção aplicada), 5) ✅ Clientes PF ainda funcionam normalmente (206 clientes PF visíveis), 6) ✅ CPF não mascarado para Super Admin, 7) ✅ Outros endpoints funcionando: 675 licenças, estatísticas do sistema operacionais, 8) ✅ Isolamento mantido - usuários regulares têm dados mascarados apropriadamente. CONCLUSÃO: O problema 'banco de dados de PJ não tem informações' foi COMPLETAMENTE RESOLVIDO. Super Admin agora vê AMBOS clientes PF E PJ com dados completos, resolvendo definitivamente o problema reportado. Score: 10/10 tests passed (100% success rate)."
+
   - task: "License Endpoint Pydantic Validation Fix"
     implemented: true
     working: true
