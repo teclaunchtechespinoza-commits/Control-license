@@ -6408,3 +6408,38 @@ if __name__ == "__main__":
         exit_code = tester.run_client_form_simplification_tests()
     
     sys.exit(exit_code)
+if __name__ == "__main__":
+    import sys
+    
+    # Get the backend URL from environment or use default
+    backend_url = "https://tenantmanager.preview.emergentagent.com/api"
+    
+    tester = LicenseManagementAPITester(backend_url)
+    
+    # Check if specific test is requested
+    if len(sys.argv) > 1:
+        test_name = sys.argv[1]
+        
+        if test_name == "super_admin_fix":
+            print("🎯 EXECUTANDO TESTE ESPECÍFICO: SUPER ADMIN DATA VISIBILITY FIX")
+            success = tester.test_super_admin_data_visibility_fix()
+            sys.exit(0 if success else 1)
+        elif test_name == "rbac_maintenance":
+            print("🎯 EXECUTANDO TESTE ESPECÍFICO: RBAC E MANUTENÇÃO")
+            sys.exit(tester.run_critical_rbac_maintenance_validation())
+        elif test_name == "multi_tenancy":
+            print("🎯 EXECUTANDO TESTE ESPECÍFICO: MULTI-TENANCY SAAS")
+            success = tester.test_multi_tenancy_saas_implementation()
+            sys.exit(0 if success else 1)
+        elif test_name == "all":
+            print("🎯 EXECUTANDO TODOS OS TESTES")
+            sys.exit(tester.run_all_tests())
+        else:
+            print(f"❌ Teste desconhecido: {test_name}")
+            print("Testes disponíveis: super_admin_fix, rbac_maintenance, multi_tenancy, all")
+            sys.exit(1)
+    else:
+        # Default: Run the Super Admin fix test as requested in review
+        print("🎯 EXECUTANDO TESTE PADRÃO: SUPER ADMIN DATA VISIBILITY FIX")
+        success = tester.test_super_admin_data_visibility_fix()
+        sys.exit(0 if success else 1)
