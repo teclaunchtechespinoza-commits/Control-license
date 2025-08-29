@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete License Management System with comprehensive PJ (Pessoa Jurídica) client management. The system needs secure authentication, multi-user functionality, and detailed client registration including CNPJ validation, company information, addresses, legal representatives, and integration with license management."
+user_problem_statement: "NOVO PROBLEMA URGENTE: Novos cadastros de usuários estão falhando com erro 'Registration failed'. Sistema de registro não está funcionando corretamente, impedindo criação de novas contas de usuário."
 
   - task: "Sistema de Logs de Manutenção - Correção Crítica"
     implemented: true  
