@@ -199,9 +199,9 @@ class DatabaseOptimizer:
             IndexModel([("tenant_id", ASCENDING), ("cnpj", ASCENDING)], 
                       name="tenant_cnpj_idx", unique=True, sparse=True, background=True),
             
-            # CNPJ normalized for exact matches
-            IndexModel([("tenant_id", ASCENDING), ("cnpj_normalizado", ASCENDING)], 
-                      name="tenant_cnpj_norm_idx", unique=True, sparse=True, background=True),
+            # CNPJ normalized for exact matches (remove this problematic index)
+            # IndexModel([("tenant_id", ASCENDING), ("cnpj_normalizado", ASCENDING)], 
+            #           name="tenant_cnpj_norm_idx", unique=True, sparse=True, background=True),
             
             # Company name search within tenant
             IndexModel([("tenant_id", ASCENDING), ("razao_social", ASCENDING)], 
