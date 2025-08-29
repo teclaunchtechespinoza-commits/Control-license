@@ -109,3 +109,6 @@
 [2025-08-29 16:26:41] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-08-29 16:26:41] [INFO] scheduler - robust_scheduler_started: {"status": "operational", "scheduler_type": "apscheduler", "persistence": "mongodb", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation", "auto_recovery", "cron_scheduling"]}
 [2025-08-29 16:26:41] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.005023966666666667, "total_executions": 0}
+[2025-08-29 16:26:43] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
+[2025-08-29 16:26:43] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-08-29 16:26:43] [INFO] scheduler - robust_scheduler_started: {"status": "operational", "scheduler_type": "apscheduler", "persistence": "mongodb", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation", "auto_recovery", "cron_scheduling"]}
