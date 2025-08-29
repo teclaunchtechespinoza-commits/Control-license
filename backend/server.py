@@ -1287,6 +1287,32 @@ class SystemStats(BaseModel):
     pending_licenses: int
     system_status: str = "operational"
 
+# Robust scheduler status endpoint
+@api_router.get("/scheduler/status")
+async def get_scheduler_status(current_user: User = Depends(get_current_user)):
+    """Get current scheduler status and job information"""
+    try:
+        scheduler = await get_scheduler()
+        status = await scheduler.get_job_status()
+        
+        # Add database job persistence info
+        jobs_in_db = await db.scheduler_jobs.count_documents({})
+        status["jobs_persisted_in_db"] = jobs_in_db
+        
+        # Add health stats if available
+        health_stats = await db.scheduler_stats.find_one({"type": "current_stats"})
+        if health_stats:
+            # Remove MongoDB internal fields
+            health_stats.pop("_id", None)
+            health_stats.pop("type", None)
+            status["health_statistics"] = health_stats
+        
+        return status
+        
+    except Exception as e:
+        logger.error(f"Error getting scheduler status: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting scheduler status: {str(e)}")
+
 @api_router.get("/stats", response_model=SystemStats)
 async def get_system_stats(current_user: User = Depends(get_current_user)):
     """Get system-wide statistics"""
