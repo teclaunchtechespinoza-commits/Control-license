@@ -104,6 +104,22 @@
 
 user_problem_statement: "NOVO PROBLEMA URGENTE: Novos cadastros de usuários estão falhando com erro 'Registration failed'. Sistema de registro não está funcionando corretamente, impedindo criação de novas contas de usuário."
 
+backend:
+  - task: "User Registration System - Critical Fix"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "PROBLEMA CRÍTICO REPORTADO: Novos cadastros estão falhando com mensagem 'Registration failed' na interface. Usuário tentou cadastrar com nome 'Edson' e email 'espinozatecnico@gmail.com' mas sistema retornou erro. Precisa investigação urgente do endpoint de registro."
+
+agent_communication:
+    - agent: "main"
+      message: "Usuário reportou falha crítica no sistema de registro. Vou investigar o backend e testar o endpoint de cadastro para identificar a causa raiz do problema."
   - task: "Sistema de Logs de Manutenção - Correção Crítica"
     implemented: true  
     working: true
