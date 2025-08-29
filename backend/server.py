@@ -122,13 +122,19 @@ def apply_data_masking(client_data: dict, user_role: str, license_reference: str
     
     return masked_data
 
-# Import maintenance logger from parent directory
-import sys
-sys.path.insert(0, '/app')
-from maintenance_logger import MaintenanceLogger
+# Import structured logging system  
+from structured_logger import (
+    structured_logger, auth_logger, data_logger, audit_logger,
+    log_user_login, log_data_access, log_data_export, 
+    log_permission_change, log_system_error, EventCategory
+)
+from logging_middleware import (
+    StructuredLoggingMiddleware, PerformanceMonitoringMiddleware, 
+    ErrorLoggingMiddleware
+)
 
-# Initialize maintenance logger
-maintenance_logger = MaintenanceLogger()
+# Initialize structured logger
+maintenance_logger = structured_logger
 
 # Sistema de Prevenção de Duplicatas e Logs Avançados
 import traceback
