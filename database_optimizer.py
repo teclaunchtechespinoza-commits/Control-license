@@ -103,6 +103,46 @@ class DatabaseOptimizer:
                     logger.info(f"Removing {len(docs_to_remove)} duplicate email entries: {duplicate['_id']['email']}")
                     await self.db.users.delete_many({"_id": {"$in": docs_to_remove}})
             
+            # Clean duplicate category names within tenant
+            logger.info("Cleaning duplicate category names...")
+            
+            pipeline = [
+                {"$group": {
+                    "_id": {"tenant_id": "$tenant_id", "name": "$name"},
+                    "count": {"$sum": 1},
+                    "docs": {"$push": "$_id"}
+                }},
+                {"$match": {"count": {"$gt": 1}}}
+            ]
+            
+            duplicates = await self.db.categories.aggregate(pipeline).to_list(None)
+            
+            for duplicate in duplicates:
+                docs_to_remove = duplicate["docs"][1:]
+                if docs_to_remove:
+                    logger.info(f"Removing {len(docs_to_remove)} duplicate category entries: {duplicate['_id']['name']}")
+                    await self.db.categories.delete_many({"_id": {"$in": docs_to_remove}})
+            
+            # Clean duplicate product names within tenant
+            logger.info("Cleaning duplicate product names...")
+            
+            pipeline = [
+                {"$group": {
+                    "_id": {"tenant_id": "$tenant_id", "name": "$name"},
+                    "count": {"$sum": 1},
+                    "docs": {"$push": "$_id"}
+                }},
+                {"$match": {"count": {"$gt": 1}}}
+            ]
+            
+            duplicates = await self.db.products.aggregate(pipeline).to_list(None)
+            
+            for duplicate in duplicates:
+                docs_to_remove = duplicate["docs"][1:]
+                if docs_to_remove:
+                    logger.info(f"Removing {len(docs_to_remove)} duplicate product entries: {duplicate['_id']['name']}")
+                    await self.db.products.delete_many({"_id": {"$in": docs_to_remove}})
+            
             logger.info("✅ Duplicate data cleanup completed")
             
         except Exception as e:
