@@ -1477,10 +1477,14 @@ async def create_pessoa_fisica(
 @api_router.get("/clientes-pf", response_model=List[PessoaFisica])
 async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
     try:
-        # Buscar apenas clientes ativos por padrão  
-        query_filter = add_tenant_filter({"status": {"$ne": "inactive"}})
+        # Super Admin vê todos os clientes independente do status
+        if current_user.role == UserRole.SUPER_ADMIN:
+            query_filter = add_tenant_filter({})  # Ver todos, inclusive inativos
+        else:
+            # Outros usuários veem apenas clientes ativos
+            query_filter = add_tenant_filter({"status": {"$ne": "inactive"}})
         
-        if current_user.role == UserRole.ADMIN:
+        if current_user.role == UserRole.ADMIN or current_user.role == UserRole.SUPER_ADMIN:
             clients = await db.clientes_pf.find(query_filter).to_list(1000)
         else:
             clients = await db.clientes_pf.find(query_filter).to_list(1000)
