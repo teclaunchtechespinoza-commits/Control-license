@@ -4762,6 +4762,30 @@ async def startup_db_client():
     # Initialize RBAC system
     await initialize_rbac_system()
     
+    # Optimize database indexes (run only once or when needed)
+    try:
+        from minimal_optimizer import MinimalOptimizer
+        optimizer = MinimalOptimizer()
+        await optimizer.connect()
+        
+        # Check if optimization is needed (simple check for existing indexes)
+        collections = await optimizer.db.list_collection_names() 
+        if "licenses" in collections:
+            indexes = await optimizer.db.licenses.list_indexes().to_list(None)
+            has_tenant_index = any(idx.get("name") == "tenant_expires_idx" for idx in indexes)
+            
+            if not has_tenant_index:
+                logger.info("🗄️ Running database optimization...")
+                await optimizer.create_essential_indexes()
+                logger.info("✅ Database optimization completed")
+            else:
+                logger.info("✅ Database already optimized")
+        
+        await optimizer.close()
+        
+    except Exception as e:
+        logger.warning(f"Database optimization skipped: {e}")
+    
     # Start notification background jobs
     await start_notification_jobs(db)
     maintenance_logger.info("system", "notification_jobs_started", {
