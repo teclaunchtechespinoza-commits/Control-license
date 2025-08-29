@@ -133,8 +133,68 @@ from logging_middleware import (
     ErrorLoggingMiddleware
 )
 
-# Initialize structured logger
-maintenance_logger = structured_logger
+# Initialize structured logger with compatibility adapter
+class MaintenanceLoggerAdapter:
+    """Adapter for backward compatibility with old maintenance_logger calls"""
+    
+    def __init__(self, structured_logger):
+        self._logger = structured_logger
+    
+    def _convert_category(self, module: str) -> EventCategory:
+        """Convert old module names to EventCategory"""
+        category_map = {
+            "system": EventCategory.SYSTEM,
+            "auth": EventCategory.AUTH, 
+            "scheduler": EventCategory.SCHEDULER,
+            "jobs": EventCategory.SCHEDULER,
+            "health": EventCategory.HEALTH,
+            "notifications": EventCategory.NOTIFICATION,
+            "licenses": EventCategory.LICENSE,
+            "clients": EventCategory.CLIENT,
+            "rbac": EventCategory.RBAC,
+            "security": EventCategory.SECURITY,
+            "cleanup": EventCategory.SYSTEM
+        }
+        return category_map.get(module, EventCategory.SYSTEM)
+    
+    def info(self, module: str, action: str, details: dict):
+        """Compatibility method for info logs"""
+        self._logger.info(
+            self._convert_category(module),
+            action,
+            f"{module}: {action}",
+            details=details
+        )
+    
+    def error(self, module: str, action: str, details: dict, error_msg: str = None):
+        """Compatibility method for error logs"""
+        self._logger.error(
+            self._convert_category(module),
+            action,
+            f"{module}: {action}" + (f" - {error_msg}" if error_msg else ""),
+            details=details
+        )
+    
+    def warning(self, module: str, action: str, details: dict):
+        """Compatibility method for warning logs"""
+        self._logger.warning(
+            self._convert_category(module),
+            action,
+            f"{module}: {action}",
+            details=details
+        )
+    
+    def debug(self, module: str, action: str, details: dict):
+        """Compatibility method for debug logs"""
+        self._logger.debug(
+            self._convert_category(module),
+            action,
+            f"{module}: {action}",
+            details=details
+        )
+
+# Initialize with adapter
+maintenance_logger = MaintenanceLoggerAdapter(structured_logger)
 
 # Sistema de Prevenção de Duplicatas e Logs Avançados
 import traceback

@@ -142,3 +142,6 @@
 [2025-08-29 16:59:11] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-08-29 16:59:11] [INFO] scheduler - robust_scheduler_started: {"status": "operational", "scheduler_type": "apscheduler", "persistence": "mongodb", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation", "auto_recovery", "cron_scheduling"]}
 [2025-08-29 16:59:40] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.48549206666666667, "total_executions": 0}
+[2025-08-29 17:02:38] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-08-29 17:02:38] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.0016688166666666666, "total_executions": 0}
+[2025-08-29 17:02:44] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
