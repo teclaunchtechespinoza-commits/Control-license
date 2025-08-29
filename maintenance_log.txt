@@ -2,3 +2,20 @@
 [2025-08-26 03:20:46] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
 [2025-08-26 03:20:46] [DEBUG] products - get_products_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com"}
 [2025-08-26 03:20:46] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
+[2025-08-26 04:00:53] [INFO] notifications - expiry_check_started: {"worker_id": "worker_20250826_031053", "check_windows": [30, 7, 1], "timestamp": "2025-08-26T04:00:53.607111"}
+[2025-08-26 04:00:53] [INFO] notifications - licenses_detected: {"expiring_in_days": 7, "licenses_count": 1, "notification_type": "NotificationType.LICENSE_EXPIRING_7", "target_date": "2025-09-02"}
+[2025-08-26 04:00:53] [INFO] notifications - expiry_check_completed: {"worker_id": "worker_20250826_031053", "total_notifications_created": 1, "processing_duration": "completed", "status": "success"}
+[2025-08-28 11:22:00] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
+[2025-08-28 11:22:00] [INFO] system - notification_jobs_started: {"status": "operational", "worker_id": "notification_processor", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]}
+[2025-08-28 12:00:00] [INFO] notifications - expiry_check_started: {"worker_id": "worker_20250828_112200", "check_windows": [30, 7, 1], "timestamp": "2025-08-28T12:00:00.463101"}
+[2025-08-28 12:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 7, "licenses_count": 2, "notification_type": "NotificationType.LICENSE_EXPIRING_7", "target_date": "2025-09-04"}
+[2025-08-28 12:00:00] [INFO] notifications - expired_licenses_detected: {"expired_licenses_count": 30, "check_period": "last_7_days"}
+[2025-08-28 12:00:00] [INFO] notifications - expiry_check_completed: {"worker_id": "worker_20250828_112200", "total_notifications_created": 32, "processing_duration": "completed", "status": "success"}
+[2025-08-29 13:01:30] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
+[2025-08-29 13:01:30] [INFO] system - notification_jobs_started: {"status": "operational", "worker_id": "notification_processor", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]}
+[2025-08-29 13:02:49] [DEBUG] products - get_products_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com"}
+[2025-08-29 13:02:49] [DEBUG] products - get_products_start: {"user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f", "user_email": "superadmin@autotech.com"}
+[2025-08-29 13:02:49] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
+[2025-08-29 13:02:49] [INFO] products - get_products_success: {"count": 308, "user_id": "1013d196-5bd8-420c-b219-6d9d5d639e4f"}
+[2025-08-29 14:04:42] [INFO] system - multi_tenancy_initialized: {"default_tenant_created": true, "data_migration_completed": true, "tenant_isolation_active": true, "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]}
+[2025-08-29 14:04:42] [INFO] system - notification_jobs_started: {"status": "operational", "worker_id": "notification_processor", "features": ["license_expiry_detection", "multi_channel_alerts", "tenant_isolation"]}
