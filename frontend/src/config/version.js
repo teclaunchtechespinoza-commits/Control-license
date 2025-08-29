@@ -7,8 +7,8 @@ export const VERSION_CONFIG = {
   status: "stable", // "stable", "beta", "rc", "alpha", "dev"
   
   // Informações da versão
-  releaseDate: "2024-12-29",
-  buildNumber: "20241229001",
+  releaseDate: "2025-12-29",
+  buildNumber: "20251229001",
   
   // Informações da empresa e licenciamento
   company: {
@@ -78,7 +78,7 @@ export const VERSION_CONFIG = {
   // Changelog da versão atual
   changelog: {
     "1.3.1": {
-      date: "2024-12-29",
+      date: "2025-12-29",
       status: "stable",
       type: "minor", // "major", "minor", "patch", "hotfix"
       changes: {
@@ -100,7 +100,7 @@ export const VERSION_CONFIG = {
         changed: [
           "Sistema de versionamento atualizado com datas corretas",
           "Informações de versão refletem implementações atuais",
-          "Build number atualizado para 2024-12-29"
+          "Build number atualizado para 2025-12-29"
         ],
         improved: [
           "Fluxo de autenticação mais robusto e seguro",
@@ -208,7 +208,7 @@ export const VERSION_CONFIG = {
   versionHistory: [
     {
       version: "1.3.1",
-      date: "2024-12-29", 
+      date: "2025-12-29", 
       status: "stable",
       description: "Fase 4 - Sistema robusto de autenticação frontend e proteção de rotas"
     },
