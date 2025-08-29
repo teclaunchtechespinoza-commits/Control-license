@@ -4509,10 +4509,80 @@ LIGUE URGENTE: (11) 9999-9999
 app.include_router(api_router)
 # app.include_router(whatsapp_router)  # Real WhatsApp integration - Commented out to avoid circular import
 
+# Add structured logging middlewares (simplified integration)
+@app.middleware("http")
+async def structured_logging_middleware(request: Request, call_next):
+    """Simple structured logging middleware"""
+    import time
+    import uuid
+    
+    # Generate request ID
+    request_id = str(uuid.uuid4())
+    
+    # Start timing
+    start_time = time.time()
+    
+    try:
+        # Process request
+        response = await call_next(request)
+        
+        # Calculate duration
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Log request with structured logger
+        structured_logger.info(
+            EventCategory.SYSTEM,
+            "request_completed",
+            f"{request.method} {request.url.path} - {response.status_code}",
+            details={
+                "request_id": request_id,
+                "method": request.method,
+                "path": str(request.url.path),
+                "status_code": response.status_code,
+                "duration_ms": round(duration_ms, 2),
+                "query_params": dict(request.query_params),
+                "user_agent": request.headers.get('user-agent', 'unknown')[:100]
+            }
+        )
+        
+        # Log slow requests
+        if duration_ms > 1000:
+            structured_logger.warning(
+                EventCategory.SYSTEM,
+                "slow_request",
+                f"Slow request: {duration_ms:.2f}ms",
+                details={
+                    "request_id": request_id,
+                    "method": request.method,
+                    "path": str(request.url.path),
+                    "duration_ms": duration_ms
+                }
+            )
+        
+        return response
+        
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Log error
+        structured_logger.error(
+            EventCategory.SYSTEM,
+            "request_error", 
+            f"{request.method} {request.url.path} - Error",
+            error=e,
+            details={
+                "request_id": request_id,
+                "method": request.method,
+                "path": str(request.url.path),
+                "duration_ms": round(duration_ms, 2)
+            }
+        )
+        raise
+
 # Add structured logging middlewares
-app.add_middleware(ErrorLoggingMiddleware)
-app.add_middleware(PerformanceMonitoringMiddleware) 
-app.add_middleware(StructuredLoggingMiddleware)
+# app.add_middleware(ErrorLoggingMiddleware)
+# app.add_middleware(PerformanceMonitoringMiddleware) 
+# app.add_middleware(StructuredLoggingMiddleware)
 
 # CORS middleware
 app.add_middleware(
