@@ -3989,10 +3989,15 @@ async def create_license(
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(current_user: User = Depends(get_current_user)):
     try:
-        if current_user.role == UserRole.ADMIN:
-            licenses = await db.licenses.find().to_list(1000)
+        # Aplicar filtro de tenant (Super Admin vê tudo, outros veem apenas do seu tenant)
+        if current_user.role == UserRole.ADMIN or current_user.role == UserRole.SUPER_ADMIN:
+            # Admin/Super Admin veem todas as licenças do tenant (Super Admin vê de todos os tenants)
+            query_filter = add_tenant_filter({})
         else:
-            licenses = await db.licenses.find({"assigned_user_id": current_user.id}).to_list(1000)
+            # Usuário comum vê apenas suas licenças no tenant
+            query_filter = add_tenant_filter({"assigned_user_id": current_user.id})
+        
+        licenses = await db.licenses.find(query_filter).to_list(1000)
         
         # Clean up licenses data and handle missing required fields
         valid_licenses = []
