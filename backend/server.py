@@ -1205,7 +1205,9 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
 # Authentication Routes (keeping existing)
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
-    existing_user = await db.users.find_one({"email": user_data.email})
+    # Apply tenant filter for checking existing users
+    query_filter = add_tenant_filter({"email": user_data.email})
+    existing_user = await db.users.find_one(query_filter)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1215,6 +1217,9 @@ async def register(user_data: UserCreate):
     hashed_password = get_password_hash(user_data.password)
     user_dict = user_data.dict(exclude={"password"})
     user_dict["password_hash"] = hashed_password
+    
+    # Add tenant_id to user data using tenant helper
+    user_dict = add_tenant_to_document(user_dict)
     
     user = User(**user_dict)
     await db.users.insert_one(user.dict())
