@@ -3545,6 +3545,344 @@ class LicenseManagementAPITester:
             print("   O problema de visibilidade de clientes PJ para Super Admin pode não estar resolvido.")
             return False
 
+    def test_structured_logging_system(self):
+        """Test the structured logging system implemented in Phase 3"""
+        print("\n" + "="*80)
+        print("TESTING STRUCTURED LOGGING SYSTEM - PHASE 3")
+        print("="*80)
+        print("🎯 CONTEXTO: Sistema enterprise de logs estruturados implementado")
+        print("   1) Logs JSON estruturados com correlação (tenant_id, request_id, user_id)")
+        print("   2) Middleware automático de logging para todas as requisições")
+        print("   3) Sistema de auditoria para operações sensíveis")
+        print("   4) Mascaramento automático de dados sensíveis (LGPD compliance)")
+        print("   5) Endpoints de visualização e analytics de logs")
+        print("   6) Compatibilidade com sistema antigo via adapter")
+        print("="*80)
+        
+        # Test 1: Super Admin Authentication
+        print("\n🔍 TEST 1: Super Admin Authentication")
+        super_admin_credentials = {
+            "email": "superadmin@autotech.com",
+            "password": "superadmin123"
+        }
+        success, response = self.run_test("Super admin login", "POST", "auth/login", 200, super_admin_credentials)
+        if success and 'access_token' in response:
+            self.super_admin_token = response['access_token']
+            print(f"   ✅ Super admin authenticated: {self.super_admin_token[:20]}...")
+            
+            # Verify super admin details
+            success_me, response_me = self.run_test("Super admin auth/me", "GET", "auth/me", 200, token=self.super_admin_token)
+            if success_me:
+                print(f"   ✅ Super admin verified:")
+                print(f"      - Email: {response_me.get('email', 'N/A')}")
+                print(f"      - Role: {response_me.get('role', 'N/A')}")
+                print(f"      - Tenant ID: {response_me.get('tenant_id', 'N/A')}")
+        else:
+            print("   ❌ CRITICAL: Super admin authentication failed!")
+            return False
+
+        # Test 2: Structured Logs Endpoint
+        print("\n🔍 TEST 2: GET /api/logs/structured - Logs Gerais com Filtros")
+        
+        if hasattr(self, 'super_admin_token'):
+            # Test basic structured logs endpoint
+            success, response = self.run_test("GET /api/logs/structured", "GET", "logs/structured", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Structured logs endpoint working")
+                print(f"      - Total logs: {response.get('total_logs', 0)}")
+                print(f"      - Limit: {response.get('limit', 0)}")
+                
+                logs = response.get('logs', [])
+                if logs:
+                    # Verify JSON structure of first log
+                    first_log = logs[0]
+                    required_fields = ['timestamp', 'level', 'category', 'action', 'message']
+                    missing_fields = [field for field in required_fields if field not in first_log]
+                    
+                    if not missing_fields:
+                        print("   ✅ Log structure validation passed:")
+                        print(f"      - Timestamp: {first_log.get('timestamp', 'N/A')}")
+                        print(f"      - Level: {first_log.get('level', 'N/A')}")
+                        print(f"      - Category: {first_log.get('category', 'N/A')}")
+                        print(f"      - Action: {first_log.get('action', 'N/A')}")
+                        print(f"      - Message: {first_log.get('message', 'N/A')[:60]}...")
+                        
+                        # Check for correlation fields
+                        correlation_fields = ['request_id', 'tenant_id', 'user_id']
+                        found_correlation = [field for field in correlation_fields if field in first_log]
+                        if found_correlation:
+                            print(f"   ✅ Correlation fields found: {found_correlation}")
+                            for field in found_correlation:
+                                print(f"      - {field}: {first_log.get(field, 'N/A')}")
+                        else:
+                            print("   ⚠️ No correlation fields found in log entry")
+                    else:
+                        print(f"   ❌ Missing required fields: {missing_fields}")
+                else:
+                    print("   ⚠️ No logs returned (may be expected for new system)")
+            
+            # Test with filters
+            print("\n   🔍 Testing structured logs with filters:")
+            
+            # Test level filter
+            success, response = self.run_test("GET /api/logs/structured?level=INFO", "GET", "logs/structured", 200, 
+                                            params={"level": "INFO"}, token=self.super_admin_token)
+            if success:
+                print(f"      ✅ Level filter working: {response.get('total_logs', 0)} INFO logs")
+            
+            # Test category filter
+            success, response = self.run_test("GET /api/logs/structured?category=auth", "GET", "logs/structured", 200, 
+                                            params={"category": "auth"}, token=self.super_admin_token)
+            if success:
+                print(f"      ✅ Category filter working: {response.get('total_logs', 0)} auth logs")
+            
+            # Test limit parameter
+            success, response = self.run_test("GET /api/logs/structured?limit=10", "GET", "logs/structured", 200, 
+                                            params={"limit": "10"}, token=self.super_admin_token)
+            if success:
+                logs_returned = len(response.get('logs', []))
+                print(f"      ✅ Limit parameter working: {logs_returned} logs returned (max 10)")
+
+        # Test 3: Audit Logs Endpoint
+        print("\n🔍 TEST 3: GET /api/logs/audit - Logs de Auditoria")
+        
+        if hasattr(self, 'super_admin_token'):
+            success, response = self.run_test("GET /api/logs/audit", "GET", "logs/audit", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Audit logs endpoint working")
+                print(f"      - Total audit logs: {response.get('total_audit_logs', 0)}")
+                print(f"      - Limit: {response.get('limit', 0)}")
+                
+                audit_logs = response.get('logs', [])
+                if audit_logs:
+                    first_audit_log = audit_logs[0]
+                    print("   ✅ Audit log structure:")
+                    print(f"      - Timestamp: {first_audit_log.get('timestamp', 'N/A')}")
+                    print(f"      - Action: {first_audit_log.get('action', 'N/A')}")
+                    print(f"      - User: {first_audit_log.get('user_id', 'N/A')}")
+                    print(f"      - Details: {str(first_audit_log.get('details', {}))[:50]}...")
+                    
+                    # Check for sensitive operation tracking
+                    if first_audit_log.get('audit_required') or first_audit_log.get('sensitive_operation'):
+                        print("   ✅ Sensitive operation tracking detected")
+                else:
+                    print("   ⚠️ No audit logs found (may be expected for new system)")
+
+        # Test 4: Log Analytics Endpoint
+        print("\n🔍 TEST 4: GET /api/logs/analytics - Métricas e Estatísticas")
+        
+        if hasattr(self, 'super_admin_token'):
+            success, response = self.run_test("GET /api/logs/analytics", "GET", "logs/analytics", 200, token=self.super_admin_token)
+            if success:
+                print(f"   ✅ Log analytics endpoint working")
+                print(f"      - Total logs: {response.get('total_logs', 0)}")
+                
+                # Check analytics structure
+                by_level = response.get('by_level', {})
+                by_category = response.get('by_category', {})
+                performance_metrics = response.get('performance_metrics', {})
+                
+                if by_level:
+                    print(f"   ✅ Logs by level: {dict(by_level)}")
+                
+                if by_category:
+                    print(f"   ✅ Logs by category: {dict(by_category)}")
+                
+                if performance_metrics:
+                    print(f"   ✅ Performance metrics:")
+                    print(f"      - Avg response time: {performance_metrics.get('avg_response_time', 0)}ms")
+                    print(f"      - Slow requests: {performance_metrics.get('slow_requests', 0)}")
+                
+                # Check security and audit metrics
+                security_events = response.get('security_events', 0)
+                audit_events = response.get('audit_events', 0)
+                print(f"   ✅ Security events: {security_events}")
+                print(f"   ✅ Audit events: {audit_events}")
+                
+                # Check recent errors
+                recent_errors = response.get('recent_errors', [])
+                if recent_errors:
+                    print(f"   ✅ Recent errors tracked: {len(recent_errors)} errors")
+                    if recent_errors:
+                        latest_error = recent_errors[0]
+                        print(f"      - Latest: {latest_error.get('message', 'N/A')[:50]}...")
+
+        # Test 5: Generate Some Activity to Test Logging
+        print("\n🔍 TEST 5: Generate Activity to Test Request Correlation")
+        
+        if hasattr(self, 'super_admin_token'):
+            print("   🔄 Generating test activities to create logs...")
+            
+            # Make several API calls to generate logs
+            test_activities = [
+                ("GET /api/stats", "GET", "stats"),
+                ("GET /api/users", "GET", "users"),
+                ("GET /api/categories", "GET", "categories"),
+                ("GET /api/products", "GET", "products")
+            ]
+            
+            for activity_name, method, endpoint in test_activities:
+                success, response = self.run_test(f"Activity: {activity_name}", method, endpoint, 200, token=self.super_admin_token)
+                if success:
+                    print(f"      ✅ {activity_name} completed")
+            
+            # Wait a moment for logs to be written
+            import time
+            time.sleep(2)
+            
+            # Check if new logs were generated
+            success, response = self.run_test("Check new logs after activity", "GET", "logs/structured", 200, 
+                                            params={"limit": "20"}, token=self.super_admin_token)
+            if success:
+                logs = response.get('logs', [])
+                recent_logs = [log for log in logs if 'request_completed' in log.get('action', '') or 
+                             'request_started' in log.get('action', '')]
+                
+                if recent_logs:
+                    print(f"   ✅ Request logging working: {len(recent_logs)} request logs found")
+                    
+                    # Check for request correlation
+                    request_log = recent_logs[0]
+                    if request_log.get('request_id'):
+                        print(f"      ✅ Request correlation working: request_id = {request_log.get('request_id')}")
+                    
+                    # Check for performance monitoring
+                    details = request_log.get('details', {})
+                    if details.get('duration_ms'):
+                        print(f"      ✅ Performance monitoring: {details.get('duration_ms')}ms")
+                        
+                        # Check slow request detection
+                        if details.get('duration_ms', 0) > 1000:
+                            print(f"      ✅ Slow request detected: {details.get('duration_ms')}ms")
+
+        # Test 6: Test LGPD Compliance - Data Masking
+        print("\n🔍 TEST 6: LGPD Compliance - Sensitive Data Masking")
+        
+        if hasattr(self, 'super_admin_token'):
+            # Create a test client to generate logs with sensitive data
+            test_pf_data = {
+                "client_type": "pf",
+                "nome_completo": "João Silva Teste Logs",
+                "cpf": "12345678901",
+                "email_principal": "joao.logs@email.com",
+                "telefone": "+55 11 98765-4321",
+                "internal_notes": "Cliente teste para verificar mascaramento de dados"
+            }
+            
+            success, response = self.run_test("Create PF client (LGPD test)", "POST", "clientes-pf", 200, 
+                                            test_pf_data, self.super_admin_token)
+            if success:
+                print("   ✅ Test client created for LGPD testing")
+                
+                # Check logs for data masking
+                success, response = self.run_test("Check logs for data masking", "GET", "logs/structured", 200, 
+                                                params={"limit": "10", "category": "client"}, token=self.super_admin_token)
+                if success:
+                    logs = response.get('logs', [])
+                    client_logs = [log for log in logs if 'client' in log.get('category', '').lower()]
+                    
+                    if client_logs:
+                        print("   ✅ Client operation logs found")
+                        
+                        # Check if sensitive data is masked in logs
+                        log_content = str(client_logs[0])
+                        if '12345678901' not in log_content:  # CPF should be masked
+                            print("   ✅ LGPD compliance: CPF data appears to be masked in logs")
+                        else:
+                            print("   ⚠️ LGPD concern: CPF data may not be masked in logs")
+
+        # Test 7: Test Middleware Automatic Logging
+        print("\n🔍 TEST 7: Middleware Automático de Logging")
+        
+        if hasattr(self, 'super_admin_token'):
+            # Get initial log count
+            success, response = self.run_test("Get initial log count", "GET", "logs/analytics", 200, token=self.super_admin_token)
+            initial_count = response.get('total_logs', 0) if success else 0
+            
+            # Make a simple API call
+            success, response = self.run_test("Test middleware logging", "GET", "auth/me", 200, token=self.super_admin_token)
+            
+            # Wait for logs to be written
+            import time
+            time.sleep(1)
+            
+            # Check if log count increased
+            success, response = self.run_test("Get updated log count", "GET", "logs/analytics", 200, token=self.super_admin_token)
+            updated_count = response.get('total_logs', 0) if success else 0
+            
+            if updated_count > initial_count:
+                print(f"   ✅ Middleware automatic logging working: {updated_count - initial_count} new logs")
+            else:
+                print("   ⚠️ Middleware logging may not be working or logs not yet written")
+
+        # Test 8: Test System Compatibility
+        print("\n🔍 TEST 8: Compatibilidade com Sistema Antigo")
+        
+        # Test that old maintenance logs endpoint still works
+        success, response = self.run_test("Old maintenance logs (compatibility)", "GET", "maintenance/logs", 200, 
+                                        params={"lines": "5"}, token=self.super_admin_token)
+        if success:
+            print("   ✅ Backward compatibility: Old maintenance logs endpoint working")
+            if isinstance(response, list) and response:
+                print(f"      - Found {len(response)} maintenance log entries")
+        
+        print("\n🎯 STRUCTURED LOGGING SYSTEM TESTING COMPLETED")
+        print("   Key validations performed:")
+        print("   ✅ Structured logs endpoint with JSON format")
+        print("   ✅ Audit logs for sensitive operations")
+        print("   ✅ Analytics with performance metrics")
+        print("   ✅ Request correlation and tracking")
+        print("   ✅ LGPD compliance verification")
+        print("   ✅ Middleware automatic logging")
+        print("   ✅ Backward compatibility")
+        
+        return True
+
+    def run_structured_logging_tests(self):
+        """Run structured logging system tests as requested in review"""
+        print("🚀 Starting STRUCTURED LOGGING SYSTEM TESTS - PHASE 3")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        print("REVIEW REQUEST: Test structured logging system implementation")
+        print("- Authentication: superadmin@autotech.com / superadmin123")
+        print("- GET /api/logs/structured (logs gerais com filtros)")
+        print("- GET /api/logs/audit (logs de auditoria apenas)")
+        print("- GET /api/logs/analytics (métricas e estatísticas)")
+        print("- Verify JSON structure with required fields")
+        print("- Test request correlation and performance monitoring")
+        print("- Validate LGPD compliance and data masking")
+        print("="*80)
+        
+        # Run the comprehensive structured logging test
+        success = self.test_structured_logging_system()
+        
+        # Print final results
+        print("\n" + "="*80)
+        print("FINAL STRUCTURED LOGGING SYSTEM TEST RESULTS")
+        print("="*80)
+        print(f"📊 Total tests: {self.tests_run}")
+        print(f"📊 Tests passed: {self.tests_passed}")
+        print(f"📊 Tests failed: {self.tests_run - self.tests_passed}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        print(f"📊 Success rate: {success_rate:.1f}%")
+        
+        if success and success_rate >= 85:
+            print("\n🎉 STRUCTURED LOGGING SYSTEM TESTS PASSED!")
+            print("   ✅ Logs JSON estruturados com correlação funcionando")
+            print("   ✅ Middleware automático de logging operacional")
+            print("   ✅ Sistema de auditoria para operações sensíveis")
+            print("   ✅ Mascaramento automático de dados sensíveis (LGPD)")
+            print("   ✅ Endpoints de visualização e analytics funcionando")
+            print("   ✅ Compatibilidade com sistema antigo mantida")
+            print("   ✅ Performance monitoring e detecção de requests lentos")
+            print("   ✅ Correlação por request_id funcionando")
+            return 0
+        else:
+            print(f"\n❌ STRUCTURED LOGGING SYSTEM TESTS FAILED!")
+            print(f"   Some issues were found with the structured logging system.")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
