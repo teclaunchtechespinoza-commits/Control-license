@@ -1477,17 +1477,29 @@ async def create_pessoa_fisica(
 @api_router.get("/clientes-pf", response_model=List[PessoaFisica])
 async def get_pessoas_fisicas(current_user: User = Depends(get_current_user)):
     try:
+        # Debug: verificar contexto do tenant
+        from tenant_system import is_super_admin, get_current_tenant_id
+        
+        current_tenant = get_current_tenant_id()
+        is_super = is_super_admin()
+        
+        logger.info(f"DEBUG clientes-pf: user_role={current_user.role}, tenant_id={current_tenant}, is_super_admin={is_super}")
+        
         # Super Admin vê todos os clientes independente do status
         if current_user.role == UserRole.SUPER_ADMIN:
             query_filter = add_tenant_filter({})  # Ver todos, inclusive inativos
+            logger.info(f"DEBUG Super Admin query_filter: {query_filter}")
         else:
             # Outros usuários veem apenas clientes ativos
             query_filter = add_tenant_filter({"status": {"$ne": "inactive"}})
+            logger.info(f"DEBUG Other user query_filter: {query_filter}")
         
         if current_user.role == UserRole.ADMIN or current_user.role == UserRole.SUPER_ADMIN:
             clients = await db.clientes_pf.find(query_filter).to_list(1000)
+            logger.info(f"DEBUG Found {len(clients)} clients")
         else:
             clients = await db.clientes_pf.find(query_filter).to_list(1000)
+            logger.info(f"DEBUG Found {len(clients)} clients")
         
         # Converter e limpar dados
         result = []
