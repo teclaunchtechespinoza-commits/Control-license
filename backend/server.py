@@ -3652,7 +3652,7 @@ async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
                 client["regime_tributario"] = "simples"  # padrão
                 
             # Para usuários não-admin, aplicar mascaramento básico de CNPJ
-            if current_user.role != UserRole.ADMIN:
+            if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
                 cnpj = client.get("cnpj", "")
                 if len(cnpj) >= 14:
                     client["cnpj"] = cnpj[:2] + "***" + cnpj[-2:]
