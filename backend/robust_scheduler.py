@@ -531,7 +531,7 @@ class RobustJobScheduler:
             
             # Check database connection
             start_time = datetime.utcnow()
-            await self.db.admin.command('ismaster')
+            await self.client.admin.command('ismaster')
             db_response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             
             health_stats["database_response_ms"] = db_response_time
