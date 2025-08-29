@@ -36,9 +36,84 @@ class DatabaseOptimizer:
             self.client.close()
             logger.info("MongoDB connection closed")
     
+    async def clean_duplicate_data(self):
+        """Clean duplicate data before creating unique indexes"""
+        logger.info("🧹 Cleaning duplicate data...")
+        
+        try:
+            # Clean duplicate CPF in clientes_pf
+            logger.info("Cleaning duplicate CPF in clientes_pf...")
+            
+            # Find duplicates by CPF within same tenant
+            pipeline = [
+                {"$group": {
+                    "_id": {"tenant_id": "$tenant_id", "cpf": "$cpf"},
+                    "count": {"$sum": 1},
+                    "docs": {"$push": "$_id"}
+                }},
+                {"$match": {"count": {"$gt": 1}}}
+            ]
+            
+            duplicates = await self.db.clientes_pf.aggregate(pipeline).to_list(None)
+            
+            for duplicate in duplicates:
+                # Keep the first document, remove the rest
+                docs_to_remove = duplicate["docs"][1:]  # Skip first, remove rest
+                if docs_to_remove:
+                    logger.info(f"Removing {len(docs_to_remove)} duplicate CPF entries: {duplicate['_id']['cpf']}")
+                    await self.db.clientes_pf.delete_many({"_id": {"$in": docs_to_remove}})
+            
+            # Clean duplicate CNPJ in clientes_pj
+            logger.info("Cleaning duplicate CNPJ in clientes_pj...")
+            
+            pipeline = [
+                {"$group": {
+                    "_id": {"tenant_id": "$tenant_id", "cnpj": "$cnpj"},
+                    "count": {"$sum": 1},
+                    "docs": {"$push": "$_id"}
+                }},
+                {"$match": {"count": {"$gt": 1}}}
+            ]
+            
+            duplicates = await self.db.clientes_pj.aggregate(pipeline).to_list(None)
+            
+            for duplicate in duplicates:
+                docs_to_remove = duplicate["docs"][1:]
+                if docs_to_remove:
+                    logger.info(f"Removing {len(docs_to_remove)} duplicate CNPJ entries: {duplicate['_id']['cnpj']}")
+                    await self.db.clientes_pj.delete_many({"_id": {"$in": docs_to_remove}})
+            
+            # Clean duplicate emails in users
+            logger.info("Cleaning duplicate emails in users...")
+            
+            pipeline = [
+                {"$group": {
+                    "_id": {"email": "$email"},
+                    "count": {"$sum": 1},
+                    "docs": {"$push": "$_id"}
+                }},
+                {"$match": {"count": {"$gt": 1}}}
+            ]
+            
+            duplicates = await self.db.users.aggregate(pipeline).to_list(None)
+            
+            for duplicate in duplicates:
+                docs_to_remove = duplicate["docs"][1:]
+                if docs_to_remove:
+                    logger.info(f"Removing {len(docs_to_remove)} duplicate email entries: {duplicate['_id']['email']}")
+                    await self.db.users.delete_many({"_id": {"$in": docs_to_remove}})
+            
+            logger.info("✅ Duplicate data cleanup completed")
+            
+        except Exception as e:
+            logger.warning(f"Duplicate cleanup failed (non-critical): {e}")
+    
     async def create_critical_indexes(self):
         """Create critical performance indexes"""
         logger.info("🚀 Creating critical MongoDB indexes...")
+        
+        # Clean duplicates first
+        await self.clean_duplicate_data()
         
         # 1. LICENSES COLLECTION - Critical for expiry checks and tenant isolation
         licenses_indexes = [
@@ -54,7 +129,7 @@ class DatabaseOptimizer:
             IndexModel([("tenant_id", ASCENDING), ("assigned_user_id", ASCENDING)], 
                       name="tenant_user_idx", background=True),
             
-            # License key uniqueness (global)
+            # License key uniqueness (global) - make sparse for existing data
             IndexModel([("license_key", ASCENDING)], 
                       name="license_key_unique_idx", unique=True, sparse=True, background=True),
             
@@ -98,7 +173,7 @@ class DatabaseOptimizer:
             IndexModel([("tenant_id", ASCENDING), ("status", ASCENDING)], 
                       name="tenant_status_pf_idx", background=True),
             
-            # CPF uniqueness within tenant
+            # CPF uniqueness within tenant - make sparse for existing data
             IndexModel([("tenant_id", ASCENDING), ("cpf", ASCENDING)], 
                       name="tenant_cpf_idx", unique=True, sparse=True, background=True),
             
@@ -120,7 +195,7 @@ class DatabaseOptimizer:
             IndexModel([("tenant_id", ASCENDING), ("status", ASCENDING)], 
                       name="tenant_status_pj_idx", background=True),
             
-            # CNPJ uniqueness within tenant
+            # CNPJ uniqueness within tenant - make sparse for existing data
             IndexModel([("tenant_id", ASCENDING), ("cnpj", ASCENDING)], 
                       name="tenant_cnpj_idx", unique=True, sparse=True, background=True),
             
