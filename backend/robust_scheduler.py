@@ -78,7 +78,7 @@ class RobustJobScheduler:
             self.db = self.client[self.db_name]
             
             # Test connection
-            await self.db.admin.command('ismaster')
+            await self.client.admin.command('ismaster')
             logger.info(f"✅ Connected to MongoDB: {self.db_name}")
             
             # Configure APScheduler
