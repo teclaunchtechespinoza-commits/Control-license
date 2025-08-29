@@ -168,7 +168,8 @@ class RobustJobScheduler:
         try:
             # 1. License expiry check - Every hour at minute 0
             self.scheduler.add_job(
-                self._check_expiring_licenses,
+                func=check_expiring_licenses_job,
+                args=[self.mongo_url, self.db_name],
                 trigger='cron',
                 minute=0,  # Every hour at :00
                 id='license_expiry_check',
@@ -179,7 +180,8 @@ class RobustJobScheduler:
             
             # 2. Notification queue processor - Every 2 minutes  
             self.scheduler.add_job(
-                self._process_notification_queue,
+                func=process_notification_queue_job,
+                args=[self.mongo_url, self.db_name],
                 trigger='interval',
                 minutes=2,
                 id='notification_queue_processor', 
@@ -190,7 +192,8 @@ class RobustJobScheduler:
             
             # 3. Daily cleanup job - Every day at 2 AM
             self.scheduler.add_job(
-                self._daily_cleanup,
+                func=daily_cleanup_job,
+                args=[self.mongo_url, self.db_name],
                 trigger='cron',
                 hour=2,
                 minute=0,
@@ -202,22 +205,12 @@ class RobustJobScheduler:
             
             # 4. System health check - Every 15 minutes
             self.scheduler.add_job(
-                self._system_health_check,
+                func=system_health_check_job,
+                args=[self.mongo_url, self.db_name],
                 trigger='interval',
                 minutes=15,
                 id='health_check',
                 name='System Health Monitor',
-                replace_existing=True,
-                max_instances=1
-            )
-            
-            # 5. Job statistics update - Every 5 minutes
-            self.scheduler.add_job(
-                self._update_job_statistics,
-                trigger='interval',
-                minutes=5,
-                id='job_statistics',
-                name='Job Statistics Updater',
                 replace_existing=True,
                 max_instances=1
             )
