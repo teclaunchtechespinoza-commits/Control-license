@@ -1353,7 +1353,190 @@ class SystemStats(BaseModel):
     pending_licenses: int
     system_status: str = "operational"
 
-# Robust scheduler status endpoint
+# Structured Logs Viewer Endpoint
+@api_router.get("/logs/structured")
+async def get_structured_logs(
+    limit: int = 50,
+    level: Optional[str] = None,
+    category: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get structured logs with filtering"""
+    try:
+        import json
+        
+        logs = []
+        
+        # Read structured logs file
+        try:
+            with open('/app/structured_logs.json', 'r') as f:
+                for line in f:
+                    if line.strip():
+                        try:
+                            log_entry = json.loads(line)
+                            
+                            # Apply filters
+                            if level and log_entry.get('level') != level.upper():
+                                continue
+                            if category and log_entry.get('category') != category.lower():
+                                continue
+                            
+                            logs.append(log_entry)
+                            
+                            if len(logs) >= limit:
+                                break
+                                
+                        except json.JSONDecodeError:
+                            continue
+        
+        except FileNotFoundError:
+            logs = []
+        
+        # Reverse to get most recent first
+        logs.reverse()
+        
+        return {
+            "total_logs": len(logs),
+            "limit": limit,
+            "filters": {"level": level, "category": category},
+            "logs": logs[:limit]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error reading structured logs: {e}")
+        raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
+
+# Audit Logs Viewer Endpoint
+@api_router.get("/logs/audit")
+async def get_audit_logs(
+    limit: int = 50,
+    current_user: User = Depends(get_current_user)
+):
+    """Get audit logs (sensitive operations only)"""
+    try:
+        import json
+        
+        logs = []
+        
+        # Read audit logs file
+        try:
+            with open('/app/audit_logs.json', 'r') as f:
+                for line in f:
+                    if line.strip():
+                        try:
+                            log_entry = json.loads(line)
+                            logs.append(log_entry)
+                            
+                            if len(logs) >= limit:
+                                break
+                                
+                        except json.JSONDecodeError:
+                            continue
+        
+        except FileNotFoundError:
+            logs = []
+        
+        # Reverse to get most recent first
+        logs.reverse()
+        
+        return {
+            "total_audit_logs": len(logs),
+            "limit": limit,
+            "logs": logs[:limit]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error reading audit logs: {e}")
+        raise HTTPException(status_code=500, detail=f"Error reading audit logs: {str(e)}")
+
+# Log Analytics Endpoint
+@api_router.get("/logs/analytics")
+async def get_log_analytics(current_user: User = Depends(get_current_user)):
+    """Get log analytics and metrics"""
+    try:
+        import json
+        from collections import Counter, defaultdict
+        from datetime import datetime, timedelta
+        
+        analytics = {
+            "total_logs": 0,
+            "by_level": Counter(),
+            "by_category": Counter(),
+            "recent_errors": [],
+            "performance_metrics": {
+                "avg_response_time": 0,
+                "slow_requests": 0
+            },
+            "security_events": 0,
+            "audit_events": 0
+        }
+        
+        performance_data = []
+        
+        # Analyze structured logs
+        try:
+            with open('/app/structured_logs.json', 'r') as f:
+                for line in f:
+                    if line.strip():
+                        try:
+                            log_entry = json.loads(line)
+                            analytics["total_logs"] += 1
+                            
+                            # Count by level and category
+                            analytics["by_level"][log_entry.get("level", "UNKNOWN")] += 1
+                            analytics["by_category"][log_entry.get("category", "unknown")] += 1
+                            
+                            # Collect recent errors
+                            if log_entry.get("level") == "ERROR":
+                                analytics["recent_errors"].append({
+                                    "timestamp": log_entry.get("timestamp"),
+                                    "action": log_entry.get("action"),
+                                    "message": log_entry.get("message")
+                                })
+                            
+                            # Performance metrics
+                            if log_entry.get("action") == "request_completed":
+                                details = log_entry.get("details", {})
+                                duration = details.get("duration_ms", 0)
+                                if duration:
+                                    performance_data.append(duration)
+                                    if duration > 1000:  # > 1 second
+                                        analytics["performance_metrics"]["slow_requests"] += 1
+                            
+                            # Security events
+                            if log_entry.get("category") == "security":
+                                analytics["security_events"] += 1
+                            
+                            # Audit events
+                            if log_entry.get("audit_required"):
+                                analytics["audit_events"] += 1
+                                
+                        except json.JSONDecodeError:
+                            continue
+        
+        except FileNotFoundError:
+            pass
+        
+        # Calculate average response time
+        if performance_data:
+            analytics["performance_metrics"]["avg_response_time"] = round(
+                sum(performance_data) / len(performance_data), 2
+            )
+        
+        # Convert counters to regular dicts for JSON serialization
+        analytics["by_level"] = dict(analytics["by_level"])
+        analytics["by_category"] = dict(analytics["by_category"])
+        
+        # Limit recent errors to last 10
+        analytics["recent_errors"] = analytics["recent_errors"][-10:]
+        
+        return analytics
+        
+    except Exception as e:
+        logger.error(f"Error generating log analytics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating analytics: {str(e)}")
+
+# Robust scheduler status endpoint (already exists)
 @api_router.get("/scheduler/status")
 async def get_scheduler_status(current_user: User = Depends(get_current_user)):
     """Get current scheduler status and job information"""
