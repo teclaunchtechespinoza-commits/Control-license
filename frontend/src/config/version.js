@@ -77,6 +77,47 @@ export const VERSION_CONFIG = {
   
   // Changelog da versão atual
   changelog: {
+    "1.3.1": {
+      date: "2024-12-29",
+      status: "stable",
+      type: "minor", // "major", "minor", "patch", "hotfix"
+      changes: {
+        added: [
+          "Fase 4: Sistema de Autenticação Frontend Robusto",
+          "Guardas de rota e interceptadores para rotas protegidas",
+          "Renovação automática de token JWT",
+          "Proteção de rotas baseada em funções (Admin/User/Super Admin)",
+          "Gerenciamento de sessão com logout automático",
+          "Interceptadores Axios para renovação automática de token",
+          "Melhor tratamento de erros de autenticação"
+        ],
+        fixed: [
+          "Atualização de datas e informações de versão para refletir implementações atuais",
+          "Correção de componentes de versão com datas corretas",
+          "Ajuste de build number para data atual",
+          "Sincronização de informações de release com trabalho realizado"
+        ],
+        changed: [
+          "Sistema de versionamento atualizado com datas corretas",
+          "Informações de versão refletem implementações atuais",
+          "Build number atualizado para 2024-12-29"
+        ],
+        improved: [
+          "Fluxo de autenticação mais robusto e seguro",
+          "Experiência do usuário com sessões automáticas",
+          "Proteção aprimorada contra expiração de tokens",
+          "Sistema de rotas mais seguro e confiável"
+        ]
+      },
+      breaking: false,
+      migration: "Atualização automática - melhorias transparentes ao usuário",
+      stats: {
+        "auth_improvements": 7,
+        "route_guards_implemented": 1,
+        "jwt_enhancements": 3,
+        "version_info_updates": 4
+      }
+    },
     "1.3.0": {
       date: "2025-08-21",
       status: "stable",
