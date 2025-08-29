@@ -42,6 +42,9 @@ from notification_system import (
 # Import notification jobs
 from notification_jobs import start_notification_jobs, stop_notification_jobs
 
+# Import robust scheduler
+from robust_scheduler import start_robust_scheduler
+
 # Import sales dashboard
 from sales_dashboard import (
     ExpirationAlert, SalesMetrics, SalesDashboardSummary, 
