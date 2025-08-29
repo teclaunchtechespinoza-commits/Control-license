@@ -644,6 +644,322 @@ class RobustJobScheduler:
             logger.error(f"Failed to get job status: {e}")
             return {"error": str(e)}
 
+# Standalone job functions for APScheduler (don't reference self)
+async def check_expiring_licenses_job(mongo_url: str, db_name: str):
+    """Standalone function for license expiry check job"""
+    try:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+        
+        logger.info("🔍 Starting license expiry check...")
+        
+        # Check windows: 30 days, 7 days, 1 day
+        check_windows = [30, 7, 1]
+        total_notifications = 0
+        
+        for days in check_windows:
+            # Calculate target date
+            target_date = datetime.utcnow() + timedelta(days=days)
+            start_of_day = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = start_of_day + timedelta(days=1)
+            
+            # Find expiring licenses
+            expiring_licenses = await db.licenses.find({
+                "expires_at": {
+                    "$gte": start_of_day,
+                    "$lt": end_of_day
+                },
+                "status": {"$in": ["active", "pending"]}
+            }).to_list(1000)
+            
+            # Create notifications for each license
+            for license_data in expiring_licenses:
+                try:
+                    await _create_expiry_notification_standalone(db, license_data, days)
+                    total_notifications += 1
+                except Exception as e:
+                    logger.error(f"Failed to create notification for license {license_data.get('id')}: {e}")
+            
+            if expiring_licenses:
+                maintenance_logger.info("notifications", "licenses_detected", {
+                    "expiring_in_days": days,
+                    "licenses_count": len(expiring_licenses),
+                    "notification_type": f"NotificationType.LICENSE_EXPIRING_{days}",
+                    "target_date": target_date.strftime("%Y-%m-%d")
+                })
+        
+        logger.info(f"✅ License expiry check completed - {total_notifications} notifications created")
+        client.close()
+        return {"notifications_created": total_notifications}
+        
+    except Exception as e:
+        logger.error(f"❌ License expiry check failed: {e}")
+        if 'client' in locals():
+            client.close()
+        raise
+
+async def process_notification_queue_job(mongo_url: str, db_name: str):
+    """Standalone function for notification queue processing job"""
+    try:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+        
+        logger.info("📧 Processing notification queue...")
+        
+        # Get pending notifications
+        queue_items = await db.notification_queue.find({
+            "is_processing": False,
+            "process_after": {"$lte": datetime.utcnow()}
+        }).sort("priority", 1).limit(10).to_list(10)
+        
+        processed = 0
+        
+        for queue_item in queue_items:
+            try:
+                # Mark as processing
+                await db.notification_queue.update_one(
+                    {"_id": queue_item["_id"]},
+                    {"$set": {"is_processing": True, "worker_id": "apscheduler"}}
+                )
+                
+                # Get notification details
+                notification = await db.notifications.find_one({
+                    "id": queue_item["notification_id"]
+                })
+                
+                if notification:
+                    # Simulate notification sending
+                    await _send_notification_standalone(db, notification)
+                    
+                    # Remove from queue
+                    await db.notification_queue.delete_one({"_id": queue_item["_id"]})
+                    processed += 1
+                else:
+                    # Notification not found, remove from queue
+                    await db.notification_queue.delete_one({"_id": queue_item["_id"]})
+            
+            except Exception as e:
+                logger.error(f"Failed to process queue item: {e}")
+                # Reset processing flag
+                await db.notification_queue.update_one(
+                    {"_id": queue_item["_id"]},
+                    {"$set": {"is_processing": False, "worker_id": None}}
+                )
+        
+        if processed > 0:
+            logger.info(f"✅ Processed {processed} notifications")
+            
+        client.close()
+        return {"notifications_processed": processed}
+        
+    except Exception as e:
+        logger.error(f"❌ Notification queue processing failed: {e}")
+        if 'client' in locals():
+            client.close()
+        raise
+
+async def daily_cleanup_job(mongo_url: str, db_name: str):
+    """Standalone function for daily cleanup job"""
+    try:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+        
+        logger.info("🧹 Starting daily cleanup...")
+        
+        # Cleanup old notification logs (older than 90 days)
+        cleanup_date = datetime.utcnow() - timedelta(days=90)
+        
+        deleted_logs = await db.notification_logs.delete_many({
+            "created_at": {"$lt": cleanup_date}
+        })
+        
+        # Cleanup old processed notifications (older than 30 days)
+        notification_cleanup_date = datetime.utcnow() - timedelta(days=30)
+        
+        deleted_notifications = await db.notifications.delete_many({
+            "status": {"$in": [NotificationStatus.SENT, NotificationStatus.FAILED]},
+            "created_at": {"$lt": notification_cleanup_date}
+        })
+        
+        cleanup_stats = {
+            "logs_deleted": deleted_logs.deleted_count,
+            "notifications_deleted": deleted_notifications.deleted_count,
+            "cleanup_date": cleanup_date.isoformat()
+        }
+        
+        maintenance_logger.info("cleanup", "daily_cleanup_completed", cleanup_stats)
+        logger.info(f"✅ Daily cleanup completed: {cleanup_stats}")
+        
+        client.close()
+        return cleanup_stats
+        
+    except Exception as e:
+        logger.error(f"❌ Daily cleanup failed: {e}")
+        if 'client' in locals():
+            client.close()
+        raise
+
+async def system_health_check_job(mongo_url: str, db_name: str):
+    """Standalone function for system health check job"""
+    try:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+        
+        health_stats = {}
+        
+        # Check database connection
+        start_time = datetime.utcnow()
+        await client.admin.command('ismaster')
+        db_response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        
+        health_stats["database_response_ms"] = db_response_time
+        health_stats["database_status"] = "healthy" if db_response_time < 100 else "slow"
+        
+        # Check notification queue size
+        queue_size = await db.notification_queue.count_documents({})
+        health_stats["notification_queue_size"] = queue_size
+        health_stats["queue_status"] = "healthy" if queue_size < 1000 else "high"
+        
+        # Check recent errors
+        recent_errors = await db.notification_logs.count_documents({
+            "status": NotificationStatus.FAILED,
+            "created_at": {"$gte": datetime.utcnow() - timedelta(hours=1)}
+        })
+        
+        health_stats["recent_errors"] = recent_errors
+        health_stats["error_status"] = "healthy" if recent_errors < 10 else "high"
+        
+        # Overall health
+        health_stats["overall_status"] = "healthy" if all(
+            status in ["healthy"] for status in [
+                health_stats["database_status"],
+                health_stats["queue_status"], 
+                health_stats["error_status"]
+            ]
+        ) else "degraded"
+        
+        maintenance_logger.info("health", "system_health_check", health_stats)
+        
+        client.close()
+        return health_stats
+        
+    except Exception as e:
+        logger.error(f"❌ Health check failed: {e}")
+        if 'client' in locals():
+            client.close()
+        raise
+
+# Helper functions for standalone jobs
+async def _create_expiry_notification_standalone(db, license_data: Dict, days_to_expire: int):
+    """Create expiry notification for a specific license (standalone version)"""
+    try:
+        # Determine notification type
+        if days_to_expire == 30:
+            notification_type = NotificationType.LICENSE_EXPIRING_30
+        elif days_to_expire == 7:
+            notification_type = NotificationType.LICENSE_EXPIRING_7
+        elif days_to_expire == 1:
+            notification_type = NotificationType.LICENSE_EXPIRING_1
+        else:
+            notification_type = NotificationType.LICENSE_EXPIRING_7  # Default
+        
+        # Check if notification already exists
+        existing = await db.notifications.find_one({
+            "license_id": license_data.get("id"),
+            "type": notification_type,
+            "target_date": license_data.get("expires_at")
+        })
+        
+        if existing:
+            return  # Skip if already created
+        
+        # Get notification config
+        config = await db.notification_config.find_one({
+            "tenant_id": license_data.get("tenant_id", "default")
+        })
+        
+        if not config or not config.get("enabled", True):
+            return  # Skip if notifications disabled for tenant
+        
+        # Create notification
+        notification = Notification(
+            id=f"expiry_{license_data.get('id')}_{days_to_expire}_{datetime.utcnow().strftime('%Y%m%d')}",
+            tenant_id=license_data.get("tenant_id", "default"),
+            type=notification_type,
+            license_id=license_data.get("id"),
+            user_id=license_data.get("assigned_user_id"),
+            title=f"License expiring in {days_to_expire} days",
+            message=f"License '{license_data.get('name')}' expires on {license_data.get('expires_at', '').strftime('%Y-%m-%d') if license_data.get('expires_at') else 'N/A'}",
+            channels=[NotificationChannel.EMAIL, NotificationChannel.WHATSAPP],
+            priority=1 if days_to_expire == 1 else (2 if days_to_expire == 7 else 3),
+            target_date=license_data.get("expires_at"),
+            metadata={
+                "license_name": license_data.get("name"),
+                "days_to_expire": days_to_expire,
+                "client_name": license_data.get("client_name"),
+                "auto_generated": True
+            },
+            created_at=datetime.utcnow()
+        )
+        
+        # Insert notification
+        await db.notifications.insert_one(notification.dict())
+        
+        # Add to notification queue for processing
+        queue_item = NotificationQueue(
+            id=f"queue_{notification.id}",
+            tenant_id=notification.tenant_id,
+            notification_id=notification.id,
+            priority=notification.priority,
+            process_after=datetime.utcnow() + timedelta(minutes=1),
+            created_at=datetime.utcnow()
+        )
+        
+        await db.notification_queue.insert_one(queue_item.dict())
+        
+    except Exception as e:
+        logger.error(f"Failed to create expiry notification: {e}")
+        raise
+
+async def _send_notification_standalone(db, notification: Dict):
+    """Send notification via configured channels (standalone version)"""
+    try:
+        # Update notification status to sending
+        await db.notifications.update_one(
+            {"id": notification["id"]},
+            {"$set": {"status": NotificationStatus.SENDING, "sent_at": datetime.utcnow()}}
+        )
+        
+        # Simulate sending (replace with actual email/WhatsApp integration)
+        await asyncio.sleep(0.1)  # Simulate network delay
+        
+        # Update to sent
+        await db.notifications.update_one(
+            {"id": notification["id"]},
+            {"$set": {"status": NotificationStatus.SENT}}
+        )
+        
+        # Log notification sent
+        log_entry = NotificationLog(
+            id=f"log_{notification['id']}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+            tenant_id=notification["tenant_id"],
+            notification_id=notification["id"],
+            channel=NotificationChannel.EMAIL,  # Example
+            status=NotificationStatus.SENT,
+            sent_at=datetime.utcnow(),
+            metadata={"simulated": True}
+        )
+        
+        await db.notification_logs.insert_one(log_entry.dict())
+        
+    except Exception as e:
+        # Update to failed
+        await db.notifications.update_one(
+            {"id": notification["id"]},
+            {"$set": {"status": NotificationStatus.FAILED, "error_message": str(e)}}
+        )
+        raise
+
 # Global scheduler instance
 _scheduler_instance = None
 
