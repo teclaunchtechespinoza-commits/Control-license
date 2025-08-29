@@ -489,7 +489,6 @@ class RobustJobScheduler:
             )
             raise
     
-    @_job_wrapper
     async def _daily_cleanup(self):
         """Daily cleanup of old logs and processed notifications"""
         try:
@@ -525,7 +524,6 @@ class RobustJobScheduler:
             logger.error(f"❌ Daily cleanup failed: {e}")
             raise
     
-    @_job_wrapper
     async def _system_health_check(self):
         """Monitor system health and performance"""
         try:
@@ -570,7 +568,6 @@ class RobustJobScheduler:
             logger.error(f"❌ Health check failed: {e}")
             raise
     
-    @_job_wrapper
     async def _update_job_statistics(self):
         """Update job execution statistics"""
         try:
