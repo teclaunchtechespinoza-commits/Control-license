@@ -40,7 +40,7 @@ from notification_system import (
 )
 
 # Import robust scheduler
-from robust_scheduler import start_robust_scheduler, stop_robust_scheduler
+from robust_scheduler import start_robust_scheduler, stop_robust_scheduler, get_scheduler
 
 # Import sales dashboard
 from sales_dashboard import (
