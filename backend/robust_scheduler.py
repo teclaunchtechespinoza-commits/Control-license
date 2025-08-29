@@ -396,7 +396,6 @@ class RobustJobScheduler:
             logger.error(f"Failed to create expiry notification: {e}")
             raise
     
-    @_job_wrapper
     async def _process_notification_queue(self):
         """Process pending notifications in queue"""
         try:
