@@ -4803,8 +4803,8 @@ async def startup_db_client():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    # Stop notification jobs
-    await stop_notification_jobs()
-    logger.info("Notification jobs stopped")
+    # Stop robust scheduler
+    await stop_robust_scheduler()
+    logger.info("Robust scheduler stopped")
     
     client.close()
