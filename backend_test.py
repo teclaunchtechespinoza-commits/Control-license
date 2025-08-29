@@ -4052,6 +4052,38 @@ class LicenseManagementAPITester:
             print("   Verifique os logs acima para detalhes dos erros.")
             return False
 
+    def run_critical_user_registration_test(self):
+        """Run the critical user registration test as requested in review"""
+        print("🚀 INICIANDO TESTE CRÍTICO DO SISTEMA DE REGISTRO DE USUÁRIOS")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        
+        # Store initial test counts
+        self._tests_before_registration = self.tests_run
+        self._passed_before_registration = self.tests_passed
+        
+        # Run the critical registration test
+        success = self.test_user_registration_critical_fix()
+        
+        # Print final results
+        print("\n" + "="*80)
+        print("RESULTADO FINAL DO TESTE CRÍTICO DE REGISTRO")
+        print("="*80)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        
+        if success and success_rate >= 80:
+            print("🎉 TESTE CRÍTICO DE REGISTRO APROVADO COM SUCESSO!")
+            print("   O sistema de registro está funcionando corretamente.")
+            print("   O usuário pode registrar com os dados reportados.")
+            return 0
+        else:
+            print(f"❌ TESTE CRÍTICO DE REGISTRO FALHOU!")
+            print(f"   Success rate: {success_rate:.1f}%")
+            print("   Problemas identificados no sistema de registro.")
+            return 1
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting License Management API Tests")
