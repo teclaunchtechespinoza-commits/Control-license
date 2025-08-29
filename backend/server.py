@@ -4509,6 +4509,11 @@ LIGUE URGENTE: (11) 9999-9999
 app.include_router(api_router)
 # app.include_router(whatsapp_router)  # Real WhatsApp integration - Commented out to avoid circular import
 
+# Add structured logging middlewares
+app.add_middleware(ErrorLoggingMiddleware)
+app.add_middleware(PerformanceMonitoringMiddleware) 
+app.add_middleware(StructuredLoggingMiddleware)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
