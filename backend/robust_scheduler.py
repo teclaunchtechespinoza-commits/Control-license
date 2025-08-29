@@ -278,7 +278,6 @@ class RobustJobScheduler:
         
         return wrapper
     
-    @_job_wrapper
     async def _check_expiring_licenses(self):
         """Check for expiring licenses and create notifications"""
         try:
