@@ -1270,6 +1270,8 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
     # Check if user already exists globally (not filtered by tenant)
+    # NOTA: Esta verificação deve ser global para evitar emails duplicados
+    # mas vou usar um filtro vazio com tenant "global" para consistência
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(
