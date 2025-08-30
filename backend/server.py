@@ -3979,7 +3979,8 @@ async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
 
 @api_router.get("/clientes-pj/{client_id}", response_model=PessoaJuridica)
 async def get_pessoa_juridica(client_id: str, current_user: User = Depends(get_current_user)):
-    client_doc = await db.clientes_pj.find_one({"id": client_id})
+    query_filter = add_tenant_filter({"id": client_id})
+    client_doc = await db.clientes_pj.find_one(query_filter)
     if not client_doc:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     
