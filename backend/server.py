@@ -612,7 +612,9 @@ async def get_user_permissions(user_email: str, tenant_id: str = "default") -> L
     # Permissões dos roles
     role_ids = rbac_info.get('roles', [])
     if role_ids:
-        roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+        # CRÍTICO: Adicionar filtro de tenant para busca de roles
+        roles_filter = add_tenant_filter({"id": {"$in": role_ids}}, tenant_id)
+        roles = await db.roles.find(roles_filter).to_list(1000)
         for role in roles:
             role_permissions = role.get('permissions', [])
             # Buscar permissões por ID
