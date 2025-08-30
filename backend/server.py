@@ -3891,7 +3891,7 @@ async def get_notification(
     Obter detalhes de uma notificação específica
     """
     try:
-        query_filter = add_tenant_filter({"id": notification_id})
+        query_filter = add_tenant_filter({"id": notification_id}, current_user.tenant_id)
         notification = await db.notifications.find_one(query_filter)
         
         if not notification:
