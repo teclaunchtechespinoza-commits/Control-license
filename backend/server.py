@@ -3739,7 +3739,7 @@ async def list_notifications(
     Listar notificações do tenant atual
     """
     try:
-        query_filter = add_tenant_filter({})
+        query_filter = add_tenant_filter({}, current_user.tenant_id)
         
         if status:
             query_filter["status"] = status
