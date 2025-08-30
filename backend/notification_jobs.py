@@ -251,8 +251,10 @@ class NotificationJobProcessor:
                     return True  # Remover da fila
                 else:
                     # Atualizar tentativas
+                    # CRÍTICO: Adicionar filtro de tenant para update_one
+                    notification_filter = add_tenant_filter({"id": notification_id}, self.tenant_id)
                     await self.db.notifications.update_one(
-                        {"id": notification_id},
+                        notification_filter,
                         {
                             "$set": {
                                 "attempts": attempts,
