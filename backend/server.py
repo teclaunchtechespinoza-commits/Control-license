@@ -3130,7 +3130,7 @@ async def get_expiring_licenses_alerts(
 async def send_whatsapp_renewal_message(
     alert_id: str,
     custom_message: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Envia mensagem de WhatsApp para renovação de licença
