@@ -2981,7 +2981,10 @@ async def get_all_users_rbac(current_user: User = Depends(require_permission("us
         # Buscar nomes dos roles
         user_roles = []
         if role_ids:
-            roles = await db.roles.find({"id": {"$in": role_ids}}).to_list(1000)
+            # 🚨 CRÍTICO: Filtrar roles apenas do tenant do usuário
+            user_tenant_id = user.get("tenant_id", "default")
+            roles_filter = add_tenant_filter({"id": {"$in": role_ids}}, user_tenant_id)
+            roles = await db.roles.find(roles_filter).to_list(1000)
             user_roles = [{"id": role["id"], "name": role["name"]} for role in roles]
         
         result.append({
