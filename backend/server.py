@@ -3913,7 +3913,7 @@ async def mark_notification_read(
     Marcar notificação como lida (para notificações in-app)
     """
     try:
-        query_filter = add_tenant_filter({"id": notification_id})
+        query_filter = add_tenant_filter({"id": notification_id}, current_user.tenant_id)
         
         # Atualizar status
         update_result = await db.notifications.update_one(
