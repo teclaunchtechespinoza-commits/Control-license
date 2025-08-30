@@ -4371,10 +4371,6 @@ class LicenseManagementAPITester:
         print("   Progresso: 158 → 141 violações (17 violações corrigidas)")
         print("   Objetivo: Confirmar que correções não quebraram funcionalidades críticas")
         print("="*80)
-        
-        if not self.admin_token:
-            print("❌ No admin token available, skipping tenant isolation tests")
-            return False
 
         # Test 1: Sistema de Autenticação
         print("\n🔍 TESTE 1: SISTEMA DE AUTENTICAÇÃO")
