@@ -534,7 +534,9 @@ class NotificationJobProcessor:
         try:
             # Verificar cliente PF
             if license_doc.get("client_pf_id"):
-                client = await self.db.clientes_pf.find_one({"id": license_doc["client_pf_id"]})
+                # CRÍTICO: Adicionar filtro de tenant para busca de cliente
+                client_filter = add_tenant_filter({"id": license_doc["client_pf_id"]}, license_doc.get("tenant_id", "default"))
+                client = await self.db.clientes_pf.find_one(client_filter)
                 if client:
                     return {
                         "id": client["id"],
