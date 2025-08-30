@@ -2473,6 +2473,22 @@ class LicenseManagementAPITester:
             print(f"❌ {self.tests_run - self.tests_passed} tests failed")
             return 1
 
+    def run_notification_system_tests(self):
+        """Run notification system tests after tenant isolation fixes"""
+        print("🚀 EXECUTANDO TESTE ESPECÍFICO: NOTIFICATION SYSTEM AFTER TENANT FIXES")
+        
+        # Authenticate first
+        self.test_authentication()
+        
+        if not self.admin_token:
+            print("❌ Failed to get admin token")
+            return 1
+        
+        # Run notification system tests
+        success = self.test_notification_system_after_tenant_fixes()
+        
+        return 0 if success else 1
+
     def test_rbac_critical_validation(self):
         """Test RBAC functionality as requested in critical review"""
         print("\n" + "="*50)
