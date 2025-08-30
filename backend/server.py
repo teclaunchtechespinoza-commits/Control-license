@@ -2323,19 +2323,21 @@ async def delete_role(role_id: str, current_user: User = Depends(require_permiss
 @api_router.post("/rbac/assign-roles")
 async def assign_roles(request: AssignRoleRequest, current_user: User = Depends(require_permission("users.manage"))):
     # Verificar se usuário existe (com filtro de tenant)
-    query_filter = add_tenant_filter({"id": request.user_id})
+    query_filter = add_tenant_filter({"id": request.user_id}, current_user.tenant_id)
     user_doc = await db.users.find_one(query_filter)
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Verificar se roles existem
-    existing_roles = await db.roles.find({"id": {"$in": request.role_ids}}).to_list(1000)
+    # 🚨 CRÍTICO: Verificar se roles existem APENAS no tenant atual
+    roles_filter = add_tenant_filter({"id": {"$in": request.role_ids}}, current_user.tenant_id)
+    existing_roles = await db.roles.find(roles_filter).to_list(1000)
     if len(existing_roles) != len(request.role_ids):
         raise HTTPException(status_code=400, detail="One or more roles not found")
     
-    # Atualizar usuário
+    # 🚨 CRÍTICO: Atualizar usuário com filtro de tenant
+    user_update_filter = add_tenant_filter({"id": request.user_id}, current_user.tenant_id)
     await db.users.update_one(
-        {"id": request.user_id},
+        user_update_filter,
         {
             "$set": {
                 "rbac.roles": request.role_ids,
