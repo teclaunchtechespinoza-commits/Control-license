@@ -2460,7 +2460,9 @@ async def create_tenant(
         "password_hash": get_password_hash(tenant_data.admin_password)
     }
     
-    await db.users.insert_one(admin_user_dict)
+    # 🚨 CRÍTICO: Usar add_tenant_to_document para consistência
+    admin_user_with_tenant = add_tenant_to_document(admin_user_dict, tenant.id)
+    await db.users.insert_one(admin_user_with_tenant)
     
     log_advanced_error(
         ErrorLevel.INFO,
