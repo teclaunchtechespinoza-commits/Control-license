@@ -8786,6 +8786,7 @@ if __name__ == "__main__":
             print("  logging - Test logging system fix")
             print("  tenant-isolation - Test tenant isolation fixes")
             print("  critical-security - Test critical security fixes validation")
+            print("  rbac-security - Test RBAC security fixes validation")
             exit_code = 1
     else:
         # Run the client form simplification test by default for this review
