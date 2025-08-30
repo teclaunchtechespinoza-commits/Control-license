@@ -57,7 +57,7 @@ from whatsapp_integration import (
 )
 
 # Import critical security modules
-from .deps import (
+from deps import (
     require_tenant, 
     add_tenant_filter, 
     add_tenant_to_document,
