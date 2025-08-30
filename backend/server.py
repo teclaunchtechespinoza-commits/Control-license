@@ -1237,7 +1237,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except JWTError:
         raise credentials_exception
     
-    user = await db.users.find_one({"email": email})
+    # CRÍTICO: Adicionar filtro de tenant para busca de usuário
+    # Para autenticação, usar tenant do token ou default
+    tenant_id = payload.get("tenant_id", "default")
+    user_filter = add_tenant_filter({"email": email}, tenant_id)
+    user = await db.users.find_one(user_filter)
     if user is None:
         raise credentials_exception
     
