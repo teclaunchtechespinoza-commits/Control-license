@@ -5115,8 +5115,8 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Add observability middleware for metrics collection
 app.add_middleware(ObservabilityMiddleware)
 
-# Add rate limiting middleware for security-sensitive endpoints  
-app.add_middleware(RateLimitMiddleware)
+# Rate limiting middleware temporarily disabled for debugging
+# app.add_middleware(RateLimitMiddleware)
 
 # Debug middleware to log all requests
 @app.middleware("http")
