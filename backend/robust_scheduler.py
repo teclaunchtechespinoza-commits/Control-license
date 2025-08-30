@@ -421,8 +421,11 @@ class RobustJobScheduler:
             for queue_item in queue_items:
                 try:
                     # Mark as processing
+                    # CRÍTICO: Adicionar filtro de tenant para update
+                    queue_tenant_id = queue_item.get("tenant_id", "default")
+                    queue_update_filter = add_tenant_filter({"_id": queue_item["_id"]}, queue_tenant_id)
                     await self.db.notification_queue.update_one(
-                        {"_id": queue_item["_id"]},
+                        queue_update_filter,
                         {"$set": {"is_processing": True, "worker_id": "apscheduler"}}
                     )
                     
