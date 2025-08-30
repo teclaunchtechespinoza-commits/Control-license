@@ -3598,6 +3598,42 @@ class LicenseManagementAPITester:
                 "email": cred_test["email"],
                 "password": cred_test["password"]
             }
+
+if __name__ == "__main__":
+    import sys
+    
+    tester = LicenseManagementAPITester()
+    
+    if len(sys.argv) > 1:
+        test_type = sys.argv[1]
+        
+        if test_type == "superadmin":
+            # Run superadmin login investigation
+            exit_code = tester.run_superadmin_investigation()
+        elif test_type == "all":
+            # Run all tests
+            exit_code = tester.run_all_tests()
+        elif test_type == "rbac":
+            # Run RBAC critical validation
+            exit_code = tester.run_critical_rbac_maintenance_validation()
+        elif test_type == "whatsapp":
+            # Run WhatsApp integration tests
+            exit_code = tester.run_whatsapp_integration_phase1_tests()
+        elif test_type == "sales":
+            # Run sales dashboard tests
+            exit_code = tester.run_sales_dashboard_tests()
+        elif test_type == "notifications":
+            # Run notification system tests
+            exit_code = tester.run_notification_system_tests()
+        else:
+            print(f"Unknown test type: {test_type}")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications")
+            exit_code = 1
+    else:
+        # Default: run superadmin investigation
+        exit_code = tester.run_superadmin_investigation()
+    
+    sys.exit(exit_code)
             success, response = self.run_test(cred_test["name"], "POST", "auth/login", cred_test["expected"], credentials)
             
             if cred_test["expected"] == 200 and success:
