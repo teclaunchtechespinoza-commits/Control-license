@@ -3705,7 +3705,7 @@ async def create_notification(
     Criar uma nova notificação
     """
     try:
-        tenant_id = require_tenant()
+        tenant_id = current_user.tenant_id
         
         # Criar notificação
         notification_dict = notification_data.dict()
