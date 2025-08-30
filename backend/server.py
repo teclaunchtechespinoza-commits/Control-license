@@ -3932,7 +3932,7 @@ async def mark_notification_read(
         
         # Log da ação
         log_entry = NotificationLog(
-            tenant_id=require_tenant(),
+            tenant_id=current_user.tenant_id,
             notification_id=notification_id,
             action="marked_read",
             channel=NotificationChannel.IN_APP,
