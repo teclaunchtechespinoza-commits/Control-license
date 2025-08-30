@@ -619,7 +619,9 @@ async def get_user_permissions(user_email: str, tenant_id: str = "default") -> L
             role_permissions = role.get('permissions', [])
             # Buscar permissões por ID
             if role_permissions:
-                permissions = await db.permissions.find({"id": {"$in": role_permissions}}).to_list(1000)
+                # CRÍTICO: Adicionar filtro de tenant para busca de permissões
+                permissions_filter = add_tenant_filter({"id": {"$in": role_permissions}}, tenant_id)
+                permissions = await db.permissions.find(permissions_filter).to_list(1000)
                 permission_names = [p.get('name') for p in permissions]
                 all_permissions.update(permission_names)
     
