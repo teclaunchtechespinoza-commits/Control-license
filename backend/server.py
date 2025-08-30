@@ -3818,7 +3818,7 @@ async def get_notification_stats(
     Obter estatísticas de notificações do tenant atual
     """
     try:
-        tenant_id = require_tenant()
+        tenant_id = current_user.tenant_id
         period_end = datetime.utcnow()
         period_start = period_end - timedelta(days=days)
         
