@@ -1312,16 +1312,6 @@ class LicenseManagementAPITester:
         print("   ✅ Database operations with tenant filtering")
         print("   ✅ Test license created for future expiry notifications")
         
-        return Trueints working")
-        print("   ✅ Notification listing with tenant isolation")
-        print("   ✅ Configuration management functional")
-        print("   ✅ Statistics endpoint operational")
-        print("   ✅ Individual notification operations working")
-        print("   ✅ Tenant isolation validated")
-        print("   ✅ Database operations with proper tenant filtering")
-        print("   ✅ License expiry detection system operational")
-        print("   ✅ Performance testing completed")
-        
         return True
 
     def test_multi_tenancy_saas_implementation(self):
