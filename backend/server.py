@@ -5158,16 +5158,47 @@ async def startup_db_client():
     
     user_exists = await db.users.find_one({"email": "user@demo.com"})
     if not user_exists:
+        # Create separate tenant for demo user
+        demo_user_tenant_id = "demo-user-tenant"
+        demo_tenant_exists = await db.tenants.find_one({"id": demo_user_tenant_id})
+        
+        if not demo_tenant_exists:
+            # Create demo user tenant
+            demo_tenant_data = {
+                "id": demo_user_tenant_id,
+                "name": "Demo User Company",
+                "subdomain": "demo-user",
+                "contact_email": "user@demo.com",
+                "status": "active",
+                "plan": "free",
+                "max_users": 5,
+                "max_licenses": 10,
+                "max_clients": 5,
+                "features": {
+                    "api_access": False,
+                    "webhooks": False,
+                    "advanced_reports": False,
+                    "white_label": False,
+                    "priority_support": False,
+                    "audit_logs": False,
+                    "sso": False
+                },
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.tenants.insert_one(demo_tenant_data)
+            logger.info("Demo user tenant created")
+        
         demo_user = User(
             email="user@demo.com",
             name="Demo User",
             role=UserRole.USER,
-            tenant_id="default"
+            tenant_id=demo_user_tenant_id  # Separate tenant!
         )
         user_dict = demo_user.dict()
         user_dict["password_hash"] = get_password_hash("user123")
         await db.users.insert_one(user_dict)
-        logger.info("Demo regular user created")
+        logger.info("Demo regular user created in separate tenant")
         
     # Create some demo categories
     categories_exist = await db.categories.count_documents({"tenant_id": "default"}) > 0
