@@ -1237,11 +1237,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except JWTError:
         raise credentials_exception
     
-    # CRÍTICO: Adicionar filtro de tenant para busca de usuário
-    # Para autenticação, usar tenant do token ou default
+    # CRÍTICO: Para validação de token, buscar usuário em qualquer tenant
+    # Primeiro tentar tenant padrão, depois sistema (para superadmin)
+    user = None
+    
+    # Tentar tenant padrão primeiro
     tenant_id = payload.get("tenant_id", "default")
     user_filter = add_tenant_filter({"email": email}, tenant_id)
     user = await db.users.find_one(user_filter)
+    
+    # Se não encontrar e não é tenant system, tentar system (superadmin)
+    if user is None and tenant_id != "system":
+        user_filter_system = add_tenant_filter({"email": email}, "system")
+        user = await db.users.find_one(user_filter_system)
+    
     if user is None:
         raise credentials_exception
     
