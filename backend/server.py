@@ -2010,7 +2010,8 @@ class LicensePlan(LicensePlanBase, BaseEntity):
 
 @api_router.get("/license-plans", response_model=List[LicensePlan])
 async def get_license_plans(current_user: User = Depends(get_current_user)):
-    plans = await db.license_plans.find({"is_active": True}).to_list(1000)
+    query_filter = add_tenant_filter({"is_active": True})
+    plans = await db.license_plans.find(query_filter).to_list(1000)
     return [LicensePlan(**plan) for plan in plans]
 
 @api_router.post("/license-plans", response_model=LicensePlan)
