@@ -1322,19 +1322,27 @@ async def initialize_system():
         # Verificar se já existe um super admin
         super_admin = await db.users.find_one({"role": "super_admin"})
         if not super_admin:
-            # Criar super admin padrão
-            super_admin_data = {
-                "id": str(uuid.uuid4()),
-                "tenant_id": "system",  # Super admin é do tenant system
-                "email": "superadmin@autotech.com",
-                "name": "Super Administrator",
-                "role": "super_admin",
-                "is_active": True,
-                "created_at": datetime.utcnow(),
-                "password_hash": get_password_hash("superadmin123")  # Senha: superadmin123
-            }
-            await db.users.insert_one(super_admin_data)
-            logger.info("Super admin criado: superadmin@autotech.com / superadmin123")
+            # Security: Require INITIAL_SUPERADMIN_PASSWORD for first boot
+            initial_password = os.getenv("INITIAL_SUPERADMIN_PASSWORD")
+            if not initial_password:
+                logger.warning("INITIAL_SUPERADMIN_PASSWORD not set - skipping superadmin creation for security")
+                logger.info("To create superadmin: set INITIAL_SUPERADMIN_PASSWORD environment variable and restart")
+            else:
+                # Criar super admin com senha da variável de ambiente
+                super_admin_data = {
+                    "id": str(uuid.uuid4()),
+                    "tenant_id": "system",  # Super admin é do tenant system
+                    "email": "superadmin@autotech.com",
+                    "name": "Super Administrator",
+                    "role": "super_admin",
+                    "is_active": True,
+                    "require_password_reset": True,  # Force password reset on first login
+                    "created_at": datetime.utcnow(),
+                    "password_hash": get_password_hash(initial_password)
+                }
+                await db.users.insert_one(super_admin_data)
+                logger.info("Super admin created: superadmin@autotech.com (password reset required)")
+                logger.warning("SECURITY: Set new password on first login!")
         
         # Criar tenant padrão se não existir
         default_tenant = await db.tenants.find_one({"id": "default"})
