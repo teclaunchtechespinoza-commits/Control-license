@@ -192,7 +192,7 @@ class NotificationJobProcessor:
                     }
                 )
                 
-                # Log de sucesso
+                # Log de sucesso (já tem tenant_id no objeto)
                 log_entry = NotificationLog(
                     tenant_id=notification.tenant_id,
                     notification_id=notification_id,
@@ -201,7 +201,13 @@ class NotificationJobProcessor:
                     status=NotificationStatus.SENT,
                     event_data={"worker_id": self.worker_id}
                 )
-                await self.db.notification_logs.insert_one(log_entry.dict())
+                # CRÍTICO: Log já tem tenant_id mas vamos validar
+                log_dict = log_entry.dict()
+                if log_dict.get("tenant_id") != self.tenant_id:
+                    logger.error(f"Tenant mismatch in log: expected {self.tenant_id}, got {log_dict.get('tenant_id')}")
+                    return False
+                    
+                await self.db.notification_logs.insert_one(log_dict)
                 
                 logger.info(f"Notification {notification_id} sent successfully")
                 return True
