@@ -3018,7 +3018,7 @@ async def advanced_health_check(current_user: User = Depends(require_permission(
 
 @api_router.get("/sales-dashboard/summary", response_model=SalesDashboardSummary)
 async def get_sales_dashboard_summary(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Endpoint principal do Dashboard de Vendas
