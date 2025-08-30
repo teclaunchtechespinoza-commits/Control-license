@@ -213,13 +213,14 @@ class NotificationJobProcessor:
                 return True
                 
             else:
-                # Incrementar tentativas
+                # Incrementar tentativas (com isolamento de tenant)
                 attempts = notification.attempts + 1
                 
                 if attempts >= notification.max_attempts:
                     # Máximo de tentativas atingido
+                    fail_filter = add_tenant_filter({"id": notification_id}, self.tenant_id)
                     await self.db.notifications.update_one(
-                        {"id": notification_id},
+                        fail_filter,
                         {
                             "$set": {
                                 "status": NotificationStatus.FAILED,
