@@ -495,3 +495,4 @@
 [2025-08-30 15:21:34] [INFO] health - system_health_check: {"database_response_ms": 3.0860000000000003, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-08-30 15:29:33] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 22.990104533333334, "total_executions": 0}
 [2025-08-30 15:29:35] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-08-30 15:29:49] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.23289425000000002, "total_executions": 0}

@@ -2299,19 +2299,22 @@ async def update_role(role_id: str, role_data: UpdateRoleRequest, current_user: 
 
 @api_router.delete("/rbac/roles/{role_id}")
 async def delete_role(role_id: str, current_user: User = Depends(require_permission("rbac.manage"))):
-    # Verificar se o role não é do sistema
-    role_doc = await db.roles.find_one({"id": role_id})
+    # 🚨 CRÍTICO: Verificar role apenas no tenant atual
+    role_filter = add_tenant_filter({"id": role_id}, current_user.tenant_id)
+    role_doc = await db.roles.find_one(role_filter)
     if not role_doc:
         raise HTTPException(status_code=404, detail="Role not found")
     
     if role_doc.get('is_system', False):
         raise HTTPException(status_code=400, detail="Cannot delete system role")
     
-    await db.roles.delete_one({"id": role_id})
+    # 🚨 CRÍTICO: Deletar apenas no tenant atual
+    await db.roles.delete_one(role_filter)
     
-    # Remover role de todos os usuários
+    # 🚨 CRÍTICO: Remover role apenas de usuários do tenant atual
+    users_filter = add_tenant_filter({"rbac.roles": role_id}, current_user.tenant_id)
     await db.users.update_many(
-        {"rbac.roles": role_id},
+        users_filter,
         {"$pull": {"rbac.roles": role_id}}
     )
     
