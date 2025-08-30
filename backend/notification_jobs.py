@@ -413,11 +413,12 @@ class NotificationJobProcessor:
             tenant_id = license_doc.get("tenant_id", "default")
             
             # Verificar se já existe notificação deste tipo para esta licença
-            existing = await self.db.notifications.find_one({
+            # CRÍTICO: Usar add_tenant_filter para garantir isolamento
+            existing_filter = add_tenant_filter({
                 "license_id": license_id,
-                "type": notification_type,
-                "tenant_id": tenant_id
-            })
+                "type": notification_type
+            }, tenant_id)
+            existing = await self.db.notifications.find_one(existing_filter)
             
             if existing:
                 logger.debug(f"Notification of type {notification_type} already exists for license {license_id}")
