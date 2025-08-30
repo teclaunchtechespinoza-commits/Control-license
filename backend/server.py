@@ -4092,14 +4092,15 @@ async def update_category(
     update_data["updated_at"] = datetime.utcnow()
     
     result = await db.categories.update_one(
-        {"id": category_id},
+        add_tenant_filter({"id": category_id}),
         {"$set": update_data}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    updated_category = await db.categories.find_one({"id": category_id})
+    query_filter = add_tenant_filter({"id": category_id})
+    updated_category = await db.categories.find_one(query_filter)
     return Category(**updated_category)
 
 @api_router.delete("/categories/{category_id}")
