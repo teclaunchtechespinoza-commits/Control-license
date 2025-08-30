@@ -5153,6 +5153,9 @@ async def startup_db_client():
         "collections_migrated": ["users", "categories", "products", "licenses", "clients_pf", "clients_pj", "roles", "permissions"]
     })
     
+    # Create critical database indexes (idempotent)
+    await ensure_critical_indexes()
+    
     # Create demo admin user with default tenant
     admin_exists = await db.users.find_one({"email": "admin@demo.com"})
     if not admin_exists:
