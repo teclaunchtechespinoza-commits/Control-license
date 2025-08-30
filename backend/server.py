@@ -67,16 +67,28 @@ from deps import (
 )
 
 # Import security headers middleware
-from .security_headers import SecurityHeadersMiddleware, RateLimitMiddleware
+try:
+    from security_headers import SecurityHeadersMiddleware, RateLimitMiddleware
+except ImportError:
+    from .security_headers import SecurityHeadersMiddleware, RateLimitMiddleware
 
 # Import observability components
-from .observability import (
-    ObservabilityMiddleware, 
-    metrics_collector, 
-    get_database_health,
-    get_tenant_health,
-    get_security_health
-)
+try:
+    from observability import (
+        ObservabilityMiddleware, 
+        metrics_collector, 
+        get_database_health,
+        get_tenant_health,
+        get_security_health
+    )
+except ImportError:
+    from .observability import (
+        ObservabilityMiddleware, 
+        metrics_collector, 
+        get_database_health,
+        get_tenant_health,
+        get_security_health
+    )
 
 import time
 tz = os.getenv('TZ', 'America/Recife')
