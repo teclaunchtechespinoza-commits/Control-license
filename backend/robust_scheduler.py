@@ -291,13 +291,15 @@ class RobustJobScheduler:
                 end_of_day = start_of_day + timedelta(days=1)
                 
                 # Find expiring licenses
-                expiring_licenses = await self.db.licenses.find({
+                # CRÍTICO: Adicionar filtro de tenant para licenças
+                license_filter = add_tenant_filter({
                     "expires_at": {
                         "$gte": start_of_day,
                         "$lt": end_of_day
                     },
                     "status": {"$in": ["active", "pending"]}
-                }).to_list(1000)
+                }, "default")  # Default tenant - precisa ser configurável
+                expiring_licenses = await self.db.licenses.find(license_filter).to_list(1000)
                 
                 # Create notifications for each license
                 for license_data in expiring_licenses:
