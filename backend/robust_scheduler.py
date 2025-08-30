@@ -441,7 +441,9 @@ class RobustJobScheduler:
                         await self._send_notification(notification)
                         
                         # Remove from queue
-                        await self.db.notification_queue.delete_one({"_id": queue_item["_id"]})
+                        # CRÍTICO: Adicionar filtro de tenant para delete
+                        delete_filter = add_tenant_filter({"_id": queue_item["_id"]}, queue_tenant_id)
+                        await self.db.notification_queue.delete_one(delete_filter)
                         processed += 1
                     else:
                         # Notification not found, remove from queue
