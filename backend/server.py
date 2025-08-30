@@ -4342,7 +4342,8 @@ async def get_licenses(current_user: User = Depends(get_current_user)):
 
 @api_router.get("/licenses/{license_id}", response_model=License)
 async def get_license(license_id: str, current_user: User = Depends(get_current_user)):
-    license_doc = await db.licenses.find_one({"id": license_id})
+    query_filter = add_tenant_filter({"id": license_id})
+    license_doc = await db.licenses.find_one(query_filter)
     if not license_doc:
         raise HTTPException(status_code=404, detail="License not found")
     
