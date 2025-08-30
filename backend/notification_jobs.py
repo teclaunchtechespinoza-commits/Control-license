@@ -84,9 +84,16 @@ class NotificationJobProcessor:
             
             for queue_item in queue_items:
                 try:
-                    # Marcar como processando
+                    # CRÍTICO: Verificar se o item pertence ao tenant correto antes de processar
+                    item_tenant = queue_item.get("tenant_id", "default")
+                    if item_tenant != self.tenant_id:
+                        logger.warning(f"Skipping queue item from different tenant: {item_tenant}")
+                        continue
+                    
+                    # Marcar como processando (com filtro de tenant)
+                    update_filter = add_tenant_filter({"_id": queue_item["_id"]}, self.tenant_id)
                     await self.db.notification_queue.update_one(
-                        {"_id": queue_item["_id"]},
+                        update_filter,
                         {
                             "$set": {
                                 "is_processing": True,
@@ -99,10 +106,11 @@ class NotificationJobProcessor:
                     success = await self.process_single_notification(queue_item["notification_id"])
                     
                     if success:
-                        # Remover da fila se processado com sucesso
-                        await self.db.notification_queue.delete_one({"_id": queue_item["_id"]})
+                        # Remover da fila se processado com sucesso (com filtro de tenant)
+                        delete_filter = add_tenant_filter({"_id": queue_item["_id"]}, self.tenant_id)
+                        await self.db.notification_queue.delete_one(delete_filter)
                     else:
-                        # Remarcar para retry
+                        # Remarcar para retry (com filtro de tenant)
                         retry_after = datetime.utcnow() + timedelta(hours=1)
                         await self.db.notification_queue.update_one(
                             {"_id": queue_item["_id"]},
