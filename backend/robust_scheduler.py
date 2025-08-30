@@ -338,11 +338,14 @@ class RobustJobScheduler:
                 notification_type = NotificationType.LICENSE_EXPIRING_7  # Default
             
             # Check if notification already exists
-            existing = await self.db.notifications.find_one({
+            # CRÍTICO: Adicionar filtro de tenant para busca de notificação
+            tenant_id = license_data.get("tenant_id", "default")
+            existing_filter = add_tenant_filter({
                 "license_id": license_data.get("id"),
                 "type": notification_type,
                 "target_date": license_data.get("expires_at")
-            })
+            }, tenant_id)
+            existing = await self.db.notifications.find_one(existing_filter)
             
             if existing:
                 return  # Skip if already created
