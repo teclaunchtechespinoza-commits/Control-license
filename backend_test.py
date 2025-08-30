@@ -3578,6 +3578,29 @@ class LicenseManagementAPITester:
                 "email": "superadmin@autotech.com", 
                 "password": "admin123",
                 "expected": 401
+    def run_superadmin_investigation(self):
+        """Run the superadmin login investigation as requested in review"""
+        print("🚀 INVESTIGAÇÃO CRÍTICA - ERRO DE LOGIN DO SUPERADMIN")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        
+        # Run the superadmin investigation
+        success = self.test_superadmin_login_investigation()
+        
+        # Print final results
+        print("\n" + "="*80)
+        print("RESULTADO FINAL DA INVESTIGAÇÃO")
+        print("="*80)
+        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        
+        if success:
+            print("🎉 INVESTIGAÇÃO CONCLUÍDA COM SUCESSO!")
+            print("   O problema de login do superadmin foi diagnosticado.")
+            return 0
+        else:
+            print(f"❌ INVESTIGAÇÃO REVELOU PROBLEMAS CRÍTICOS!")
+            print(f"   Ação imediata necessária no sistema de autenticação.")
+            return 1
             },
             {
                 "name": "Superadmin com senha que usuário tentou",
