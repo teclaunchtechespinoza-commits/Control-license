@@ -4183,7 +4183,8 @@ async def create_category(
     category_dict = category_data.dict()
     
     # Usar helper de tenant para adicionar tenant_id
-    category_dict = add_tenant_to_document(category_dict)
+    # CRÍTICO: Especificar tenant_id do usuário atual
+    category_dict = add_tenant_to_document(category_dict, current_user.tenant_id)
     
     # Criar categoria com tenant_id
     category = Category(**category_dict)
