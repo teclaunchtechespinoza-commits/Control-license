@@ -112,8 +112,9 @@ class NotificationJobProcessor:
                     else:
                         # Remarcar para retry (com filtro de tenant)
                         retry_after = datetime.utcnow() + timedelta(hours=1)
+                        retry_filter = add_tenant_filter({"_id": queue_item["_id"]}, self.tenant_id)
                         await self.db.notification_queue.update_one(
-                            {"_id": queue_item["_id"]},
+                            retry_filter,
                             {
                                 "$set": {
                                     "is_processing": False,
