@@ -4348,10 +4348,15 @@ async def delete_license_plan(
 @api_router.post("/licenses", response_model=License)
 async def create_license(
     license_data: LicenseCreate,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
 ):
+    """Create license with tenant isolation"""
     license_dict = license_data.dict()
     license_dict["created_by"] = current_user.id
+    
+    # CRÍTICO: Adicionar tenant_id à nova licença  
+    license_dict = add_tenant_to_document(license_dict, tenant_id)
     
     license = License(**license_dict)
     await db.licenses.insert_one(license.dict())
