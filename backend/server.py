@@ -4287,14 +4287,15 @@ async def update_license_plan(
     update_data["updated_at"] = datetime.utcnow()
     
     result = await db.license_plans.update_one(
-        {"id": plan_id},
+        add_tenant_filter({"id": plan_id}),
         {"$set": update_data}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="License plan not found")
     
-    updated_plan = await db.license_plans.find_one({"id": plan_id})
+    query_filter = add_tenant_filter({"id": plan_id})
+    updated_plan = await db.license_plans.find_one(query_filter)
     return LicensePlan(**updated_plan)
 
 @api_router.delete("/license-plans/{plan_id}")
