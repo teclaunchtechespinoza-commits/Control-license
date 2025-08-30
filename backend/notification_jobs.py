@@ -208,8 +208,10 @@ class NotificationJobProcessor:
                 if log_dict.get("tenant_id") != self.tenant_id:
                     logger.error(f"Tenant mismatch in log: expected {self.tenant_id}, got {log_dict.get('tenant_id')}")
                     return False
-                    
-                await self.db.notification_logs.insert_one(log_dict)
+                
+                # CRÍTICO: Garantir tenant_id no documento antes de inserir
+                log_dict_with_tenant = add_tenant_to_document(log_dict, self.tenant_id)
+                await self.db.notification_logs.insert_one(log_dict_with_tenant)
                 
                 logger.info(f"Notification {notification_id} sent successfully")
                 return True
