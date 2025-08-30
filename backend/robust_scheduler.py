@@ -67,8 +67,9 @@ class RobustJobScheduler:
             "uptime_start": datetime.utcnow()
         }
         
-        # Configure timezone (Brazil timezone)
-        self.timezone = pytz.timezone('America/Sao_Paulo')
+        # Configure timezone (unified to match backend)
+        tz_name = os.getenv('TZ', 'America/Recife')
+        self.timezone = pytz.timezone(tz_name)
     
     async def initialize(self):
         """Initialize scheduler with MongoDB persistence"""
