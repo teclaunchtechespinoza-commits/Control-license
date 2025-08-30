@@ -5211,77 +5211,83 @@ async def startup_db_client():
     # Create critical database indexes (idempotent)
     await ensure_critical_indexes()
     
-    # Create demo admin user with default tenant
-    admin_exists = await db.users.find_one({"email": "admin@demo.com"})
-    if not admin_exists:
-        admin_user = User(
-            email="admin@demo.com",
-            name="Demo Admin",
-            role=UserRole.ADMIN,
-            tenant_id="default"
-        )
-        admin_dict = admin_user.dict()
-        admin_dict["password_hash"] = get_password_hash("admin123")
-        await db.users.insert_one(admin_dict)
-        logger.info("Demo admin user created")
-    
-    user_exists = await db.users.find_one({"email": "user@demo.com"})
-    if not user_exists:
-        # Create separate tenant for demo user
-        demo_user_tenant_id = "demo-user-tenant"
-        demo_tenant_exists = await db.tenants.find_one({"id": demo_user_tenant_id})
+    # Security: Only create demo users if explicitly enabled
+    if os.getenv("SEED_DEMO", "false").lower() == "true":
+        logger.info("SEED_DEMO=true: Creating demo users")
         
-        if not demo_tenant_exists:
-            # Create demo user tenant
-            demo_tenant_data = {
-                "id": demo_user_tenant_id,
-                "name": "Demo User Company",
-                "subdomain": "demo-user",
-                "contact_email": "user@demo.com",
-                "status": "active",
-                "plan": "free",
-                "max_users": 5,
-                "max_licenses": 10,
-                "max_clients": 5,
-                "features": {
-                    "api_access": False,
-                    "webhooks": False,
-                    "advanced_reports": False,
-                    "white_label": False,
-                    "priority_support": False,
-                    "audit_logs": False,
-                    "sso": False
-                },
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            }
-            await db.tenants.insert_one(demo_tenant_data)
-            logger.info("Demo user tenant created")
+        # Create demo admin user with default tenant
+        admin_exists = await db.users.find_one({"email": "admin@demo.com"})
+        if not admin_exists:
+            admin_user = User(
+                email="admin@demo.com",
+                name="Demo Admin",
+                role=UserRole.ADMIN,
+                tenant_id="default"
+            )
+            admin_dict = admin_user.dict()
+            admin_dict["password_hash"] = get_password_hash("admin123")
+            await db.users.insert_one(admin_dict)
+            logger.info("Demo admin user created")
         
-        demo_user = User(
-            email="user@demo.com",
-            name="Demo User",
-            role=UserRole.USER,
-            tenant_id=demo_user_tenant_id  # Separate tenant!
-        )
-        user_dict = demo_user.dict()
-        user_dict["password_hash"] = get_password_hash("user123")
-        await db.users.insert_one(user_dict)
-        logger.info("Demo regular user created in separate tenant")
-        
-    # Create some demo categories
-    categories_exist = await db.categories.count_documents({"tenant_id": "default"}) > 0
-    if not categories_exist:
-        demo_categories = [
-            {"name": "Software", "description": "Licenças de software", "color": "#3B82F6", "icon": "code", "tenant_id": "default"},
-            {"name": "Office", "description": "Ferramentas de escritório", "color": "#10B981", "icon": "briefcase", "tenant_id": "default"},
-            {"name": "Design", "description": "Ferramentas de design", "color": "#8B5CF6", "icon": "palette", "tenant_id": "default"},
-            {"name": "Segurança", "description": "Ferramentas de segurança", "color": "#EF4444", "icon": "shield", "tenant_id": "default"}
-        ]
-        for cat_data in demo_categories:
-            category = Category(**cat_data)
-            await db.categories.insert_one(category.dict())
-        logger.info("Demo categories created")
+        user_exists = await db.users.find_one({"email": "user@demo.com"})
+        if not user_exists:
+            # Create separate tenant for demo user
+            demo_user_tenant_id = "demo-user-tenant"
+            demo_tenant_exists = await db.tenants.find_one({"id": demo_user_tenant_id})
+            
+            if not demo_tenant_exists:
+                # Create demo user tenant
+                demo_tenant_data = {
+                    "id": demo_user_tenant_id,
+                    "name": "Demo User Company",
+                    "subdomain": "demo-user",
+                    "contact_email": "user@demo.com",
+                    "status": "active",
+                    "plan": "free",
+                    "max_users": 5,
+                    "max_licenses": 10,
+                    "max_clients": 5,
+                    "features": {
+                        "api_access": False,
+                        "webhooks": False,
+                        "advanced_reports": False,
+                        "white_label": False,
+                        "priority_support": False,
+                        "audit_logs": False,
+                        "sso": False
+                    },
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                await db.tenants.insert_one(demo_tenant_data)
+                logger.info("Demo user tenant created")
+            
+            demo_user = User(
+                email="user@demo.com",
+                name="Demo User",
+                role=UserRole.USER,
+                tenant_id=demo_user_tenant_id  # Separate tenant!
+            )
+            user_dict = demo_user.dict()
+            user_dict["password_hash"] = get_password_hash("user123")
+            await db.users.insert_one(user_dict)
+            logger.info("Demo regular user created in separate tenant")
+            
+        # Create some demo categories
+        categories_exist = await db.categories.count_documents({"tenant_id": "default"}) > 0
+        if not categories_exist:
+            demo_categories = [
+                {"name": "Software", "description": "Licenças de software", "color": "#3B82F6", "icon": "code", "tenant_id": "default"},
+                {"name": "Office", "description": "Ferramentas de escritório", "color": "#10B981", "icon": "briefcase", "tenant_id": "default"},
+                {"name": "Design", "description": "Ferramentas de design", "color": "#8B5CF6", "icon": "palette", "tenant_id": "default"},
+                {"name": "Segurança", "description": "Ferramentas de segurança", "color": "#EF4444", "icon": "shield", "tenant_id": "default"}
+            ]
+            for cat_data in demo_categories:
+                category = Category(**cat_data)
+                await db.categories.insert_one(category.dict())
+            logger.info("Demo categories created")
+    else:
+        logger.info("SEED_DEMO=false: Skipping demo user creation for security")
     
     # Initialize RBAC system
     await initialize_rbac_system()
