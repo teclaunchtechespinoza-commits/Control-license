@@ -3634,23 +3634,6 @@ if __name__ == "__main__":
         exit_code = tester.run_superadmin_investigation()
     
     sys.exit(exit_code)
-        print("="*50)
-        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
-        
-        if self.tests_passed == self.tests_run:
-            print("🎉 TESTE CRÍTICO DE RECUPERAÇÃO APROVADO COM SUCESSO ABSOLUTO!")
-            print("   TODOS OS PROBLEMAS REPORTADOS FORAM RESOLVIDOS:")
-            print("   ✅ Erros de dados RBAC corrigidos")
-            print("   ✅ Conexões funcionando")
-            print("   ✅ WhatsApp integration ativa")
-            print("   ✅ Comunicação externa operacional")
-            print("   ✅ Sistema está 100% operacional para continuar com Tenant Admin development")
-            return 0
-        else:
-            print(f"❌ TESTE CRÍTICO FALHOU!")
-            print(f"   {self.tests_run - self.tests_passed} tests failed")
-            print("   Sistema NÃO está pronto para continuar desenvolvimento")
-            return 1
 
     def test_super_admin_data_visibility_fix(self):
         """Test the specific Super Admin data visibility fix mentioned in review request"""
