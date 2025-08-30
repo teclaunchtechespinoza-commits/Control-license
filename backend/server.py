@@ -1828,7 +1828,9 @@ async def create_equipment_model(
     current_user: User = Depends(get_current_admin_user)
 ):
     # Check if brand exists
-    brand = await db.equipment_brands.find_one({"id": model_data.brand_id})
+    # CRÍTICO: Verificar marca apenas no tenant atual
+    brand_filter = add_tenant_filter({"id": model_data.brand_id}, current_user.tenant_id)
+    brand = await db.equipment_brands.find_one(brand_filter)
     if not brand:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
