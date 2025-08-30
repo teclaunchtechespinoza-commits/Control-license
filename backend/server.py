@@ -2593,7 +2593,8 @@ async def create_expiration_alert(license_doc):
         
         # Tentar buscar cliente PF
         if license_doc.get('client_pf_id'):
-            client_pf = await db.clientes_pf.find_one({"id": license_doc['client_pf_id']})
+            query_filter_pf = add_tenant_filter({"id": license_doc['client_pf_id']})
+            client_pf = await db.clientes_pf.find_one(query_filter_pf)
             if client_pf:
                 client_name = client_pf.get('nome_completo', client_name)
                 client_phone = client_pf.get('telefone_principal') or client_pf.get('whatsapp')
@@ -2602,7 +2603,8 @@ async def create_expiration_alert(license_doc):
         
         # Tentar buscar cliente PJ
         elif license_doc.get('client_pj_id'):
-            client_pj = await db.clientes_pj.find_one({"id": license_doc['client_pj_id']})
+            query_filter_pj = add_tenant_filter({"id": license_doc['client_pj_id']})
+            client_pj = await db.clientes_pj.find_one(query_filter_pj)
             if client_pj:
                 client_name = client_pj.get('razao_social', client_name)
                 client_phone = client_pj.get('telefone_principal') or client_pj.get('whatsapp')
