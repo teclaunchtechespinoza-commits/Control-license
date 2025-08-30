@@ -7986,9 +7986,12 @@ if __name__ == "__main__":
         elif test_name == "structured_logging":
             print("🎯 EXECUTANDO TESTE ESPECÍFICO: STRUCTURED LOGGING SYSTEM")
             sys.exit(tester.run_structured_logging_tests())
+        elif test_name == "tenant_isolation":
+            print("🎯 EXECUTANDO TESTE ESPECÍFICO: TENANT ISOLATION FIXES VALIDATION")
+            sys.exit(tester.run_tenant_isolation_validation())
         else:
             print(f"❌ Teste desconhecido: {test_name}")
-            print("Testes disponíveis: super_admin_fix, rbac_maintenance, multi_tenancy, structured_logging, all")
+            print("Testes disponíveis: super_admin_fix, rbac_maintenance, multi_tenancy, structured_logging, tenant_isolation, all")
             sys.exit(1)
     else:
         # Default: Run the Super Admin fix test as requested in review
