@@ -141,13 +141,14 @@ class NotificationJobProcessor:
             logger.error(f"Error processing notification queue: {e}")
     
     async def process_single_notification(self, notification_id: str) -> bool:
-        """Processar uma única notificação"""
+        """Processar uma única notificação com isolamento de tenant"""
         try:
-            # Buscar notificação
-            notification_doc = await self.db.notifications.find_one({"id": notification_id})
+            # CRÍTICO: Buscar notificação apenas no tenant correto
+            notification_filter = add_tenant_filter({"id": notification_id}, self.tenant_id)
+            notification_doc = await self.db.notifications.find_one(notification_filter)
             if not notification_doc:
-                logger.warning(f"Notification {notification_id} not found")
-                return True  # Remover da fila pois não existe
+                logger.warning(f"Notification {notification_id} not found in tenant {self.tenant_id}")
+                return True  # Remover da fila pois não existe no tenant correto
             
             notification = Notification(**notification_doc)
             
