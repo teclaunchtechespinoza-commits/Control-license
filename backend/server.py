@@ -1402,7 +1402,9 @@ async def initialize_system():
                     "created_at": datetime.utcnow(),
                     "password_hash": get_password_hash(initial_password)
                 }
-                await db.users.insert_one(super_admin_data)
+                # CRÍTICO: Garantir tenant_id no documento do super admin
+                super_admin_with_tenant = add_tenant_to_document(super_admin_data, "system")
+                await db.users.insert_one(super_admin_with_tenant)
                 logger.info("Super admin created: superadmin@autotech.com (password reset required)")
                 logger.warning("SECURITY: Set new password on first login!")
         
