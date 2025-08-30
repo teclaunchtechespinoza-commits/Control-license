@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 
 class LicenseManagementAPITester:
-    def __init__(self, base_url="https://stoic-hawking.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://saasecure.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.user_token = None
@@ -7427,7 +7427,7 @@ if __name__ == "__main__":
     import sys
     
     # Get the backend URL from environment or use default
-    backend_url = "https://multitenant-saas-1.preview.emergentagent.com/api"
+    backend_url = "https://saasecure.preview.emergentagent.com/api"
     
     tester = LicenseManagementAPITester(backend_url)
     
