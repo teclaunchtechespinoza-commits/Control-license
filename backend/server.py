@@ -2054,7 +2054,8 @@ async def update_license_plan(
             detail="Plano não encontrado"
         )
     
-    plan_doc = await db.license_plans.find_one({"id": plan_id})
+    query_filter = add_tenant_filter({"id": plan_id})
+    plan_doc = await db.license_plans.find_one(query_filter)
     return LicensePlan(**plan_doc)
 
 @api_router.delete("/license-plans/{plan_id}")
