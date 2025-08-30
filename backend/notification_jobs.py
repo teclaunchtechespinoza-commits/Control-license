@@ -20,6 +20,10 @@ import sys
 sys.path.insert(0, '/app')
 from maintenance_logger import MaintenanceLogger
 
+# Import tenant security functions  
+sys.path.insert(0, '/app/backend')
+from deps import add_tenant_filter, add_tenant_to_document
+
 # Initialize maintenance logger
 maintenance_logger = MaintenanceLogger()
 
