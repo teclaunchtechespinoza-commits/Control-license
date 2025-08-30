@@ -1338,7 +1338,9 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
-    user_doc = await db.users.find_one({"email": user_credentials.email})
+    # CRÍTICO: Para login, buscar usuário com tenant (usar default se não especificado)
+    user_filter = add_tenant_filter({"email": user_credentials.email}, "default")
+    user_doc = await db.users.find_one(user_filter)
     if not user_doc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
