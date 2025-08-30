@@ -2041,7 +2041,9 @@ class Company(CompanyBase, BaseEntity):
 
 @api_router.get("/companies", response_model=List[Company])
 async def get_companies(current_user: User = Depends(get_current_user)):
-    companies = await db.companies.find({"is_active": True}).to_list(1000)
+    # CRÍTICO: Filtrar empresas por tenant
+    companies_filter = add_tenant_filter({"is_active": True}, current_user.tenant_id)
+    companies = await db.companies.find(companies_filter).to_list(1000)
     return [Company(**company) for company in companies]
 
 @api_router.post("/companies", response_model=Company)
