@@ -4262,7 +4262,8 @@ async def get_license_plans(current_user: User = Depends(get_current_user)):
 
 @api_router.get("/license-plans/{plan_id}", response_model=LicensePlan)
 async def get_license_plan(plan_id: str, current_user: User = Depends(get_current_user)):
-    plan_doc = await db.license_plans.find_one({"id": plan_id})
+    query_filter = add_tenant_filter({"id": plan_id})
+    plan_doc = await db.license_plans.find_one(query_filter)
     if not plan_doc:
         raise HTTPException(status_code=404, detail="License plan not found")
     return LicensePlan(**plan_doc)
