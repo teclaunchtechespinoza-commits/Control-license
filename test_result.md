@@ -846,7 +846,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Tenant Isolation Fixes - Phase 3 Progress"
+    - "Complete Remaining 147 Tenant Violations (11 Fixed)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
