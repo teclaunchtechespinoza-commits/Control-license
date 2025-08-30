@@ -4194,7 +4194,8 @@ async def get_products(current_user: User = Depends(get_current_user)):
 
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str, current_user: User = Depends(get_current_user)):
-    product_doc = await db.products.find_one({"id": product_id})
+    query_filter = add_tenant_filter({"id": product_id})
+    product_doc = await db.products.find_one(query_filter)
     if not product_doc:
         raise HTTPException(status_code=404, detail="Product not found")
     return Product(**product_doc)
