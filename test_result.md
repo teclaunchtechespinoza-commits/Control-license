@@ -106,6 +106,17 @@ user_problem_statement: "PROBLEMA CRÍTICO DE ISOLAMENTO DE DADOS: Novo usuário
 
 backend:
   - task: "User Registration System - Critical Fix"
+  - task: "Multi-Tenant Data Isolation - CRITICAL SECURITY BUG"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py, /app/backend/tenant_system.py, /app/backend/sales_dashboard.py"
+    stuck_count: 0
+    priority: "CRITICAL"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "🚨 PROBLEMA CRÍTICO DE SEGURANÇA: Usuário recém-criado 'edson@autotech.com' (nível user) está vendo dados de outros cadastros/tenants. Dashboard de vendas mostra R$ 1.611.356,965 em receita e 422 licenças expirando, mas 'Minhas Licenças' mostra 0 licenças. Indica falha GRAVE no isolamento de dados do sistema multi-tenant - usuário está visualizando informações agregadas que não deveria ter acesso. RISCO: Violação de privacidade e segurança de dados."
     implemented: true
     working: true
     file: "/app/backend/server.py"
