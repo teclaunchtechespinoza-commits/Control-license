@@ -32,10 +32,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class NotificationJobProcessor:
-    def __init__(self, db_client):
+    """
+    Processador de jobs de notificação com isolamento de tenant
+    CRÍTICO: Deve processar apenas notificações do tenant correto
+    """
+    def __init__(self, db_client, tenant_id: str = None):
+        self.tenant_id = tenant_id or "default"  # Tenant context for notifications
         self.db = db_client
         self.is_running = False
-        self.worker_id = f"worker_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        self.worker_id = f"worker-{self.tenant_id}-{datetime.utcnow().strftime('%H%M%S')}"
     
     async def start_processing(self):
         """Iniciar processamento de jobs em background"""
