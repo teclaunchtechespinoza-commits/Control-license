@@ -316,13 +316,16 @@ class NotificationJobProcessor:
                 date_end = date_start + timedelta(days=1)
                 
                 # Buscar licenças que vencem na data alvo
-                licenses = await self.db.licenses.find({
+                # CRÍTICO: Buscar apenas licenças do tenant correto
+                license_filter = add_tenant_filter({
                     "expires_at": {
                         "$gte": date_start,
                         "$lt": date_end
                     },
                     "status": {"$in": ["active", "pending"]}  # Apenas licenças ativas
-                }).to_list(1000)
+                }, self.tenant_id)
+                
+                licenses = await self.db.licenses.find(license_filter).to_list(1000)
                 
                 logger.info(f"Found {len(licenses)} licenses expiring in {days} days")
                 
