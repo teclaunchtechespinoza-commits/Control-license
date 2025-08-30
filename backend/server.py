@@ -1361,8 +1361,11 @@ async def login(user_credentials: UserLogin):
             detail="Incorrect email or password"
         )
     
+    # CRÍTICO: Adicionar filtro de tenant para atualização do último login
+    user_tenant_id = user_doc.get("tenant_id", "default")
+    login_filter = add_tenant_filter({"email": user_credentials.email}, user_tenant_id)
     await db.users.update_one(
-        {"email": user_credentials.email},
+        login_filter,
         {"$set": {"last_login": datetime.utcnow()}}
     )
     
