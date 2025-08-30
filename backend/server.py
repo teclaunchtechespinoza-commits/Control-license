@@ -2051,7 +2051,9 @@ async def create_company(
     company_data: CompanyCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    existing_company = await db.companies.find_one({"name": company_data.name})
+    # CRÍTICO: Verificar empresa existente apenas no tenant atual
+    company_filter = add_tenant_filter({"name": company_data.name}, current_user.tenant_id)
+    existing_company = await db.companies.find_one(company_filter)
     if existing_company:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
