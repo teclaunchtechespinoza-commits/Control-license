@@ -4506,7 +4506,7 @@ async def get_stats(
     }
 
 # Demo credentials and health check (keeping existing)
-# Temporary endpoint to migrate demo user to separate tenant
+# Temporally endpoint to migrate demo user to separate tenant
 @api_router.post("/admin/migrate-demo-user")
 async def migrate_demo_user(current_user: User = Depends(get_current_admin_user)):
     """Migra usuário demo para tenant separado (uso temporário)"""
