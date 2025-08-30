@@ -4388,7 +4388,8 @@ async def update_license(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="License not found")
     
-    updated_license = await db.licenses.find_one({"id": license_id})
+    query_filter = add_tenant_filter({"id": license_id})
+    updated_license = await db.licenses.find_one(query_filter)
     return License(**updated_license)
 
 @api_router.delete("/licenses/{license_id}")
