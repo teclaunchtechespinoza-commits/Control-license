@@ -2350,19 +2350,22 @@ async def assign_roles(request: AssignRoleRequest, current_user: User = Depends(
 
 @api_router.post("/rbac/assign-permissions")
 async def assign_direct_permissions(request: AssignPermissionRequest, current_user: User = Depends(require_permission("users.manage"))):
-    # Verificar se usuário existe (com filtro de tenant)
-    query_filter = add_tenant_filter({"id": request.user_id})
+    # 🚨 CRÍTICO: Verificar usuário apenas no tenant atual
+    query_filter = add_tenant_filter({"id": request.user_id}, current_user.tenant_id)
     user_doc = await db.users.find_one(query_filter)
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Verificar se permissões existem
-    existing_permissions = await db.permissions.find({"id": {"$in": request.permission_ids}}).to_list(1000)
+    # 🚨 CRÍTICO: Verificar permissões no contexto adequado (sistema ou tenant)
+    permissions_filter = add_tenant_filter({"id": {"$in": request.permission_ids}}, "system")
+    existing_permissions = await db.permissions.find(permissions_filter).to_list(1000)
     if len(existing_permissions) != len(request.permission_ids):
         raise HTTPException(status_code=400, detail="One or more permissions not found")
     
-    # Atualizar usuário
+    # 🚨 CRÍTICO: Atualizar usuário com filtro de tenant
+    user_update_filter = add_tenant_filter({"id": request.user_id}, current_user.tenant_id)
     await db.users.update_one(
+        user_update_filter,
         {"id": request.user_id},
         {
             "$set": {
