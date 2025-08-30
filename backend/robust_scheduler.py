@@ -380,7 +380,9 @@ class RobustJobScheduler:
             )
             
             # Insert notification
-            await self.db.notifications.insert_one(notification.dict())
+            # CRÍTICO: Garantir tenant_id no documento antes de inserir
+            notification_dict = add_tenant_to_document(notification.dict(), tenant_id)
+            await self.db.notifications.insert_one(notification_dict)
             
             # Add to notification queue for processing
             queue_item = NotificationQueue(
