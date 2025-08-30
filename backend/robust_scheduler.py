@@ -504,7 +504,9 @@ class RobustJobScheduler:
                 metadata={"simulated": True}
             )
             
-            await self.db.notification_logs.insert_one(log_entry.dict())
+            # CRÍTICO: Garantir tenant_id no log antes de inserir
+            log_dict = add_tenant_to_document(log_entry.dict(), tenant_id)
+            await self.db.notification_logs.insert_one(log_dict)
             
         except Exception as e:
             # Update to failed
