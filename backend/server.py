@@ -56,6 +56,15 @@ from whatsapp_integration import (
     whatsapp_service, template_service, send_renewal_whatsapp
 )
 
+# Configure timezone first
+import time
+tz = os.getenv('TZ', 'America/Recife')
+os.environ['TZ'] = tz
+try:
+    time.tzset()
+except:
+    pass  # tzset not available on Windows
+
 # Import WhatsApp Service (Real Integration) - Commented out to avoid circular imports
 # from whatsapp_service import whatsapp_router, send_renewal_whatsapp_message
 
