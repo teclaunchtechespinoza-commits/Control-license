@@ -3634,19 +3634,6 @@ if __name__ == "__main__":
         exit_code = tester.run_superadmin_investigation()
     
     sys.exit(exit_code)
-            success, response = self.run_test(cred_test["name"], "POST", "auth/login", cred_test["expected"], credentials)
-            
-            if cred_test["expected"] == 200 and success:
-                print(f"   ✅ {cred_test['name']}: LOGIN SUCESSO")
-            elif cred_test["expected"] == 401 and not success:
-                print(f"   ✅ {cred_test['name']}: FALHA ESPERADA")
-            else:
-                print(f"   ❌ {cred_test['name']}: RESULTADO INESPERADO")
-        
-        # Final diagnosis
-        print("\n" + "="*80)
-        print("DIAGNÓSTICO FINAL - ERRO DE LOGIN DO SUPERADMIN")
-        print("="*80)
         
         if hasattr(self, 'superadmin_token'):
             print("🎉 DIAGNÓSTICO: SUPERADMIN LOGIN ESTÁ FUNCIONANDO CORRETAMENTE!")
