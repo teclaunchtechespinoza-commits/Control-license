@@ -510,8 +510,11 @@ class RobustJobScheduler:
             
         except Exception as e:
             # Update to failed
+            # CRÍTICO: Adicionar filtro de tenant para update
+            tenant_id = notification.get("tenant_id", "default")
+            failed_filter = add_tenant_filter({"id": notification["id"]}, tenant_id)
             await self.db.notifications.update_one(
-                {"id": notification["id"]},
+                failed_filter,
                 {"$set": {"status": NotificationStatus.FAILED, "error_message": str(e)}}
             )
             raise
