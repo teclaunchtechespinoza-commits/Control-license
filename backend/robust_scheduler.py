@@ -487,8 +487,9 @@ class RobustJobScheduler:
             await asyncio.sleep(0.1)  # Simulate network delay
             
             # Update to sent
+            # CRÍTICO: Adicionar filtro de tenant para update
             await self.db.notifications.update_one(
-                {"id": notification["id"]},
+                update_filter,
                 {"$set": {"status": NotificationStatus.SENT}}
             )
             
