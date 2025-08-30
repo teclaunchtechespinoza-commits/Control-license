@@ -4217,7 +4217,8 @@ async def update_product(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    updated_product = await db.products.find_one({"id": product_id})
+    query_filter = add_tenant_filter({"id": product_id})
+    updated_product = await db.products.find_one(query_filter)
     return Product(**updated_product)
 
 @api_router.delete("/products/{product_id}")
