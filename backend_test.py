@@ -7713,6 +7713,11 @@ if __name__ == "__main__":
             print("🎯 EXECUTANDO TESTE ESPECÍFICO: MULTI-TENANCY SAAS")
             success = tester.test_multi_tenancy_saas_implementation()
             sys.exit(0 if success else 1)
+        elif test_name == "notification_system":
+            print("🎯 EXECUTANDO TESTE ESPECÍFICO: NOTIFICATION SYSTEM AFTER TENANT FIXES")
+            tester.test_authentication()  # Get admin token first
+            success = tester.test_notification_system_after_tenant_fixes()
+            sys.exit(0 if success else 1)
         elif test_name == "all":
             print("🎯 EXECUTANDO TODOS OS TESTES")
             sys.exit(tester.run_all_tests())
