@@ -3195,7 +3195,7 @@ async def send_whatsapp_renewal_message(
 async def send_bulk_whatsapp_messages(
     alert_ids: List[str],
     message_template: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Envia mensagens WhatsApp em lote para múltiplos alertas
