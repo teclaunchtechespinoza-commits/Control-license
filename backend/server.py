@@ -5108,6 +5108,38 @@ async def initialize_default_tenant():
     else:
         logger.info("Default tenant already exists")
 
+async def ensure_critical_indexes():
+    """
+    Ensure critical database indexes are created for optimal performance
+    """
+    try:
+        logger.info("Ensuring critical database indexes...")
+        
+        # Import and use the minimal optimizer
+        from minimal_optimizer import MinimalOptimizer
+        optimizer = MinimalOptimizer()
+        await optimizer.connect()
+        
+        # Check if optimization is needed (simple check for existing indexes)
+        collections = await optimizer.db.list_collection_names() 
+        if "licenses" in collections:
+            indexes = await optimizer.db.licenses.list_indexes().to_list(None)
+            has_tenant_index = any(idx.get("name") == "tenant_expires_idx" for idx in indexes)
+            
+            if not has_tenant_index:
+                logger.info("Creating essential database indexes...")
+                await optimizer.create_essential_indexes()
+                logger.info("✅ Critical database indexes created successfully")
+            else:
+                logger.info("✅ Critical database indexes already exist")
+        
+        await optimizer.close()
+        
+    except Exception as e:
+        logger.error(f"Failed to ensure critical indexes: {e}")
+        # Don't raise the exception to prevent startup failure
+        # Indexes are important but not critical for basic functionality
+
 @app.on_event("startup")
 async def startup_db_client():
     logger.info("Starting up License Management System...")
