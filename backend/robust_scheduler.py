@@ -454,8 +454,11 @@ class RobustJobScheduler:
                 except Exception as e:
                     logger.error(f"Failed to process queue item: {e}")
                     # Reset processing flag
+                    # CRÍTICO: Adicionar filtro de tenant para update
+                    queue_tenant_id = queue_item.get("tenant_id", "default")
+                    reset_filter = add_tenant_filter({"_id": queue_item["_id"]}, queue_tenant_id)
                     await self.db.notification_queue.update_one(
-                        {"_id": queue_item["_id"]},
+                        reset_filter,
                         {"$set": {"is_processing": False, "worker_id": None}}
                     )
             
