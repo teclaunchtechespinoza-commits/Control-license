@@ -5012,6 +5012,12 @@ app.add_middleware(
     expose_headers=["X-Current-Tenant"],
 )
 
+# Add enterprise security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Add rate limiting middleware for security-sensitive endpoints  
+app.add_middleware(RateLimitMiddleware)
+
 # Debug middleware to log all requests
 @app.middleware("http")
 async def log_requests(request, call_next):
