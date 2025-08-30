@@ -3958,14 +3958,17 @@ async def clear_maintenance_logs(current_user: User = Depends(get_current_admin_
         )
 
 @api_router.get("/clientes-pj", response_model=List[PessoaJuridica])
-async def get_pessoas_juridicas(current_user: User = Depends(get_current_user)):
+async def get_pessoas_juridicas(
+    current_user: User = Depends(get_current_user),
+    tenant_id: str = Depends(require_tenant)
+):
     try:
         # Super Admin vê todos os clientes independente do status
         if current_user.role == UserRole.SUPER_ADMIN:
-            query_filter = add_tenant_filter({})  # Ver todos, inclusive inativos
+            query_filter = {}  # Super admin sees all globally
         else:
-            # Outros usuários veem apenas clientes ativos
-            query_filter = add_tenant_filter({"status": {"$ne": "inactive"}})
+            # Outros usuários veem apenas clientes ativos em seu tenant
+            query_filter = add_tenant_filter({"status": {"$ne": "inactive"}}, tenant_id)
         
         if current_user.role == UserRole.ADMIN or current_user.role == UserRole.SUPER_ADMIN:
             clients = await db.clientes_pj.find(query_filter).to_list(1000)
