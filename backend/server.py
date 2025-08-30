@@ -3758,7 +3758,7 @@ async def get_notification_config(current_user: User = Depends(get_current_user)
     Obter configurações de notificação do tenant atual
     """
     try:
-        tenant_id = require_tenant()
+        tenant_id = current_user.tenant_id
         
         config = await db.notification_configs.find_one({"tenant_id": tenant_id})
         
