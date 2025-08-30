@@ -4420,7 +4420,7 @@ async def update_license(
     update_data["updated_at"] = datetime.utcnow()
     
     result = await db.licenses.update_one(
-        {"id": license_id},
+        add_tenant_filter({"id": license_id}),
         {"$set": update_data}
     )
     
