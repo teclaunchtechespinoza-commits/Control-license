@@ -376,10 +376,11 @@ async def check_user_duplicates(email: str, name: str = None, exclude_id: str = 
         return {"has_duplicates": False, "error": str(e)}
 
 # Verificação de duplicatas para roles
-async def check_role_duplicates(name: str, exclude_id: str = None) -> dict:
+async def check_role_duplicates(name: str, exclude_id: str = None, tenant_id: str = "default") -> dict:
     """Verifica duplicatas de roles por nome"""
     try:
-        query_filter = add_tenant_filter({"name": {"$regex": f"^{name}$", "$options": "i"}})
+        # CRÍTICO: Usar tenant_id específico para isolamento
+        query_filter = add_tenant_filter({"name": {"$regex": f"^{name}$", "$options": "i"}}, tenant_id)
         if exclude_id:
             query_filter["id"] = {"$ne": exclude_id}
             
