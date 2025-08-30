@@ -243,7 +243,9 @@ class NotificationJobProcessor:
                         status=NotificationStatus.FAILED,
                         event_data={"attempts": attempts, "worker_id": self.worker_id}
                     )
-                    await self.db.notification_logs.insert_one(log_entry.dict())
+                    # CRÍTICO: Garantir tenant_id no log antes de inserir
+                    log_dict_with_tenant = add_tenant_to_document(log_entry.dict(), self.tenant_id)
+                    await self.db.notification_logs.insert_one(log_dict_with_tenant)
                     
                     logger.error(f"Notification {notification_id} failed after {attempts} attempts")
                     return True  # Remover da fila
