@@ -2017,7 +2017,8 @@ async def create_pessoa_juridica(
     client_dict["created_by"] = current_user.id
     
     # Usar helper de tenant para adicionar tenant_id
-    client_dict = add_tenant_to_document(client_dict)
+    # CRÍTICO: Especificar tenant_id do usuário atual
+    client_dict = add_tenant_to_document(client_dict, current_user.tenant_id)
     
     # Criar cliente com tenant_id
     client = PessoaJuridica(**client_dict)
