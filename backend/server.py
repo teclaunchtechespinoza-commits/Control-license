@@ -2185,7 +2185,9 @@ async def delete_license_plan(plan_id: str, current_user: User = Depends(get_cur
 # RBAC Endpoints - Sistema de Controle de Acesso
 @api_router.get("/rbac/permissions", response_model=List[Permission])
 async def get_permissions(current_user: User = Depends(require_permission("rbac.read"))):
-    permissions = await db.permissions.find().to_list(1000)
+    # CRÍTICO: Para permissions, usar filtro global ou por tenant (assumindo global por enquanto)
+    permissions_filter = add_tenant_filter({}, "system")  # Permissions são globais no sistema
+    permissions = await db.permissions.find(permissions_filter).to_list(1000)
     return [Permission(**perm) for perm in permissions]
 
 @api_router.post("/rbac/permissions", response_model=Permission)
