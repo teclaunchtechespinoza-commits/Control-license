@@ -66,6 +66,9 @@ from deps import (
     validate_tenant_access
 )
 
+# Import security headers middleware
+from .security_headers import SecurityHeadersMiddleware, RateLimitMiddleware
+
 import time
 tz = os.getenv('TZ', 'America/Recife')
 os.environ['TZ'] = tz
