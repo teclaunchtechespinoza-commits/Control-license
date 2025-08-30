@@ -2064,7 +2064,9 @@ async def create_company(
     company_dict["created_by"] = current_user.id
     
     company = Company(**company_dict)
-    await db.companies.insert_one(company.dict())
+    # CRÍTICO: Inserir empresa com tenant_id
+    company_dict_with_tenant = add_tenant_to_document(company.dict(), current_user.tenant_id)
+    await db.companies.insert_one(company_dict_with_tenant)
     
     return company
 
