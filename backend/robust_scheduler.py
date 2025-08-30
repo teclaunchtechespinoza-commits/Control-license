@@ -28,6 +28,9 @@ from notification_system import (
     get_default_template, calculate_notification_trigger_dates
 )
 
+# Tenant system imports
+from tenant_system import add_tenant_filter, add_tenant_to_document
+
 # Import maintenance logger
 import sys
 sys.path.insert(0, '/app')
