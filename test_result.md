@@ -833,7 +833,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Super Admin PJ Client Visibility Fix - Complete Resolution"
+    - "Tenant Isolation Fixes - Notification System"
+    - "Complete Remaining 153 Tenant Violations"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
