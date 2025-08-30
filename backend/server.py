@@ -2258,7 +2258,9 @@ async def create_role(role_data: CreateRoleRequest, current_user: User = Depends
             "updated_at": datetime.utcnow()
         }
         
-        result = await db.roles.insert_one(role_dict)
+        # 🚨 CRÍTICO: Garantir tenant_id no documento antes de inserir
+        role_dict_with_tenant = add_tenant_to_document(role_dict, current_user.tenant_id)
+        result = await db.roles.insert_one(role_dict_with_tenant)
         
         log_advanced_error(
             ErrorLevel.INFO,
