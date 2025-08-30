@@ -2131,7 +2131,9 @@ async def create_license_plan(
     plan_data: LicensePlanCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    existing_plan = await db.license_plans.find_one({"name": plan_data.name})
+    # CRÍTICO: Verificar plano existente apenas no tenant atual
+    plan_filter = add_tenant_filter({"name": plan_data.name}, current_user.tenant_id)
+    existing_plan = await db.license_plans.find_one(plan_filter)
     if existing_plan:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -2142,7 +2144,9 @@ async def create_license_plan(
     plan_dict["created_by"] = current_user.id
     
     plan = LicensePlan(**plan_dict)
-    await db.license_plans.insert_one(plan.dict())
+    # CRÍTICO: Inserir plano com tenant_id
+    plan_dict_with_tenant = add_tenant_to_document(plan.dict(), current_user.tenant_id)
+    await db.license_plans.insert_one(plan_dict_with_tenant)
     
     return plan
 
