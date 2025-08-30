@@ -3276,7 +3276,7 @@ async def send_bulk_whatsapp_messages(
 @api_router.get("/sales-dashboard/analytics", response_model=Dict[str, Any])
 async def get_sales_analytics(
     period_days: int = 30,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Analytics avançadas do dashboard de vendas
