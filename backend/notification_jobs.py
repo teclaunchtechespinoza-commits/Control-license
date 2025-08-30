@@ -558,7 +558,9 @@ class NotificationJobProcessor:
             
             # Se não encontrar cliente específico, buscar pelo usuário atribuído
             if license_doc.get("assigned_user_id"):
-                user = await self.db.users.find_one({"id": license_doc["assigned_user_id"]})
+                # CRÍTICO: Adicionar filtro de tenant para busca de usuário
+                user_filter = add_tenant_filter({"id": license_doc["assigned_user_id"]}, license_doc.get("tenant_id", "default"))
+                user = await self.db.users.find_one(user_filter)
                 if user:
                     return {
                         "id": user["id"],
