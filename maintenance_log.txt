@@ -478,3 +478,4 @@
 [2025-08-30 14:51:46] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-08-30 15:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 7, "licenses_count": 1, "notification_type": "NotificationType.LICENSE_EXPIRING_7", "target_date": "2025-09-06"}
 [2025-08-30 15:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 1, "licenses_count": 6, "notification_type": "NotificationType.LICENSE_EXPIRING_1", "target_date": "2025-08-31"}
+[2025-08-30 15:03:49] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 12.05284945, "total_executions": 0}

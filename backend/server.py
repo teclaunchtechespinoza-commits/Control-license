@@ -3254,12 +3254,13 @@ async def get_expiring_licenses_alerts(
         future_date = datetime.utcnow() + timedelta(days=days_ahead)
         
         # Query para buscar licenças expirando
+        # CRÍTICO: Usar tenant_id do usuário atual para isolamento
         query_filter = add_tenant_filter({
             "$or": [
                 {"expires_at": {"$lte": future_date}},  # Expirando em X dias
                 {"expires_at": {"$lte": datetime.utcnow()}}  # Já expiraram
             ]
-        })
+        }, current_user.tenant_id)
         
         licenses = await db.licenses.find(query_filter).to_list(1000)
         
