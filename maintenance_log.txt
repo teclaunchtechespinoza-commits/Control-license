@@ -265,3 +265,4 @@
 [2025-08-29 23:50:59] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Sao_Paulo", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-08-30 00:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 1, "licenses_count": 6, "notification_type": "NotificationType.LICENSE_EXPIRING_1", "target_date": "2025-08-31"}
 [2025-08-30 00:05:59] [INFO] health - system_health_check: {"database_response_ms": 3.9240000000000004, "database_status": "healthy", "notification_queue_size": 360, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-08-30 00:20:59] [INFO] health - system_health_check: {"database_response_ms": 4.087999999999999, "database_status": "healthy", "notification_queue_size": 360, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
