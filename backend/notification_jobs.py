@@ -71,13 +71,16 @@ class NotificationJobProcessor:
         logger.info(f"Stopping notification job processor: {self.worker_id}")
     
     async def process_notification_queue(self):
-        """Processar fila de notificações pendentes"""
+        """Processar fila de notificações pendentes com isolamento de tenant"""
         try:
-            # Buscar notificações pendentes na fila
-            queue_items = await self.db.notification_queue.find({
+            # CRÍTICO: Buscar apenas notificações do tenant correto
+            base_filter = {
                 "is_processing": False,
                 "process_after": {"$lte": datetime.utcnow()}
-            }).sort("priority", 1).limit(10).to_list(10)
+            }
+            queue_filter = add_tenant_filter(base_filter, self.tenant_id)
+            
+            queue_items = await self.db.notification_queue.find(queue_filter).sort("priority", 1).limit(10).to_list(10)
             
             for queue_item in queue_items:
                 try:
