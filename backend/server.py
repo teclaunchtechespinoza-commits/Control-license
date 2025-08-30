@@ -2193,7 +2193,9 @@ async def get_permissions(current_user: User = Depends(require_permission("rbac.
 @api_router.post("/rbac/permissions", response_model=Permission)
 async def create_permission(permission_data: Permission, current_user: User = Depends(require_permission("rbac.manage"))):
     permission = Permission(**permission_data.dict())
-    await db.permissions.insert_one(permission.dict())
+    # CRÍTICO: Inserir permission com tenant system (global)
+    permission_dict_with_tenant = add_tenant_to_document(permission.dict(), "system")
+    await db.permissions.insert_one(permission_dict_with_tenant)
     return permission
 
 @api_router.get("/rbac/roles", response_model=List[Role])  
