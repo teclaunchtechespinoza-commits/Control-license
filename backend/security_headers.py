@@ -138,28 +138,34 @@ class RateLimitMiddleware:
             "/api/licenses": {"requests": 200, "window": 60},  # 200 requests per minute
         }
     
-    async def __call__(self, request: Request, call_next: Callable) -> Response:
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+            
+        from fastapi import Request
+        request = Request(scope, receive)
+        
+        async def call_next(request):
+            return await self.app(scope, receive, send)
+        
         # Get client IP
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "unknown"
         path = request.url.path
         
         # Check if path needs rate limiting
         if self.should_rate_limit(path):
             if self.is_rate_limited(client_ip, path):
-                return Response(
-                    content='{"error": "Rate limit exceeded"}',
-                    status_code=429,
-                    media_type="application/json"
+                from starlette.responses import JSONResponse
+                response = JSONResponse(
+                    content={"error": "Rate limit exceeded"},
+                    status_code=429
                 )
+                await response(scope, receive, send)
+                return
         
-        # Process request
-        response = await call_next(request)
-        
-        # Add rate limit headers
-        if self.should_rate_limit(path):
-            self.add_rate_limit_headers(response, client_ip, path)
-        
-        return response
+        # Process request normally
+        await self.app(scope, receive, send)
     
     def should_rate_limit(self, path: str) -> bool:
         """Check if path should be rate limited"""
