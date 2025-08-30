@@ -1817,7 +1817,9 @@ async def get_equipment_models(brand_id: Optional[str] = None, current_user: Use
     if brand_id:
         query["brand_id"] = brand_id
     
-    models = await db.equipment_models.find(query).to_list(1000)
+    # CRÍTICO: Filtrar modelos por tenant
+    models_filter = add_tenant_filter(query, current_user.tenant_id)
+    models = await db.equipment_models.find(models_filter).to_list(1000)
     return [EquipmentModel(**model) for model in models]
 
 @api_router.post("/equipment-models", response_model=EquipmentModel)
