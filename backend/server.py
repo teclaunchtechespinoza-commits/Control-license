@@ -1792,7 +1792,9 @@ async def create_equipment_brand(
     current_user: User = Depends(get_current_admin_user)
 ):
     # Check if brand name already exists
-    existing_brand = await db.equipment_brands.find_one({"name": brand_data.name})
+    # CRÍTICO: Verificar duplicatas apenas no tenant atual
+    brand_filter = add_tenant_filter({"name": brand_data.name}, current_user.tenant_id)
+    existing_brand = await db.equipment_brands.find_one(brand_filter)
     if existing_brand:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1803,7 +1805,9 @@ async def create_equipment_brand(
     brand_dict["created_by"] = current_user.id
     
     brand = EquipmentBrand(**brand_dict)
-    await db.equipment_brands.insert_one(brand.dict())
+    # CRÍTICO: Inserir com tenant_id
+    brand_dict_with_tenant = add_tenant_to_document(brand.dict(), current_user.tenant_id)
+    await db.equipment_brands.insert_one(brand_dict_with_tenant)
     
     return brand
 
