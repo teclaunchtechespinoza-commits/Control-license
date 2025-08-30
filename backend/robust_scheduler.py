@@ -394,7 +394,9 @@ class RobustJobScheduler:
                 created_at=datetime.utcnow()
             )
             
-            await self.db.notification_queue.insert_one(queue_item.dict())
+            # CRÍTICO: Garantir tenant_id no documento da fila antes de inserir
+            queue_dict = add_tenant_to_document(queue_item.dict(), tenant_id)
+            await self.db.notification_queue.insert_one(queue_dict)
             
         except Exception as e:
             logger.error(f"Failed to create expiry notification: {e}")
