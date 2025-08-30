@@ -8472,6 +8472,8 @@ if __name__ == "__main__":
             exit_code = tester.run_apscheduler_tests()
         elif test_type == "tenant-isolation":
             exit_code = tester.run_tenant_isolation_validation()
+        elif test_type == "critical-security":
+            exit_code = tester.run_critical_security_tests()
         else:
             print("Available test types:")
             print("  super-admin-fix - Test Super Admin permissions critical fix")
@@ -8484,6 +8486,7 @@ if __name__ == "__main__":
             print("  multi-tenancy - Test multi-tenancy system")
             print("  logging - Test logging system fix")
             print("  tenant-isolation - Test tenant isolation fixes")
+            print("  critical-security - Test critical security fixes validation")
             exit_code = 1
     else:
         # Run the client form simplification test by default for this review
