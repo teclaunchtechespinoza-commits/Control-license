@@ -1330,7 +1330,9 @@ async def register(user_data: UserCreate):
     user_dict["role"] = "admin"  # First user in tenant is admin
     
     user = User(**user_dict)
-    await db.users.insert_one(user.dict())
+    # CRÍTICO: Garantir tenant_id no documento antes de inserir
+    user_dict_with_tenant = add_tenant_to_document(user.dict(), tenant_id)
+    await db.users.insert_one(user_dict_with_tenant)
     
     return user
 
