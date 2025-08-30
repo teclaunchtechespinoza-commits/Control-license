@@ -408,10 +408,13 @@ class RobustJobScheduler:
             logger.info("📧 Processing notification queue...")
             
             # Get pending notifications
-            queue_items = await self.db.notification_queue.find({
+            # CRÍTICO: Para processamento global, usar tenant padrão por enquanto
+            # TODO: Melhorar para processar todos os tenants
+            queue_filter = add_tenant_filter({
                 "is_processing": False,
                 "process_after": {"$lte": datetime.utcnow()}
-            }).sort("priority", 1).limit(10).to_list(10)
+            }, "default")
+            queue_items = await self.db.notification_queue.find(queue_filter).sort("priority", 1).limit(10).to_list(10)
             
             processed = 0
             
