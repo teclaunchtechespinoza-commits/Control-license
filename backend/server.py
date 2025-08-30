@@ -1676,12 +1676,22 @@ async def get_users(
 
 @api_router.put("/users/{user_id}/role")
 async def update_user_role(
-    user_id: str,
-    role: UserRole,
-    current_user: User = Depends(get_current_admin_user)
+    user_id: str, 
+    role_data: dict,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
 ):
+    """Update user role with tenant isolation"""
+    role = role_data.get("role")
+    
+    # Super admin can update any user, regular admin only in their tenant
+    if current_user.role == "super_admin":
+        query_filter = {"id": user_id}
+    else:
+        query_filter = add_tenant_filter({"id": user_id}, tenant_id)
+    
     result = await db.users.update_one(
-        {"id": user_id},
+        query_filter,
         {"$set": {"role": role}}
     )
     if result.matched_count == 0:
