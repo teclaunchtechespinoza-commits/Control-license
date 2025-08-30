@@ -3764,7 +3764,9 @@ async def create_notification(
         notification_dict["tenant_id"] = tenant_id
         
         notification = Notification(**notification_dict)
-        await db.notifications.insert_one(notification.dict())
+        # CRÍTICO: Garantir tenant_id no documento antes de inserir
+        notification_dict_with_tenant = add_tenant_to_document(notification.dict(), tenant_id)
+        await db.notifications.insert_one(notification_dict_with_tenant)
         
         # Adicionar à fila se não agendada para o futuro
         if not notification.scheduled_for or notification.scheduled_for <= datetime.utcnow():
@@ -3773,7 +3775,9 @@ async def create_notification(
                 notification_id=notification.id,
                 priority=1 if notification.priority == NotificationPriority.URGENT else 2
             )
-            await db.notification_queue.insert_one(queue_item.dict())
+            # CRÍTICO: Garantir tenant_id no documento da fila
+            queue_dict_with_tenant = add_tenant_to_document(queue_item.dict(), tenant_id)
+            await db.notification_queue.insert_one(queue_dict_with_tenant)
         
         return notification
         
