@@ -66,7 +66,6 @@ from .deps import (
     validate_tenant_access
 )
 
-# Configure timezone first
 import time
 tz = os.getenv('TZ', 'America/Recife')
 os.environ['TZ'] = tz
