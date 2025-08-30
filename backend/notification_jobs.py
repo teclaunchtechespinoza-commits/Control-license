@@ -348,15 +348,17 @@ class NotificationJobProcessor:
                             "notification_type": str(notification_type)
                         }, str(e))
             
-            # Verificar licenças já expiradas (últimos 7 dias)
+            # Verificar licenças já expiradas (últimos 7 dias) - apenas do tenant correto
             expired_start = now - timedelta(days=7)
-            expired_licenses = await self.db.licenses.find({
+            expired_filter = add_tenant_filter({
                 "expires_at": {
                     "$gte": expired_start,
                     "$lt": now
                 },
                 "status": {"$ne": "expired"}  # Não notificar se já marcada como expirada
-            }).to_list(1000)
+            }, self.tenant_id)
+            
+            expired_licenses = await self.db.licenses.find(expired_filter).to_list(1000)
             
             logger.info(f"Found {len(expired_licenses)} recently expired licenses")
             
