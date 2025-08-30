@@ -300,13 +300,14 @@ def log_advanced_error(level: ErrorLevel, category: ErrorCategory, message: str,
     return log_entry
 
 # Verificação de duplicatas para usuários
-async def check_user_duplicates(email: str, name: str = None, exclude_id: str = None) -> dict:
+async def check_user_duplicates(email: str, name: str = None, exclude_id: str = None, tenant_id: str = "default") -> dict:
     """
     Verifica duplicatas de usuários por email e opcionalmente por nome
     Retorna informações sobre duplicatas encontradas
     """
     try:
-        query_filter = add_tenant_filter({})
+        # CRÍTICO: Usar tenant_id específico para isolamento
+        query_filter = add_tenant_filter({}, tenant_id)
         
         # Verificar email duplicado
         email_query = {**query_filter, "email": email}
