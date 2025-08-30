@@ -2287,9 +2287,11 @@ async def update_role(role_id: str, role_data: UpdateRoleRequest, current_user: 
     update_data = {k: v for k, v in role_data.dict().items() if v is not None}
     update_data["updated_at"] = datetime.utcnow()
     
-    await db.roles.update_one({"id": role_id}, {"$set": update_data})
+    # 🚨 CRÍTICO: Filtrar role por tenant para evitar modificação cross-tenant
+    role_filter = add_tenant_filter({"id": role_id}, current_user.tenant_id)
+    await db.roles.update_one(role_filter, {"$set": update_data})
     
-    role_doc = await db.roles.find_one({"id": role_id})
+    role_doc = await db.roles.find_one(role_filter)
     if not role_doc:
         raise HTTPException(status_code=404, detail="Role not found")
     
