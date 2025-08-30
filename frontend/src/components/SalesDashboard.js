@@ -46,7 +46,15 @@ const SalesDashboard = () => {
 
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard:', error);
-            setError('Erro ao carregar dados do dashboard de vendas');
+            
+            // Handle specific error cases
+            if (error.response?.status === 403) {
+                setError('Acesso negado: Você não tem permissão para acessar o dashboard de vendas. Entre em contato com o administrador.');
+            } else if (error.response?.status === 401) {
+                setError('Sessão expirada: Faça login novamente para acessar o dashboard.');
+            } else {
+                setError('Erro ao carregar dados do dashboard de vendas');
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);
