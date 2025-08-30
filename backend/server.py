@@ -4876,13 +4876,17 @@ async def structured_logging_middleware(request: Request, call_next):
 # app.add_middleware(PerformanceMonitoringMiddleware) 
 # app.add_middleware(StructuredLoggingMiddleware)
 
-# CORS middleware
+# CORS middleware - Secure configuration
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=['*'],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=cors_origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "X-Current-Tenant"],
+    expose_headers=["X-Current-Tenant"],
 )
 
 # Debug middleware to log all requests
