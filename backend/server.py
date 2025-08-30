@@ -1340,9 +1340,17 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
-    # CRÍTICO: Para login, buscar usuário com tenant (usar default se não especificado)
-    user_filter = add_tenant_filter({"email": user_credentials.email}, "default")
-    user_doc = await db.users.find_one(user_filter)
+    # CRÍTICO: Para login, primeiro tentar tenant "default", depois "system" para superadmin
+    user_doc = None
+    
+    # Primeiro, tentar buscar no tenant default (usuários normais)
+    user_filter_default = add_tenant_filter({"email": user_credentials.email}, "default")
+    user_doc = await db.users.find_one(user_filter_default)
+    
+    # Se não encontrar, tentar no tenant system (superadmin)
+    if not user_doc:
+        user_filter_system = add_tenant_filter({"email": user_credentials.email}, "system")
+        user_doc = await db.users.find_one(user_filter_system)
     if not user_doc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
