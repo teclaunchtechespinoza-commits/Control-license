@@ -178,10 +178,11 @@ class NotificationJobProcessor:
             # Enviar notificação
             success = await self.send_notification(notification)
             
-            # Atualizar status
+            # Atualizar status (com isolamento de tenant)
             if success:
+                update_filter = add_tenant_filter({"id": notification_id}, self.tenant_id)
                 await self.db.notifications.update_one(
-                    {"id": notification_id},
+                    update_filter,
                     {
                         "$set": {
                             "status": NotificationStatus.SENT,
