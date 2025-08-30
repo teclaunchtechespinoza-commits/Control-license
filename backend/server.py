@@ -3086,7 +3086,7 @@ async def get_expiring_licenses_alerts(
     days_ahead: int = 30,
     status: Optional[str] = None,
     priority: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """
     Lista licenças expirando com alertas de vendas
