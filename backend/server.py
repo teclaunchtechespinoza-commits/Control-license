@@ -56,6 +56,16 @@ from whatsapp_integration import (
     whatsapp_service, template_service, send_renewal_whatsapp
 )
 
+# Import critical security modules
+from .deps import (
+    require_tenant, 
+    add_tenant_filter, 
+    add_tenant_to_document,
+    enforce_super_admin_or_tenant_filter,
+    get_tenant_safe_filter,
+    validate_tenant_access
+)
+
 # Configure timezone first
 import time
 tz = os.getenv('TZ', 'America/Recife')
