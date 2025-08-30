@@ -4560,6 +4560,72 @@ async def migrate_demo_user(current_user: User = Depends(get_current_admin_user)
             detail=f"Migration failed: {str(e)}"
         )
 
+# OBSERVABILITY & HEALTH CHECK ENDPOINTS
+@api_router.get("/health")
+async def health_check():
+    """Basic health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.3.1",
+        "service": "License Management System"
+    }
+
+@api_router.get("/health/detailed")
+async def detailed_health_check(current_user: User = Depends(get_current_admin_user)):
+    """Detailed health check with system metrics (admin only)"""
+    try:
+        # Get comprehensive health metrics
+        system_health = metrics_collector.get_system_health()
+        database_health = await get_database_health()
+        tenant_health = await get_tenant_health()
+        security_health = get_security_health()
+        
+        overall_status = "healthy"
+        if (system_health.get("status") != "healthy" or 
+            database_health.get("status") != "healthy" or
+            tenant_health.get("status") != "healthy" or
+            security_health.get("status") != "healthy"):
+            overall_status = "degraded"
+        
+        return {
+            "status": overall_status,
+            "timestamp": datetime.utcnow().isoformat(),
+            "components": {
+                "system": system_health,
+                "database": database_health,
+                "tenants": tenant_health,
+                "security": security_health
+            }
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.utcnow().isoformat(),
+            "error": str(e)
+        }
+
+@api_router.get("/metrics")
+async def get_metrics(current_user: User = Depends(get_current_admin_user)):
+    """Get system metrics for monitoring (admin only)"""
+    return metrics_collector.get_system_health()
+
+@api_router.get("/metrics/tenant/{tenant_id}")
+async def get_tenant_metrics(
+    tenant_id: str, 
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get metrics for specific tenant (admin only)"""
+    if tenant_id not in metrics_collector.tenant_metrics:
+        raise HTTPException(status_code=404, detail="Tenant metrics not found")
+    
+    return {
+        "tenant_id": tenant_id,
+        "metrics": metrics_collector.tenant_metrics[tenant_id],
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
 @api_router.get("/demo-credentials")
 async def get_demo_credentials():
     return {
