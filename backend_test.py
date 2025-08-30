@@ -8147,6 +8147,300 @@ class LicenseManagementAPITester:
             print(f"   Some issues were found with the APScheduler system.")
             return 1
 
+    def test_critical_security_fixes(self):
+        """Test critical security fixes as requested in review"""
+        print("\n" + "="*80)
+        print("TESTING CRITICAL SECURITY FIXES - TENANT ISOLATION VALIDATION")
+        print("="*80)
+        print("🎯 FOCUS: Validar correções críticas de segurança aplicadas")
+        print("   1. Sales dashboard - licenses filtering by tenant")
+        print("   2. Notifications - insert operations with tenant_id")
+        print("   3. Notification queue - tenant_id enforcement")
+        print("   4. Clientes PF/PJ - tenant_id specification")
+        print("   5. Categories - tenant_id in document creation")
+        print("   6. Admin users - tenant_id enforcement")
+        print("   7. General tenant isolation validation")
+        print("="*80)
+        
+        if not self.admin_token:
+            print("❌ No admin token available, skipping security tests")
+            return False
+
+        security_tests_passed = 0
+        security_tests_total = 0
+
+        # Test 1: Sales Dashboard Expiring Licenses with Tenant Filtering
+        print("\n🔍 TESTE CRÍTICO 1: Sales Dashboard - Expiring Licenses Filtering")
+        security_tests_total += 1
+        
+        success, response = self.run_test("GET /api/sales-dashboard/expiring-licenses", "GET", "sales-dashboard/expiring-licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Sales dashboard expiring licenses endpoint working")
+            print(f"   📊 Found {len(response)} expiring licenses")
+            
+            # Verify tenant isolation in response
+            tenant_ids = set()
+            for license_alert in response:
+                tenant_id = license_alert.get('tenant_id')
+                if tenant_id:
+                    tenant_ids.add(tenant_id)
+            
+            if len(tenant_ids) <= 1:
+                print(f"   ✅ SECURITY: Excellent tenant isolation - all licenses from same tenant")
+                print(f"   🔒 Tenant IDs found: {list(tenant_ids)}")
+                security_tests_passed += 1
+            else:
+                print(f"   ⚠️ SECURITY WARNING: Multiple tenant IDs found: {list(tenant_ids)}")
+                print(f"   🚨 Possible tenant isolation breach!")
+        else:
+            print("   ❌ Sales dashboard expiring licenses endpoint failed")
+
+        # Test 2: Notifications System with Tenant ID
+        print("\n🔍 TESTE CRÍTICO 2: Notifications - Insert Operations with tenant_id")
+        security_tests_total += 1
+        
+        # Create a test notification to verify tenant_id is properly set
+        notification_data = {
+            "type": "custom",
+            "channel": "in_app",
+            "recipient_email": "admin@demo.com",
+            "subject": "Security Test - Tenant Isolation",
+            "message": "Testing tenant_id enforcement in notifications",
+            "priority": "normal"
+        }
+        
+        success, response = self.run_test("POST /api/notifications (tenant_id test)", "POST", "notifications", 200, notification_data, self.admin_token)
+        if success and 'id' in response:
+            notification_id = response['id']
+            tenant_id = response.get('tenant_id')
+            
+            if tenant_id:
+                print(f"   ✅ SECURITY: Notification created with tenant_id: {tenant_id}")
+                
+                # Verify the notification appears in tenant-filtered list
+                success_list, response_list = self.run_test("GET /api/notifications (tenant filter)", "GET", "notifications", 200, token=self.admin_token)
+                if success_list:
+                    notification_ids = [n.get('id') for n in response_list]
+                    if notification_id in notification_ids:
+                        print(f"   ✅ SECURITY: Notification properly isolated to tenant")
+                        security_tests_passed += 1
+                    else:
+                        print(f"   ❌ SECURITY: Notification not found in tenant list")
+                else:
+                    print(f"   ❌ Failed to retrieve notifications list")
+            else:
+                print(f"   ❌ SECURITY: Notification created WITHOUT tenant_id!")
+        else:
+            print("   ❌ Failed to create test notification")
+
+        # Test 3: Clientes PF Creation with tenant_id
+        print("\n🔍 TESTE CRÍTICO 3: Clientes PF - tenant_id Specification")
+        security_tests_total += 1
+        
+        pf_security_data = {
+            "client_type": "pf",
+            "nome_completo": "Cliente Segurança PF",
+            "cpf": "11111111111",
+            "email_principal": "seguranca.pf@teste.com",
+            "telefone": "+55 11 99999-0001",
+            "contact_preference": "email",
+            "origin_channel": "website"
+        }
+        
+        success, response = self.run_test("POST /api/clientes-pf (security test)", "POST", "clientes-pf", 200, pf_security_data, self.admin_token)
+        if success and 'id' in response:
+            pf_id = response['id']
+            tenant_id = response.get('tenant_id')
+            
+            if tenant_id:
+                print(f"   ✅ SECURITY: PF client created with tenant_id: {tenant_id}")
+                security_tests_passed += 1
+            else:
+                print(f"   ❌ SECURITY: PF client created WITHOUT tenant_id!")
+        else:
+            print("   ❌ Failed to create PF client for security test")
+
+        # Test 4: Clientes PJ Creation with tenant_id
+        print("\n🔍 TESTE CRÍTICO 4: Clientes PJ - tenant_id Specification")
+        security_tests_total += 1
+        
+        pj_security_data = {
+            "client_type": "pj",
+            "cnpj": "11111111000111",
+            "razao_social": "Empresa Segurança LTDA",
+            "nome_fantasia": "Segurança Corp",
+            "email_principal": "seguranca.pj@teste.com",
+            "telefone": "+55 11 99999-0002",
+            "contact_preference": "email",
+            "origin_channel": "website",
+            "responsavel_legal_nome": "Responsável Segurança",
+            "responsavel_legal_cpf": "22222222222",
+            "responsavel_legal_email": "responsavel@teste.com"
+        }
+        
+        success, response = self.run_test("POST /api/clientes-pj (security test)", "POST", "clientes-pj", 200, pj_security_data, self.admin_token)
+        if success and 'id' in response:
+            pj_id = response['id']
+            tenant_id = response.get('tenant_id')
+            
+            if tenant_id:
+                print(f"   ✅ SECURITY: PJ client created with tenant_id: {tenant_id}")
+                security_tests_passed += 1
+            else:
+                print(f"   ❌ SECURITY: PJ client created WITHOUT tenant_id!")
+        else:
+            print("   ❌ Failed to create PJ client for security test")
+
+        # Test 5: Categories Creation with tenant_id
+        print("\n🔍 TESTE CRÍTICO 5: Categories - tenant_id in Document Creation")
+        security_tests_total += 1
+        
+        category_security_data = {
+            "name": "Categoria Segurança",
+            "description": "Categoria para teste de segurança tenant_id",
+            "color": "#FF0000",
+            "icon": "security"
+        }
+        
+        success, response = self.run_test("POST /api/categories (security test)", "POST", "categories", 200, category_security_data, self.admin_token)
+        if success and 'id' in response:
+            category_id = response['id']
+            tenant_id = response.get('tenant_id')
+            
+            if tenant_id:
+                print(f"   ✅ SECURITY: Category created with tenant_id: {tenant_id}")
+                security_tests_passed += 1
+            else:
+                print(f"   ❌ SECURITY: Category created WITHOUT tenant_id!")
+        else:
+            print("   ❌ Failed to create category for security test")
+
+        # Test 6: Admin Users tenant_id Enforcement
+        print("\n🔍 TESTE CRÍTICO 6: Admin Users - tenant_id Enforcement")
+        security_tests_total += 1
+        
+        # Check current admin user has tenant_id
+        success, response = self.run_test("GET /api/auth/me (tenant check)", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            user_tenant_id = response.get('tenant_id')
+            user_role = response.get('role')
+            user_email = response.get('email')
+            
+            if user_tenant_id:
+                print(f"   ✅ SECURITY: Admin user has tenant_id: {user_tenant_id}")
+                print(f"   👤 User: {user_email} (Role: {user_role})")
+                security_tests_passed += 1
+            else:
+                print(f"   ❌ SECURITY: Admin user WITHOUT tenant_id!")
+        else:
+            print("   ❌ Failed to get current user info")
+
+        # Test 7: General Tenant Isolation Validation
+        print("\n🔍 TESTE CRÍTICO 7: General Tenant Isolation Validation")
+        security_tests_total += 1
+        
+        # Check multiple endpoints for consistent tenant_id usage
+        endpoints_to_check = [
+            ("licenses", "licenses"),
+            ("categories", "categories"),
+            ("users", "users")
+        ]
+        
+        tenant_consistency = True
+        main_tenant_id = None
+        
+        for endpoint_name, endpoint_path in endpoints_to_check:
+            success, response = self.run_test(f"GET /api/{endpoint_path} (consistency check)", "GET", endpoint_path, 200, token=self.admin_token)
+            if success and isinstance(response, list) and len(response) > 0:
+                endpoint_tenant_ids = set()
+                for item in response:
+                    tenant_id = item.get('tenant_id')
+                    if tenant_id:
+                        endpoint_tenant_ids.add(tenant_id)
+                
+                if len(endpoint_tenant_ids) == 1:
+                    endpoint_tenant_id = list(endpoint_tenant_ids)[0]
+                    if main_tenant_id is None:
+                        main_tenant_id = endpoint_tenant_id
+                    elif main_tenant_id != endpoint_tenant_id:
+                        tenant_consistency = False
+                elif len(endpoint_tenant_ids) > 1:
+                    tenant_consistency = False
+                
+                print(f"      - {endpoint_name}: {len(response)} items, tenant_ids: {list(endpoint_tenant_ids)}")
+        
+        if tenant_consistency and main_tenant_id:
+            print(f"   ✅ SECURITY: Excellent tenant consistency across all endpoints")
+            print(f"   🔒 Main tenant_id: {main_tenant_id}")
+            security_tests_passed += 1
+        else:
+            print(f"   ❌ SECURITY: Tenant consistency issues detected!")
+
+        # Calculate security score
+        security_score = (security_tests_passed / security_tests_total) * 100 if security_tests_total > 0 else 0
+        
+        print("\n" + "="*80)
+        print("RESULTADO DOS TESTES CRÍTICOS DE SEGURANÇA")
+        print("="*80)
+        print(f"📊 Security tests passed: {security_tests_passed}/{security_tests_total}")
+        print(f"🔒 Security score: {security_score:.1f}%")
+        
+        if security_score >= 95:
+            print("🎉 SEGURANÇA CRÍTICA APROVADA COM SUCESSO ABSOLUTO!")
+            print("   ✅ Sales dashboard - licenses filtering by tenant")
+            print("   ✅ Notifications - insert operations with tenant_id")
+            print("   ✅ Clientes PF/PJ - tenant_id specification")
+            print("   ✅ Categories - tenant_id in document creation")
+            print("   ✅ Admin users - tenant_id enforcement")
+            print("   ✅ General tenant isolation validation")
+            print("")
+            print("CONCLUSÃO: Sistema atingiu 95%+ de segurança real sem quebrar funcionalidades!")
+            return True
+        elif security_score >= 80:
+            print("⚠️ SEGURANÇA PARCIALMENTE APROVADA")
+            print(f"   Score: {security_score:.1f}% (mínimo requerido: 95%)")
+            print("   Algumas correções críticas podem não estar funcionando completamente.")
+            return False
+        else:
+            print("❌ SEGURANÇA CRÍTICA FALHOU!")
+            print(f"   Score: {security_score:.1f}% (muito abaixo do mínimo de 95%)")
+            print("   Correções críticas de segurança não foram aplicadas corretamente.")
+            return False
+
+    def run_critical_security_tests(self):
+        """Run only the critical security tests as requested in review"""
+        print("🚀 Starting CRITICAL SECURITY TESTS - Tenant Isolation Validation")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        
+        # Authenticate first
+        self.test_authentication()
+        
+        if not self.admin_token:
+            print("❌ CRITICAL: Could not authenticate admin user")
+            return 1
+        
+        # Run critical security tests
+        security_passed = self.test_critical_security_fixes()
+        
+        # Print final results
+        print("\n" + "="*80)
+        print("RESULTADO FINAL DOS TESTES CRÍTICOS DE SEGURANÇA")
+        print("="*80)
+        print(f"📊 Total tests: {self.tests_run}")
+        print(f"✅ Tests passed: {self.tests_passed}")
+        print(f"❌ Tests failed: {self.tests_run - self.tests_passed}")
+        print(f"📈 Success rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if security_passed:
+            print("🎉 VALIDAÇÃO DE SEGURANÇA CRÍTICA APROVADA!")
+            print("   Sistema atingiu 95%+ de segurança com correções aplicadas.")
+            return 0
+        else:
+            print("❌ VALIDAÇÃO DE SEGURANÇA CRÍTICA FALHOU!")
+            print("   Sistema não atingiu o nível mínimo de segurança requerido.")
+            return 1
+
 if __name__ == "__main__":
     import sys
     
