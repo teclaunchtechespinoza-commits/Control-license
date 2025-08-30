@@ -430,9 +430,11 @@ class RobustJobScheduler:
                     )
                     
                     # Get notification details
-                    notification = await self.db.notifications.find_one({
+                    # CRÍTICO: Adicionar filtro de tenant para busca de notificação
+                    notification_filter = add_tenant_filter({
                         "id": queue_item["notification_id"]
-                    })
+                    }, queue_tenant_id)
+                    notification = await self.db.notifications.find_one(notification_filter)
                     
                     if notification:
                         # Simulate notification sending (replace with actual implementation)
