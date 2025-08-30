@@ -509,7 +509,9 @@ class NotificationJobProcessor:
                     notification_id=notification.id,
                     priority=1 if notification.priority == "urgent" else 2
                 )
-                await self.db.notification_queue.insert_one(queue_item.dict())
+                # CRÍTICO: Garantir tenant_id no documento da fila antes de inserir
+                queue_dict = add_tenant_to_document(queue_item.dict(), tenant_id)
+                await self.db.notification_queue.insert_one(queue_dict)
                 
                 logger.info(f"Created {channel} notification for license {license_id} ({notification_type})")
         
