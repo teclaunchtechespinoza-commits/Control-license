@@ -4414,7 +4414,8 @@ async def get_license(license_id: str, current_user: User = Depends(get_current_
 async def update_license(
     license_id: str,
     license_update: LicenseUpdate,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
 ):
     update_data = {k: v for k, v in license_update.dict().items() if v is not None}
     update_data["updated_at"] = datetime.utcnow()
