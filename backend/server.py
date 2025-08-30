@@ -1205,21 +1205,65 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
 # Authentication Routes (keeping existing)
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
-    # Apply tenant filter for checking existing users
-    query_filter = add_tenant_filter({"email": user_data.email})
-    existing_user = await db.users.find_one(query_filter)
+    # Check if user already exists globally (not filtered by tenant)
+    existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
     
+    # Create a new tenant for the user
+    tenant_id = str(uuid.uuid4())
+    
+    # Extract company name from email domain or use user name
+    email_domain = user_data.email.split("@")[1] if "@" in user_data.email else "user"
+    company_name = email_domain.split(".")[0].title() if "." in email_domain else email_domain.title()
+    
+    # Create tenant data
+    tenant_data = {
+        "id": tenant_id,
+        "name": f"{company_name} - {user_data.name}",
+        "subdomain": f"user-{tenant_id[:8]}",
+        "contact_email": user_data.email,
+        "status": "active",
+        "plan": "free",
+        "max_users": 2,
+        "max_licenses": 50,
+        "max_clients": 25,
+        "custom_logo_url": None,
+        "primary_color": "#3B82F6",
+        "company_name": company_name,
+        "timezone": "America/Sao_Paulo",
+        "locale": "pt_BR",
+        "currency": "BRL",
+        "features": {
+            "api_access": False,
+            "webhooks": False,
+            "advanced_reports": False,
+            "white_label": False,
+            "priority_support": False,
+            "audit_logs": False,
+            "sso": False
+        },
+        "billing_info": {
+            "plan_start_date": datetime.utcnow().isoformat(),
+            "next_billing_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+            "trial_expires_at": (datetime.utcnow() + timedelta(days=30)).isoformat()
+        },
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    # Insert new tenant
+    await db.tenants.insert_one(tenant_data)
+    
+    # Create user with the new tenant_id
     hashed_password = get_password_hash(user_data.password)
     user_dict = user_data.dict(exclude={"password"})
     user_dict["password_hash"] = hashed_password
-    
-    # Add tenant_id to user data using tenant helper
-    user_dict = add_tenant_to_document(user_dict)
+    user_dict["tenant_id"] = tenant_id
+    user_dict["role"] = "admin"  # First user in tenant is admin
     
     user = User(**user_dict)
     await db.users.insert_one(user.dict())
