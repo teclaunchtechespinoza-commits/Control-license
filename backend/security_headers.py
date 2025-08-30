@@ -16,14 +16,43 @@ class SecurityHeadersMiddleware:
     def __init__(self, app):
         self.app = app
         
-    async def __call__(self, request: Request, call_next: Callable) -> Response:
-        # Process request
-        response = await call_next(request)
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+            
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                # Add security headers
+                headers = dict(message.get("headers", []))
+                
+                # Content Security Policy (CSP)
+                csp_policy = self.get_csp_policy()
+                headers[b"content-security-policy"] = csp_policy.encode()
+                
+                # HTTP Strict Transport Security (HSTS)
+                headers[b"strict-transport-security"] = b"max-age=31536000; includeSubDomains"
+                
+                # X-Content-Type-Options
+                headers[b"x-content-type-options"] = b"nosniff"
+                
+                # X-Frame-Options
+                headers[b"x-frame-options"] = b"DENY"
+                
+                # Referrer Policy
+                headers[b"referrer-policy"] = b"strict-origin-when-cross-origin"
+                
+                # X-XSS-Protection (legacy but still useful)
+                headers[b"x-xss-protection"] = b"1; mode=block"
+                
+                # Server header (remove version info)
+                headers[b"server"] = b"LicenseManager"
+                
+                message["headers"] = list(headers.items())
+            
+            await send(message)
         
-        # Add comprehensive security headers
-        self.add_security_headers(response)
-        
-        return response
+        await self.app(scope, receive, send_with_headers)
     
     def add_security_headers(self, response: Response) -> None:
         """Add all security headers to response"""
