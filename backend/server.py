@@ -3782,7 +3782,7 @@ async def update_notification_config(
     Atualizar configurações de notificação do tenant
     """
     try:
-        tenant_id = require_tenant()
+        tenant_id = current_user.tenant_id
         
         # Verificar permissão (apenas admins podem alterar configurações)
         if current_user.role not in ["admin", "super_admin"]:
