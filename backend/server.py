@@ -3559,7 +3559,9 @@ async def create_tenant(tenant_data: TenantCreate, current_user: User = Depends(
             }
         }
         
-        await db.users.insert_one(admin_user_data)
+        # CRÍTICO: Garantir tenant_id no documento admin
+        admin_user_with_tenant = add_tenant_to_document(admin_user_data, tenant.id)
+        await db.users.insert_one(admin_user_with_tenant)
         
         return tenant
         
