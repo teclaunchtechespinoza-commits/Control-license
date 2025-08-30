@@ -3634,69 +3634,6 @@ if __name__ == "__main__":
         exit_code = tester.run_superadmin_investigation()
     
     sys.exit(exit_code)
-        
-        if hasattr(self, 'superadmin_token'):
-            print("🎉 DIAGNÓSTICO: SUPERADMIN LOGIN ESTÁ FUNCIONANDO CORRETAMENTE!")
-            print("")
-            print("✅ CREDENCIAIS CORRETAS CONFIRMADAS:")
-            print("   - Email: superadmin@autotech.com")
-            print("   - Senha: secure-temp-password-123 (conforme INITIAL_SUPERADMIN_PASSWORD)")
-            print("")
-            print("❌ PROBLEMA DO USUÁRIO IDENTIFICADO:")
-            print("   - Usuário estava usando senha INCORRETA: 'superadmin123'")
-            print("   - Senha CORRETA é: 'secure-temp-password-123'")
-            print("")
-            print("🔧 SOLUÇÃO PARA O USUÁRIO:")
-            print("   1. Usar a senha correta: secure-temp-password-123")
-            print("   2. Ou redefinir a senha através do administrador")
-            print("   3. Verificar se não há espaços extras na senha")
-            print("")
-            print("✅ SISTEMA DE AUTENTICAÇÃO FUNCIONANDO NORMALMENTE")
-            print("✅ TENANT_ID SENDO PROCESSADO CORRETAMENTE")
-            print("✅ ADD_TENANT_FILTER FUNCIONANDO PARA LOGIN")
-            
-            return True
-        else:
-            print("❌ DIAGNÓSTICO: PROBLEMA CRÍTICO NO SISTEMA DE AUTENTICAÇÃO!")
-            print("")
-            print("🚨 PROBLEMAS IDENTIFICADOS:")
-            print("   - Superadmin não consegue fazer login mesmo com senha correta")
-            print("   - Possível problema na configuração do banco de dados")
-            print("   - Possível problema na inicialização do sistema")
-            print("   - Possível problema no hash da senha")
-            print("")
-            print("🔧 AÇÕES NECESSÁRIAS:")
-            print("   1. Verificar se INITIAL_SUPERADMIN_PASSWORD está definido")
-            print("   2. Verificar se o superadmin foi criado na inicialização")
-            print("   3. Verificar conectividade com o banco de dados")
-            print("   4. Verificar logs de erro do sistema")
-            print("   5. Considerar recriar o usuário superadmin")
-            
-            return False
-
-    def run_superadmin_investigation(self):
-        """Run the superadmin login investigation as requested in review"""
-        print("🚀 INVESTIGAÇÃO CRÍTICA - ERRO DE LOGIN DO SUPERADMIN")
-        print(f"Base URL: {self.base_url}")
-        print("="*80)
-        
-        # Run the superadmin investigation
-        success = self.test_superadmin_login_investigation()
-        
-        # Print final results
-        print("\n" + "="*80)
-        print("RESULTADO FINAL DA INVESTIGAÇÃO")
-        print("="*80)
-        print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
-        
-        if success:
-            print("🎉 INVESTIGAÇÃO CONCLUÍDA COM SUCESSO!")
-            print("   O problema de login do superadmin foi diagnosticado.")
-            return 0
-        else:
-            print(f"❌ INVESTIGAÇÃO REVELOU PROBLEMAS CRÍTICOS!")
-            print(f"   Ação imediata necessária no sistema de autenticação.")
-            return 1
         print("="*50)
         print(f"📊 Tests passed: {self.tests_passed}/{self.tests_run}")
         
