@@ -475,8 +475,11 @@ class RobustJobScheduler:
         """Send notification via configured channels"""
         try:
             # Update notification status to sending
+            # CRÍTICO: Adicionar filtro de tenant para update
+            tenant_id = notification.get("tenant_id", "default")
+            update_filter = add_tenant_filter({"id": notification["id"]}, tenant_id)
             await self.db.notifications.update_one(
-                {"id": notification["id"]},
+                update_filter,
                 {"$set": {"status": NotificationStatus.SENDING, "sent_at": datetime.utcnow()}}
             )
             
