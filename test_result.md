@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "NOVO PROBLEMA URGENTE: Novos cadastros de usuários estão falhando com erro 'Registration failed'. Sistema de registro não está funcionando corretamente, impedindo criação de novas contas de usuário."
+user_problem_statement: "PROBLEMA CRÍTICO DE ISOLAMENTO DE DADOS: Novo usuário (edson@autotech.com) está vendo dados de outros cadastros/tenants. Sistema multi-tenant não está isolando dados corretamente - usuário com nível 'user' está visualizando informações que não deveria ter acesso (dashboard de vendas com R$ 1.611.356,965, 422 licenças expirando, etc). Possível falha no sistema de tenant_id ou filtros de segurança."
 
 backend:
   - task: "User Registration System - Critical Fix"
