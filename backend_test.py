@@ -9046,6 +9046,8 @@ if __name__ == "__main__":
             exit_code = tester.run_critical_security_tests()
         elif test_type == "rbac-security":
             exit_code = tester.run_rbac_security_tests()
+        elif test_type == "security-validation":
+            exit_code = tester.run_critical_security_validation()
         else:
             print("Available test types:")
             print("  super-admin-fix - Test Super Admin permissions critical fix")
@@ -9060,6 +9062,7 @@ if __name__ == "__main__":
             print("  tenant-isolation - Test tenant isolation fixes")
             print("  critical-security - Test critical security fixes validation")
             print("  rbac-security - Test RBAC security fixes validation")
+            print("  security-validation - Test critical RBAC security validation (125→123 fixes)")
             exit_code = 1
     else:
         # Run the client form simplification test by default for this review
