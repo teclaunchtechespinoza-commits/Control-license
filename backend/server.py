@@ -1781,7 +1781,9 @@ class EquipmentModel(EquipmentModelBase, BaseEntity):
 # Equipment Management Routes
 @api_router.get("/equipment-brands", response_model=List[EquipmentBrand])
 async def get_equipment_brands(current_user: User = Depends(get_current_user)):
-    brands = await db.equipment_brands.find({"is_active": True}).to_list(1000)
+    # CRÍTICO: Filtrar marcas por tenant
+    brands_filter = add_tenant_filter({"is_active": True}, current_user.tenant_id)
+    brands = await db.equipment_brands.find(brands_filter).to_list(1000)
     return [EquipmentBrand(**brand) for brand in brands]
 
 @api_router.post("/equipment-brands", response_model=EquipmentBrand)
