@@ -4396,7 +4396,8 @@ async def delete_license(
     license_id: str,
     current_user: User = Depends(get_current_admin_user)
 ):
-    result = await db.licenses.delete_one({"id": license_id})
+    query_filter = add_tenant_filter({"id": license_id})
+    result = await db.licenses.delete_one(query_filter)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="License not found")
     
