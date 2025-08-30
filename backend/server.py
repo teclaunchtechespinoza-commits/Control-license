@@ -1838,10 +1838,12 @@ async def create_equipment_model(
         )
     
     # Check if model name already exists for this brand
-    existing_model = await db.equipment_models.find_one({
+    # CRÍTICO: Verificar modelo duplicado apenas no tenant atual
+    model_filter = add_tenant_filter({
         "name": model_data.name,
         "brand_id": model_data.brand_id
-    })
+    }, current_user.tenant_id)
+    existing_model = await db.equipment_models.find_one(model_filter)
     if existing_model:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1852,7 +1854,9 @@ async def create_equipment_model(
     model_dict["created_by"] = current_user.id
     
     model = EquipmentModel(**model_dict)
-    await db.equipment_models.insert_one(model.dict())
+    # CRÍTICO: Inserir com tenant_id
+    model_dict_with_tenant = add_tenant_to_document(model.dict(), current_user.tenant_id)
+    await db.equipment_models.insert_one(model_dict_with_tenant)
     
     return model
 
