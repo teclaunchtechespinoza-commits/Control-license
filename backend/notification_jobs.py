@@ -127,8 +127,10 @@ class NotificationJobProcessor:
                 except Exception as e:
                     logger.error(f"Error processing queue item {queue_item.get('id')}: {e}")
                     # Desmarcar processamento em caso de erro
+                    # CRÍTICO: Adicionar filtro de tenant para update_one
+                    queue_filter = add_tenant_filter({"_id": queue_item["_id"]}, self.tenant_id)
                     await self.db.notification_queue.update_one(
-                        {"_id": queue_item["_id"]},
+                        queue_filter,
                         {
                             "$set": {
                                 "is_processing": False,
