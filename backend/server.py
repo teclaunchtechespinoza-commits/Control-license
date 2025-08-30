@@ -592,11 +592,13 @@ def require_permission(permission: str):
         return current_user
     return permission_checker
 
-async def get_user_permissions(user_email: str) -> List[str]:
+async def get_user_permissions(user_email: str, tenant_id: str = "default") -> List[str]:
     """
     Busca todas as permissões do usuário (roles + diretas)
     """
-    user_doc = await db.users.find_one({"email": user_email})
+    # CRÍTICO: Adicionar filtro de tenant para busca de usuário
+    user_filter = add_tenant_filter({"email": user_email}, tenant_id)
+    user_doc = await db.users.find_one(user_filter)
     if not user_doc:
         return []
     
