@@ -373,9 +373,10 @@ class NotificationJobProcessor:
                     await self.create_expiry_notification(license_doc, NotificationType.LICENSE_EXPIRED)
                     total_notifications_created += 1
                     
-                    # Marcar licença como expirada
+                    # Marcar licença como expirada (com isolamento de tenant)
+                    license_update_filter = add_tenant_filter({"id": license_doc["id"]}, self.tenant_id)
                     await self.db.licenses.update_one(
-                        {"id": license_doc["id"]},
+                        license_update_filter,
                         {"$set": {"status": "expired"}}
                     )
                 except Exception as e:
