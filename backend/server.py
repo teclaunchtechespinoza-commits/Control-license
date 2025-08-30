@@ -4414,6 +4414,60 @@ async def get_stats(current_user: User = Depends(get_current_admin_user)):
     }
 
 # Demo credentials and health check (keeping existing)
+# Temporary endpoint to migrate demo user to separate tenant
+@api_router.post("/admin/migrate-demo-user")
+async def migrate_demo_user(current_user: User = Depends(get_current_admin_user)):
+    """Migra usuário demo para tenant separado (uso temporário)"""
+    try:
+        demo_user_tenant_id = "demo-user-tenant"
+        
+        # Create demo user tenant if not exists
+        demo_tenant_exists = await db.tenants.find_one({"id": demo_user_tenant_id})
+        if not demo_tenant_exists:
+            demo_tenant_data = {
+                "id": demo_user_tenant_id,
+                "name": "Demo User Company",
+                "subdomain": "demo-user",
+                "contact_email": "user@demo.com",
+                "status": "active",
+                "plan": "free",
+                "max_users": 5,
+                "max_licenses": 10,
+                "max_clients": 5,
+                "features": {
+                    "api_access": False,
+                    "webhooks": False,
+                    "advanced_reports": False,
+                    "white_label": False,
+                    "priority_support": False,
+                    "audit_logs": False,
+                    "sso": False
+                },
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.tenants.insert_one(demo_tenant_data)
+            logger.info("Demo user tenant created during migration")
+        
+        # Update user tenant_id
+        result = await db.users.update_one(
+            {"email": "user@demo.com"},
+            {"$set": {"tenant_id": demo_user_tenant_id}}
+        )
+        
+        return {
+            "status": "success",
+            "message": "Demo user migrated to separate tenant",
+            "tenant_id": demo_user_tenant_id,
+            "users_updated": result.modified_count
+        }
+    except Exception as e:
+        logger.error(f"Failed to migrate demo user: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Migration failed: {str(e)}"
+        )
+
 @api_router.get("/demo-credentials")
 async def get_demo_credentials():
     return {
