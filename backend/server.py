@@ -4059,7 +4059,8 @@ async def get_categories(current_user: User = Depends(get_current_user)):
 
 @api_router.get("/categories/{category_id}", response_model=Category)
 async def get_category(category_id: str, current_user: User = Depends(get_current_user)):
-    category_doc = await db.categories.find_one({"id": category_id})
+    query_filter = add_tenant_filter({"id": category_id})
+    category_doc = await db.categories.find_one(query_filter)
     if not category_doc:
         raise HTTPException(status_code=404, detail="Category not found")
     return Category(**category_doc)
