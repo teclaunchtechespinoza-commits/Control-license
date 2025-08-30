@@ -1,6 +1,7 @@
 import requests
 import sys
 import json
+import uuid
 from datetime import datetime, timedelta
 
 class LicenseManagementAPITester:
