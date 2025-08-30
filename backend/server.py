@@ -5024,6 +5024,9 @@ app.add_middleware(
 # Add enterprise security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
 
+# Add observability middleware for metrics collection
+app.add_middleware(ObservabilityMiddleware)
+
 # Add rate limiting middleware for security-sensitive endpoints  
 app.add_middleware(RateLimitMiddleware)
 
