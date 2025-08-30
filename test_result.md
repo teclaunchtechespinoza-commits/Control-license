@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "PROBLEMA CRÍTICO DE ISOLAMENTO DE DADOS: Novo usuário (edson@autotech.com) está vendo dados de outros cadastros/tenants. Sistema multi-tenant não está isolando dados corretamente - usuário com nível 'user' está visualizando informações que não deveria ter acesso (dashboard de vendas com R$ 1.611.356,965, 422 licenças expirando, etc). Possível falha no sistema de tenant_id ou filtros de segurança."
+user_problem_statement: "ERRO DASHBOARD + VALIDAÇÃO DE SEGURANÇA: 1) Usuário comum (role='user') está recebendo 'Erro ao Carregar Dashboard' de vendas (esperado após patch de segurança), 2) Relatório de segurança identifica possíveis problemas não resolvidos completamente: multitenancy não garantido em todas consultas (79 operações sem tenant_id), necessidade de validação completa das correções aplicadas."
 
 backend:
   - task: "User Registration System - Critical Fix"
