@@ -2189,8 +2189,9 @@ async def delete_role(role_id: str, current_user: User = Depends(require_permiss
 
 @api_router.post("/rbac/assign-roles")
 async def assign_roles(request: AssignRoleRequest, current_user: User = Depends(require_permission("users.manage"))):
-    # Verificar se usuário existe
-    user_doc = await db.users.find_one({"id": request.user_id})
+    # Verificar se usuário existe (com filtro de tenant)
+    query_filter = add_tenant_filter({"id": request.user_id})
+    user_doc = await db.users.find_one(query_filter)
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
     
