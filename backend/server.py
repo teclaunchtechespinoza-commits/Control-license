@@ -5241,11 +5241,9 @@ app.add_middleware(
 app.add_middleware(SecurityHeadersMiddleware)
 
 # Middlewares de observabilidade e rate limit (ativar em produção)
-app.add_middleware(ObservabilityMiddleware)
-app.add_middleware(RateLimitMiddleware)
-# Middleware que espelha o tenant do request no response header (X-Tenant-ID)
-# e evita divergência de nomenclatura
 app.add_middleware(ResponseTenantHeaderMiddleware)
+app.add_middleware(ObservabilityMiddleware)
+# app.add_middleware(RateLimitMiddleware)  # Comentar por enquanto para evitar conflitos
 
 # Debug middleware to log all requests
 @app.middleware("http")
