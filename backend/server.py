@@ -34,6 +34,10 @@ from tenant_system import (
 # Import middlewares
 from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
 
+# Import authorization module
+from authz import build_scope_filter, enforce_object_scope
+from bson import ObjectId
+
 # ---------- Models ----------
 class PageParams(BaseModel):
     page: int = 1
