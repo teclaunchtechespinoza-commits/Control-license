@@ -1,0 +1,56 @@
+2025-08-20 17:03:25,101 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:03:25,101 - server - INFO - Application started successfully
+2025-08-20 17:03:36,275 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:03:36,275 - server - INFO - Application shutdown completed
+2025-08-20 17:03:40,105 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:03:40,105 - server - INFO - Application started successfully
+2025-08-20 17:03:47,950 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/root/.venv/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-20 17:04:13,625 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:04:13,625 - server - INFO - Application shutdown completed
+2025-08-20 17:04:17,496 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:04:17,496 - server - INFO - Application started successfully
+2025-08-20 17:04:26,473 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:04:26,473 - server - INFO - Application shutdown completed
+2025-08-20 17:04:30,799 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:04:30,799 - server - INFO - Application started successfully
+2025-08-20 17:04:48,545 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:04:48,545 - server - INFO - Application shutdown completed
+2025-08-20 17:04:52,495 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:04:52,495 - server - INFO - Application started successfully
+2025-08-20 17:05:02,124 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:05:02,124 - server - INFO - Application shutdown completed
+2025-08-20 17:05:06,165 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:05:06,166 - server - INFO - Application started successfully
+2025-08-20 17:05:16,017 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:05:16,018 - server - INFO - Application shutdown completed
+2025-08-20 17:05:19,994 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:05:19,995 - server - INFO - Application started successfully
+2025-08-20 17:05:29,208 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 17:05:29,208 - server - INFO - Application shutdown completed
+2025-08-20 17:05:33,095 - server - INFO - Notification job processor started (simplified)
+2025-08-20 17:05:33,096 - server - INFO - Application started successfully
+2025-08-20 17:05:41,883 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/root/.venv/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-20 17:05:48,174 - maintenance - INFO - License created: LIC-5A66B578D3783AFC by admin@demo.com
+2025-08-20 17:05:48,241 - maintenance - INFO - Client created: João Silva Teste (ClientType.PF) by admin@demo.com
+2025-08-20 17:05:48,263 - maintenance - INFO - Client created: Empresa Teste LTDA (ClientType.PJ) by admin@demo.com
+2025-08-20 17:05:48,476 - maintenance - INFO - Category created: Categoria Teste Simplificado by admin@demo.com
+2025-08-20 20:16:46,823 - server - INFO - Notification job processor started (simplified)
+2025-08-20 20:16:46,824 - server - INFO - Application started successfully
+2025-08-20 20:22:03,109 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/root/.venv/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-20 20:55:14,658 - server - INFO - Notification job processor stopped (simplified)
+2025-08-20 20:55:14,663 - server - INFO - Application shutdown completed

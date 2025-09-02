@@ -1,0 +1,49 @@
+*** server.py.orig
+--- server.py
+***************
+*** 1,6 ****
+--- 1,12 ----
++ from fastapi.middleware.cors import CORSMiddleware
++ from tenant_db import init_mongo, db_name_for
++ from indices import ensure_indexes
+  from starlette.middleware.base import BaseHTTPMiddleware
+  from fastapi import Request, Response
++ 
++ app.add_middleware(
++     CORSMiddleware,
++     allow_origins=["*"],  # AJUSTE para seus domínios
++     allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
++ )
+***************
+*** 10,40 ****
+--- 16,72 ----
+  PUBLIC_ENDPOINTS = {"/", "/health", "/docs", "/openapi.json"}
+  
+  class TenantMiddleware(BaseHTTPMiddleware):
+      async def dispatch(self, request: Request, call_next):
+-         tenant_id = request.headers.get("X-Tenant-ID")
+-         if request.url.path not in PUBLIC_ENDPOINTS and not tenant_id:
+-             tenant_id = "default"
++         tenant_id = request.headers.get("X-Tenant-ID")
++         if request.url.path not in PUBLIC_ENDPOINTS and not tenant_id:
++             return Response(
++                 content='{"detail":"Missing X-Tenant-ID"}',
++                 status_code=400, media_type="application/json"
++             )
+          if not tenant_id:
+              tenant_id = "public"
+          request.state.tenant_id = tenant_id
+-         # db antigo aqui...
++         try:
++             import os
++             mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
++             client = init_mongo(mongo_uri)
++             request.state.db = client[db_name_for(tenant_id)]
++             # cria índices essenciais (idempotente)
++             await ensure_indexes(request.state.db)
++         except Exception:
++             return Response(
++                 content='{"detail":"DB resolve error"}',
++                 status_code=500, media_type="application/json"
++             )
+          return await call_next(request)

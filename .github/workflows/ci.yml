@@ -1,0 +1,32 @@
+name: Backend CI
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    env:
+      MONGODB_URI: "mongodb://localhost:27017/licenser_test"
+      TENANT_DB_PREFIX: "licenser_"
+      SEED_DEMO: "false"
+      JWT_SECRET: "test-secret-please-change"
+      JWT_ALG: "HS256"
+      TZ: "America/Recife"
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - run: pip install pytest pytest-asyncio httpx asgi-lifespan pymongo
+      - run: pytest -q tests

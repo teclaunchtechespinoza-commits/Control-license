@@ -1,0 +1,26 @@
+*** deps.py.orig
+--- deps.py
+***************
+*** 1,20 ****
+  from fastapi import HTTPException, Request, status
+  from typing import Optional
+  import os
+- 
+- def require_tenant(request: Request) -> str:
+-     tid = getattr(request.state, "tenant_id", None)
+-     if not tid:
+-         demo_mode = os.getenv("SEED_DEMO", "false").lower() in {"1","true","yes"}
+-         if demo_mode:
+-             tid = "default"
+-             request.state.tenant_id = tid
+-         else:
+-             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+-                                 detail="Missing tenant context. Provide X-Tenant-ID header.")
+-     return tid
++ from tenant_db import resolve_tenant_db, current_tenant
++ 
++ def require_tenant(request: Request) -> str:
++     return current_tenant(request)
++ 
++ def get_tenant_db(request: Request):
++     return resolve_tenant_db(request)
