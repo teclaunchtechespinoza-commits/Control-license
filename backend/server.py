@@ -1752,6 +1752,40 @@ async def list_users(request: Request, current_user: User = Depends(get_current_
     users = await cursor.to_list(length=200)
     return [User(**user) for user in users]
 
+class UserCreate(BaseModel):
+    email: str
+    role: str | None = None  # será ignorado para USER (definimos pelo fluxo)
+    admin_vendor_id: str | None = None  # opcional; para ADMIN, manter None
+
+@api_router.post("/users", response_model=User)
+async def create_user(body: UserCreate, current_user: User = Depends(get_current_user)):
+    """
+    Criação básica respeitando escopo:
+      - SUPER_ADMIN: pode criar em qualquer tenant (ajuste se desejar).
+      - ADMIN: cria USERS no próprio tenant e os vincula como seus clientes (admin_vendor_id = admin.id).
+      - USER: proibido.
+    Obs.: fluxo de convite pode substituir este endpoint futuramente.
+    """
+    if current_user.role == UserRole.USER:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    doc = {
+        "email": body.email.lower().strip(),
+        "tenant_id": current_user.tenant_id if current_user.role != UserRole.SUPER_ADMIN else getattr(current_user, "tenant_id", None),
+        "role": "USER" if current_user.role == UserRole.ADMIN else (body.role or "USER"),
+    }
+    if current_user.role == UserRole.ADMIN:
+        doc["admin_vendor_id"] = current_user.id
+
+    # Índice único (tenant_id, email) previne duplicatas
+    try:
+        res = await db.users.insert_one(doc)
+        created = await db.users.find_one({"_id": res.inserted_id})
+        created["id"] = str(created["_id"])
+        return created
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
+
 @api_router.put("/users/{user_id}/role")
 async def update_user_role(
     user_id: str, 
