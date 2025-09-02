@@ -34,6 +34,20 @@ from tenant_system import (
 # Import middlewares
 from middlewares import ObservabilityMiddleware, RateLimitMiddleware
 
+# ---------- Models ----------
+class PageParams(BaseModel):
+    page: int = 1
+    size: int = 50
+
+# ---------- Helpers de Tenant ----------
+def require_tenant_header(request: Request) -> str:
+    # Header padronizado
+    tenant_id = request.headers.get("X-Tenant-ID")
+    if not tenant_id:
+        # Em produção, NÃO faça fallback silencioso
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="X-Tenant-ID ausente")
+    return tenant_id
+
 # Import notification system
 from notification_system import (
     Notification, NotificationTemplate, NotificationConfig, NotificationQueue,
