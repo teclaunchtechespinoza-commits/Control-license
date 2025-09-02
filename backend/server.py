@@ -4773,7 +4773,10 @@ async def get_tenant_metrics(
     }
 
 @api_router.get("/demo-credentials")
-async def get_demo_credentials():
+async def demo_credentials():
+    # NÃO exponha em produção
+    if os.getenv("ENVIRONMENT", "development") == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return {
         "admin": {
             "email": "admin@demo.com",
