@@ -108,38 +108,36 @@ class SecurityHeadersMiddleware:
     
     def get_csp_policy(self) -> str:
         """
-        Generate Content Security Policy
-        Customize based on environment and needs
+        Generate Content Security Policy with configurable connect-src
         """
-        environment = os.getenv("ENVIRONMENT", "development")
-        
-        if environment == "development":
-            # More permissive CSP for development
-            return (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https:; "
-                "font-src 'self' data:; "
-                "connect-src 'self' http://localhost:* ws://localhost:*; "
-                "frame-src 'none'; "
-                "object-src 'none'; "
-                "base-uri 'self';"
-            )
-        else:
-            # Strict CSP for production
-            return (
-                "default-src 'self'; "
-                "script-src 'self'; "
-                "style-src 'self'; "
-                "img-src 'self' data: https:; "
-                "font-src 'self'; "
-                "connect-src 'self'; "
-                "frame-src 'none'; "
-                "object-src 'none'; "
-                "base-uri 'self'; "
-                "upgrade-insecure-requests;"
-            )
+        # Fontes base
+        default_src = "'self'"
+        script_src = "'self'"
+        style_src = "'self' 'unsafe-inline'"
+        img_src = "'self' data:"
+        connect_src = ["'self'"]
+
+        # Permitir hosts adicionais via env, separados por espaço
+        extra = os.getenv("CONNECT_SRC_WHITELIST", "").strip()
+        if extra:
+            connect_src += [h for h in extra.split() if h]
+
+        # Monta a diretiva connect-src
+        connect_src_str = " ".join(connect_src)
+
+        policy_parts = [
+            f"default-src {default_src}",
+            f"script-src {script_src}",
+            f"style-src {style_src}",
+            f"img-src {img_src}",
+            f"connect-src {connect_src_str}",
+            "frame-ancestors 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "object-src 'none'",
+            "upgrade-insecure-requests",
+        ]
+        return "; ".join(policy_parts)
     
     def is_sensitive_endpoint(self, response: Response) -> bool:
         """
