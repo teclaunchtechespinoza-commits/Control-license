@@ -32,7 +32,7 @@ from tenant_system import (
 )
 
 # Import middlewares
-from middlewares import ObservabilityMiddleware, RateLimitMiddleware
+from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
 
 # ---------- Models ----------
 class PageParams(BaseModel):
