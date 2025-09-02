@@ -4522,13 +4522,8 @@ async def get_licenses(
         page = max(1, page)
         size = min(200, max(1, size))
 
-        if current_user.role == UserRole.SUPER_ADMIN:
-            # Super admin pode ver todos os tenants (atenção: só use se isso fizer sentido no seu domínio)
-            query_filter = {}
-        elif current_user.role == UserRole.ADMIN:
-            query_filter = add_tenant_filter({}, current_user.tenant_id)
-        else:
-            query_filter = add_tenant_filter({"assigned_user_id": current_user.id}, current_user.tenant_id)
+        # Escopo centralizado (RBAC+ABAC)
+        query_filter = build_scope_filter(current_user, {})
 
         cursor = db.licenses.find(query_filter).skip((page - 1) * size).limit(size)
         licenses = await cursor.to_list(length=size)
