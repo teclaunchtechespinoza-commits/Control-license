@@ -5495,9 +5495,29 @@ async def ensure_critical_indexes():
         # Don't raise the exception to prevent startup failure
         # Indexes are important but not critical for basic functionality
 
+async def ensure_indexes():
+    """Garantir índices únicos de tenant_id + campo principal"""
+    try:
+        # Estes índices são CRÍTICOS para performance e segurança
+        await db.users.create_index([("tenant_id", 1), ("email", 1)], unique=True)
+        await db.licenses.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        await db.categories.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        await db.products.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        await db.clientes_pf.create_index([("tenant_id", 1), ("cpf", 1)], unique=True)
+        await db.clientes_pj.create_index([("tenant_id", 1), ("cnpj", 1)], unique=True)
+        await db.roles.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        # permissions pode ser global (tenant_id: "system")
+        await db.permissions.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        print("✅ Índices únicos criados com sucesso")
+    except Exception as e:
+        print(f"⚠️ Erro ao criar índices: {e}")
+
 @app.on_event("startup")
 async def startup_db_client():
     logger.info("Starting up License Management System...")
+    
+    # Garantir índices críticos
+    await ensure_indexes()
     
     # Initialize default tenant first
     await initialize_default_tenant()
