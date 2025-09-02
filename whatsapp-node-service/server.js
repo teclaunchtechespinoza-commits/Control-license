@@ -302,4 +302,7 @@ app.listen(PORT, () => {
     initializeWhatsApp();
 });
 
+// Opcional: adicionar também uma checagem por IP allowlist aqui, se desejar.
+// Ou validar assinatura HMAC no corpo para garantir integridade de payload.
+
 module.exports = { app };
