@@ -599,14 +599,11 @@ def check_permission(user_permissions: List[str], required_permission: str) -> b
 # Dependency para verificar permissões
 def require_permission(permission: str):
     async def permission_checker(current_user: User = Depends(get_current_user)):
-        # Buscar permissões do usuário (roles + diretas)
-        user_permissions = await get_user_permissions(current_user.email)
-        
+        # RBAC deve considerar o tenant do usuário
+        user_permissions = await get_user_permissions(current_user.email, current_user.tenant_id)
         if not check_permission(user_permissions, permission):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission required: {permission}"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail=f"Permission required: {permission}")
         return current_user
     return permission_checker
 
