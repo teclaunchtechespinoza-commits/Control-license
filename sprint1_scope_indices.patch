@@ -1,0 +1,298 @@
+From 7a9c2b0 Mon Sep 02 00:00:00 2025
+From: ChatGPT <dev@assistant.ai>
+Date: Tue, 02 Sep 2025 14:45:00 -0300
+Subject: [PATCH S1] Sprint 1: Escopo centralizado (RBAC+ABAC), ajustes de rotas
+ e indices compostos
+
+---
+ backend/authz.py              |  83 ++++++++++++++++++++++++++++++++++
+ backend/server.py             | 111 +++++++++++++++++++++++++++++++-----------
+ backend/tests/test_scope.py   |  69 ++++++++++++++++++++++++++
+ 3 files changed, 231 insertions(+), 32 deletions(-)
+ create mode 100644 backend/authz.py
+ create mode 100644 backend/tests/test_scope.py
+
+diff --git a/backend/authz.py b/backend/authz.py
+new file mode 100644
+index 0000000..d3efabc
+--- /dev/null
++++ b/backend/authz.py
+@@ -0,0 +1,83 @@
++from enum import Enum
++from typing import Dict, Any
++
++class Role(str, Enum):
++    SUPER_ADMIN = "SUPER_ADMIN"
++    ADMIN = "ADMIN"
++    USER = "USER"
++
++def build_scope_filter(current_user, base: Dict[str, Any] | None = None) -> Dict[str, Any]:
++    """
++    Centraliza RBAC (papel) + ABAC (atributos) para filtrar dados por escopo.
++
++    Regras:
++      - SUPER_ADMIN: acesso amplo (sem restrição de tenant) — ajuste se desejar limitar por tenant.
++      - ADMIN: restringe por tenant_id e seller_admin_id = current_user.id
++      - USER: restringe por tenant_id e assigned_user_id = current_user.id
++    """
++    q: Dict[str, Any] = dict(base or {})
++
++    if getattr(current_user, "role", None) == Role.SUPER_ADMIN:
++        # Atenção: se quiser restringir por tenant mesmo para SUPER_ADMIN, descomente:
++        # if hasattr(current_user, "tenant_id"):
++        #     q["tenant_id"] = current_user.tenant_id
++        return q
++
++    tenant_id = getattr(current_user, "tenant_id", None)
++    if not tenant_id:
++        # Segurança defensiva: se não houver tenant no usuário, não retorna dados.
++        # Alternativamente, poderia levantar uma exceção HTTP 400/403 no chamador.
++        q["tenant_id"] = "__INVALID__"
++        return q
++
++    q["tenant_id"] = tenant_id
++    if getattr(current_user, "role", None) == Role.ADMIN:
++        q["seller_admin_id"] = getattr(current_user, "id", None)
++    elif getattr(current_user, "role", None) == Role.USER:
++        q["assigned_user_id"] = getattr(current_user, "id", None)
++
++    return q
++
++def enforce_object_scope(obj: Dict[str, Any], current_user) -> bool:
++    """
++    Checagem rápida de escopo para objetos individuais (além do filtro de consulta).
++    Retorna True se o objeto está no escopo do usuário.
++    """
++    role = getattr(current_user, "role", None)
++    if role == Role.SUPER_ADMIN:
++        return True
++
++    tenant_id = getattr(current_user, "tenant_id", None)
++    if not tenant_id or obj.get("tenant_id") != tenant_id:
++        return False
++
++    if role == Role.ADMIN:
++        return obj.get("seller_admin_id") == getattr(current_user, "id", None)
++    if role == Role.USER:
++        return obj.get("assigned_user_id") == getattr(current_user, "id", None)
++
++    return False
+diff --git a/backend/server.py b/backend/server.py
+index 4f5b1f0..a6b7b40 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -1,17 +1,20 @@
+ from fastapi import FastAPI, Depends, HTTPException, status, Request
+ from fastapi.middleware.cors import CORSMiddleware
+ from fastapi.routing import APIRouter
+-from typing import List
++from typing import List, Dict, Any
+ import os
+ from starlette.responses import JSONResponse, Response
+ 
+ from models import User, UserRole, License
+ from auth import get_current_user
+ from db import db, initialize_system
+ from security import check_permission, get_user_permissions
+ from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
+ from pydantic import BaseModel
++from bson import ObjectId
++
++from authz import build_scope_filter
+ 
+ app = FastAPI()
+ api_router = APIRouter()
+ 
+@@ -58,35 +61,34 @@ class PageParams(BaseModel):
+     page: int = 1
+     size: int = 50
+ 
+-@api_router.get("/licenses", response_model=List[License])
++@api_router.get("/licenses", response_model=List[License])
+ async def get_licenses(
+     request: Request,
+     current_user: User = Depends(get_current_user),
+-    tenant_id: str = Depends(require_tenant),
+ ):
+     try:
+         # paginação via query string ?page=&size= (limites razoáveis)
+         try:
+             page = int(request.query_params.get("page", "1"))
+             size = int(request.query_params.get("size", "50"))
+         except ValueError:
+             page, size = 1, 50
+         page = max(1, page)
+         size = min(200, max(1, size))
+ 
+-        if current_user.role == UserRole.SUPER_ADMIN:
+-            # Super admin pode ver todos os tenants (atenção: só use se isso fizer sentido no seu domínio)
+-            query_filter = {}
+-        elif current_user.role == UserRole.ADMIN:
+-            query_filter = add_tenant_filter({}, tenant_id)
+-        else:
+-            query_filter = add_tenant_filter({"assigned_user_id": current_user.id}, tenant_id)
++        # Escopo centralizado (RBAC+ABAC)
++        query_filter: Dict[str, Any] = build_scope_filter(current_user, {})
+ 
+         cursor = db.licenses.find(query_filter).skip((page - 1) * size).limit(size)
+         items = await cursor.to_list(length=size)
+         return items
+     except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
+ 
++@api_router.get("/users", response_model=List[User])
++async def list_users(request: Request, current_user: User = Depends(get_current_user)):
++    """Lista usuários no escopo do ator. Admin enxerga apenas seus clientes (admin_vendor_id = admin.id)."""
++    q = build_scope_filter(current_user, {})
++    cursor = db.users.find(q).limit(200)
++    return await cursor.to_list(length=200)
++
+ def require_permission(permission: str):
+     async def permission_checker(current_user: User = Depends(get_current_user)):
+         # RBAC deve considerar o tenant do usuário
+@@ -98,6 +100,39 @@ def require_permission(permission: str):
+         return current_user
+     return permission_checker
+ 
++class UserCreate(BaseModel):
++    email: str
++    role: str | None = None  # será ignorado para USER (definimos pelo fluxo)
++    admin_vendor_id: str | None = None  # opcional; para ADMIN, manter None
++
++@api_router.post("/users", response_model=User)
++async def create_user(body: UserCreate, current_user: User = Depends(get_current_user)):
++    """
++    Criação básica respeitando escopo:
++      - SUPER_ADMIN: pode criar em qualquer tenant (ajuste se desejar).
++      - ADMIN: cria USERS no próprio tenant e os vincula como seus clientes (admin_vendor_id = admin.id).
++      - USER: proibido.
++    Obs.: fluxo de convite pode substituir este endpoint futuramente.
++    """
++    if current_user.role == UserRole.USER:
++        raise HTTPException(status_code=403, detail="Sem permissão")
++
++    doc = {
++        "email": body.email.lower().strip(),
++        "tenant_id": current_user.tenant_id if current_user.role != UserRole.SUPER_ADMIN else getattr(current_user, "tenant_id", None),
++        "role": "USER" if current_user.role == UserRole.ADMIN else (body.role or "USER"),
++    }
++    if current_user.role == UserRole.ADMIN:
++        doc["admin_vendor_id"] = current_user.id
++
++    # Índice único (tenant_id, email) previne duplicatas
++    try:
++        res = await db.users.insert_one(doc)
++        created = await db.users.find_one({"_id": res.inserted_id})
++        created["id"] = str(created["_id"])
++        return created
++    except Exception as e:
++        raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
++
+ @api_router.get("/stats")
+ async def stats(current_user: User = Depends(require_permission("stats:read"))):
+     # ...
+@@ -121,20 +156,38 @@ async def demo_credentials():
+ 
+ app.include_router(api_router)
+ 
+ @app.on_event("startup")
+ async def startup_event():
+     await initialize_system()
+     await ensure_indexes()
+ 
+ async def ensure_indexes():
+     # Índices únicos por tenant (evitam duplicatas e aceleram consultas)
+     try:
+-        await db.users.create_index(
+-            [("tenant_id", 1), ("email", 1)],
+-            unique=True,
+-            name="uniq_tenant_email",
+-        )
++        # users: único por tenant/email e consulta por admin_vendor_id
++        existing = await db.users.index_information()
++        if "uniq_tenant_email" not in existing:
++            await db.users.create_index(
++                [("tenant_id", 1), ("email", 1)],
++                unique=True,
++                name="uniq_tenant_email",
++            )
++        if "idx_users_tenant_admin_vendor" not in existing:
++            await db.users.create_index(
++                [("tenant_id", 1), ("admin_vendor_id", 1)],
++                name="idx_users_tenant_admin_vendor",
++            )
++
++        # licenses: único por tenant/serial e consultas por seller/assigned
++        existing = await db.licenses.index_information()
++        if "uniq_tenant_serial" not in existing:
++            await db.licenses.create_index(
++                [("tenant_id", 1), ("serial", 1)],
++                unique=True,
++                name="uniq_tenant_serial",
++            )
++        if "idx_licenses_tenant_seller" not in existing:
++            await db.licenses.create_index([("tenant_id", 1), ("seller_admin_id", 1)], name="idx_licenses_tenant_seller")
++        if "idx_licenses_tenant_assigned" not in existing:
++            await db.licenses.create_index([("tenant_id", 1), ("assigned_user_id", 1)], name="idx_licenses_tenant_assigned")
+     except Exception as e:
+         # Logue o erro de índice, mas não derrube a app
+         print(f"[indexes] erro ao criar índices: {e}")
+ 
+ if __name__ == "__main__":
+     import uvicorn
+     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+diff --git a/backend/tests/test_scope.py b/backend/tests/test_scope.py
+new file mode 100644
+index 0000000..a1b2b3c
+--- /dev/null
++++ b/backend/tests/test_scope.py
+@@ -0,0 +1,69 @@
++import pytest
++from types import SimpleNamespace
++from authz import build_scope_filter, enforce_object_scope, Role
++
++def mk_user(role, tid="t1", uid="u1"):
++    return SimpleNamespace(role=role, tenant_id=tid, id=uid)
++
++def test_scope_superadmin_no_limits():
++    u = mk_user(Role.SUPER_ADMIN, tid=None)
++    q = build_scope_filter(u, {})
++    assert "tenant_id" not in q
++
++def test_scope_admin_limits_to_tenant_and_seller():
++    u = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    q = build_scope_filter(u, {})
++    assert q["tenant_id"] == "t1"
++    assert q["seller_admin_id"] == "a1"
++
++def test_scope_user_limits_to_tenant_and_assigned():
++    u = mk_user(Role.USER, tid="t1", uid="x1")
++    q = build_scope_filter(u, {})
++    assert q["tenant_id"] == "t1"
++    assert q["assigned_user_id"] == "x1"
++
++def test_enforce_object_scope_admin_true():
++    u = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t1", "seller_admin_id": "a1"}
++    assert enforce_object_scope(obj, u) is True
++
++def test_enforce_object_scope_admin_false_other_seller():
++    u = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t1", "seller_admin_id": "a2"}
++    assert enforce_object_scope(obj, u) is False
++
++def test_enforce_object_scope_user_true():
++    u = mk_user(Role.USER, tid="t1", uid="u1")
++    obj = {"tenant_id": "t1", "assigned_user_id": "u1"}
++    assert enforce_object_scope(obj, u) is True
++
++def test_enforce_object_scope_user_false_other_owner():
++    u = mk_user(Role.USER, tid="t1", uid="u1")
++    obj = {"tenant_id": "t1", "assigned_user_id": "u2"}
++    assert enforce_object_scope(obj, u) is False
++
++def test_enforce_object_scope_different_tenant():
++    u = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t2", "seller_admin_id": "a1"}
++    assert enforce_object_scope(obj, u) is False
++
