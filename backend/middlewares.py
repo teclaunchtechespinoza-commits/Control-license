@@ -35,3 +35,18 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         bucket.append(now)
         self._buckets[ip] = bucket
         return await call_next(request)
+
+class ResponseTenantHeaderMiddleware(BaseHTTPMiddleware):
+    """
+    Copia o header de tenant do request para a resposta usando o nome padronizado 'X-Tenant-ID'.
+    Não faz fallback automático para 'default'; se ausente, deixa a view/dependency (require_tenant)
+    decidir o que fazer (por ex., retornar 400).
+    """
+    TENANT_HEADER = "X-Tenant-ID"
+
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        tenant_id = request.headers.get(self.TENANT_HEADER)
+        if tenant_id:
+            response.headers[self.TENANT_HEADER] = tenant_id
+        return response
