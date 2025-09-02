@@ -4512,17 +4512,30 @@ async def create_license(
     return license
 
 @api_router.get("/licenses", response_model=List[License])
-async def get_licenses(current_user: User = Depends(get_current_user)):
+async def get_licenses(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
     try:
-        # Aplicar filtro de tenant (Super Admin vê tudo, outros veem apenas do seu tenant)
-        if current_user.role == UserRole.ADMIN or current_user.role == UserRole.SUPER_ADMIN:
-            # Admin/Super Admin veem todas as licenças do tenant (Super Admin vê de todos os tenants)
-            query_filter = add_tenant_filter({})
+        # paginação via query string ?page=&size= (limites razoáveis)
+        try:
+            page = int(request.query_params.get("page", "1"))
+            size = int(request.query_params.get("size", "50"))
+        except ValueError:
+            page, size = 1, 50
+        page = max(1, page)
+        size = min(200, max(1, size))
+
+        if current_user.role == UserRole.SUPER_ADMIN:
+            # Super admin pode ver todos os tenants (atenção: só use se isso fizer sentido no seu domínio)
+            query_filter = {}
+        elif current_user.role == UserRole.ADMIN:
+            query_filter = add_tenant_filter({}, current_user.tenant_id)
         else:
-            # Usuário comum vê apenas suas licenças no tenant
-            query_filter = add_tenant_filter({"assigned_user_id": current_user.id})
-        
-        licenses = await db.licenses.find(query_filter).to_list(1000)
+            query_filter = add_tenant_filter({"assigned_user_id": current_user.id}, current_user.tenant_id)
+
+        cursor = db.licenses.find(query_filter).skip((page - 1) * size).limit(size)
+        licenses = await cursor.to_list(length=size)
         
         # Clean up licenses data and handle missing required fields
         valid_licenses = []
