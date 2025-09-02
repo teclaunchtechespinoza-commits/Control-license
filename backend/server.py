@@ -31,6 +31,9 @@ from tenant_system import (
     get_plan_config, apply_plan_limits
 )
 
+# Import middlewares
+from middlewares import ObservabilityMiddleware, RateLimitMiddleware
+
 # Import notification system
 from notification_system import (
     Notification, NotificationTemplate, NotificationConfig, NotificationQueue,
