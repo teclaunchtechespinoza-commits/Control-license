@@ -5200,13 +5200,14 @@ async def structured_logging_middleware(request: Request, call_next):
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
 
+# CORS config (padronizar X-Tenant-ID em TODAS as camadas)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=cors_origins,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "Accept", "X-Current-Tenant"],
-    expose_headers=["X-Current-Tenant"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "X-Tenant-ID"],
+    expose_headers=["X-Tenant-ID"],
 )
 
 # Add enterprise security headers middleware
