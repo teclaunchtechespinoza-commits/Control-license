@@ -1745,17 +1745,11 @@ async def get_system_stats(current_user: User = Depends(get_current_user)):
 
 # User Management Routes (keeping existing)
 @api_router.get("/users", response_model=List[User])
-async def get_users(
-    current_user: User = Depends(get_current_admin_user),
-    tenant_id: str = Depends(require_tenant)
-):
-    """Get all users with tenant isolation"""
-    # Super admin can see all users, regular admin only sees their tenant
-    if current_user.role == "super_admin":
-        users = await db.users.find().to_list(1000)
-    else:
-        query_filter = add_tenant_filter({}, tenant_id)
-        users = await db.users.find(query_filter).to_list(1000)
+async def list_users(request: Request, current_user: User = Depends(get_current_user)):
+    """Lista usuários no escopo do ator. Admin enxerga apenas seus clientes (admin_vendor_id = admin.id)."""
+    q = build_scope_filter(current_user, {})
+    cursor = db.users.find(q).limit(200)
+    users = await cursor.to_list(length=200)
     return [User(**user) for user in users]
 
 @api_router.put("/users/{user_id}/role")
