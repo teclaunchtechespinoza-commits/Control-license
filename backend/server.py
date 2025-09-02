@@ -1770,9 +1770,13 @@ async def create_user(body: UserCreate, current_user: User = Depends(get_current
         raise HTTPException(status_code=403, detail="Sem permissão")
 
     doc = {
+        "id": str(uuid.uuid4()),
         "email": body.email.lower().strip(),
+        "name": body.email.split("@")[0].title(),  # Nome baseado no email
         "tenant_id": current_user.tenant_id if current_user.role != UserRole.SUPER_ADMIN else getattr(current_user, "tenant_id", None),
-        "role": "USER" if current_user.role == UserRole.ADMIN else (body.role or "USER"),
+        "role": "user" if current_user.role == UserRole.ADMIN else (body.role or "user"),
+        "is_active": True,
+        "created_at": datetime.utcnow(),
     }
     if current_user.role == UserRole.ADMIN:
         doc["admin_vendor_id"] = current_user.id
@@ -1781,8 +1785,11 @@ async def create_user(body: UserCreate, current_user: User = Depends(get_current
     try:
         res = await db.users.insert_one(doc)
         created = await db.users.find_one({"_id": res.inserted_id})
-        created["id"] = str(created["_id"])
-        return created
+        if created:
+            created.pop("_id", None)  # Remove ObjectId
+            return User(**created)
+        else:
+            raise HTTPException(status_code=500, detail="Falha ao criar usuário")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
 
