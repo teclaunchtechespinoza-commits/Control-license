@@ -5519,21 +5519,47 @@ async def ensure_critical_indexes():
         # Indexes are important but not critical for basic functionality
 
 async def ensure_indexes():
-    """Garantir índices únicos de tenant_id + campo principal"""
+    """Garantir índices únicos de tenant_id + campo principal e índices compostos para hierarquias"""
     try:
-        # Estes índices são CRÍTICOS para performance e segurança
-        await db.users.create_index([("tenant_id", 1), ("email", 1)], unique=True)
-        await db.licenses.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+        # users: único por tenant/email e consulta por admin_vendor_id
+        existing = await db.users.index_information()
+        if "uniq_tenant_email" not in existing:
+            await db.users.create_index(
+                [("tenant_id", 1), ("email", 1)],
+                unique=True,
+                name="uniq_tenant_email",
+            )
+        if "idx_users_tenant_admin_vendor" not in existing:
+            await db.users.create_index(
+                [("tenant_id", 1), ("admin_vendor_id", 1)],
+                name="idx_users_tenant_admin_vendor",
+            )
+
+        # licenses: único por tenant/serial e consultas por seller/assigned
+        existing = await db.licenses.index_information()
+        if "uniq_tenant_serial" not in existing:
+            await db.licenses.create_index(
+                [("tenant_id", 1), ("serial", 1)],
+                unique=True,
+                name="uniq_tenant_serial",
+            )
+        if "idx_licenses_tenant_seller" not in existing:
+            await db.licenses.create_index([("tenant_id", 1), ("seller_admin_id", 1)], name="idx_licenses_tenant_seller")
+        if "idx_licenses_tenant_assigned" not in existing:
+            await db.licenses.create_index([("tenant_id", 1), ("assigned_user_id", 1)], name="idx_licenses_tenant_assigned")
+
+        # Índices básicos para outras coleções
         await db.categories.create_index([("tenant_id", 1), ("id", 1)], unique=True)
         await db.products.create_index([("tenant_id", 1), ("id", 1)], unique=True)
         await db.clientes_pf.create_index([("tenant_id", 1), ("cpf", 1)], unique=True)
         await db.clientes_pj.create_index([("tenant_id", 1), ("cnpj", 1)], unique=True)
         await db.roles.create_index([("tenant_id", 1), ("id", 1)], unique=True)
-        # permissions pode ser global (tenant_id: "system")
         await db.permissions.create_index([("tenant_id", 1), ("id", 1)], unique=True)
-        print("✅ Índices únicos criados com sucesso")
+        
+        print("✅ Índices únicos e compostos criados com sucesso")
     except Exception as e:
-        print(f"⚠️ Erro ao criar índices: {e}")
+        # Logue o erro de índice, mas não derrube a app
+        print(f"[indexes] erro ao criar índices: {e}")
 
 @app.on_event("startup")
 async def startup_db_client():
