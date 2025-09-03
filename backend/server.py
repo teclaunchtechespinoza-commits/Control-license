@@ -4708,23 +4708,6 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
     await db.licenses.delete_one({"_id": doc["_id"]})
     return Response(status_code=204)
 
-@api_router.get("/licenses/{license_id}", response_model=License)
-async def get_license(license_id: str, current_user: User = Depends(get_current_user)):
-    query_filter = add_tenant_filter({"id": license_id})
-    license_doc = await db.licenses.find_one(query_filter)
-    if not license_doc:
-        raise HTTPException(status_code=404, detail="License not found")
-    
-    license = License(**license_doc)
-    
-    if current_user.role != UserRole.ADMIN and license.assigned_user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
-    
-    return license
-
 @api_router.put("/licenses/{license_id}", response_model=License)
 async def update_license(
     license_id: str,
