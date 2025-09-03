@@ -60,19 +60,46 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
     """
     Extrai X-Tenant-ID do request e guarda em ContextVar para ser usado como fallback
     por helpers que, historicamente, não recebiam tenant explicitamente.
-    Produção: se X-Tenant-ID estiver ausente, retorna 400.
+    Produção: se X-Tenant-ID estiver ausente, retorna 400, exceto para endpoints públicos.
     """
     TENANT_HEADER = "X-Tenant-ID"
+    
+    # Endpoints que não requerem X-Tenant-ID header
+    PUBLIC_ENDPOINTS = {
+        "/api/auth/login",
+        "/api/auth/register", 
+        "/docs",
+        "/openapi.json",
+        "/health",
+        "/",
+        "/api/accept-invite"  # Para aceitar convites
+    }
 
     def __init__(self, app):
         super().__init__(app)
         self._allow_missing = os.getenv("TENANT_HEADER_OPTIONAL", "false").lower() in {"1", "true", "yes"}
 
+    def _is_public_endpoint(self, path: str) -> bool:
+        """Verifica se o endpoint é público e não requer X-Tenant-ID"""
+        return (
+            path in self.PUBLIC_ENDPOINTS or
+            path.startswith("/api/accept-invite") or
+            path.startswith("/docs") or
+            path.startswith("/openapi") or
+            path.startswith("/static") or
+            path == "/favicon.ico"
+        )
+
     async def dispatch(self, request: Request, call_next):
         tenant_id = request.headers.get(self.TENANT_HEADER)
         TENANT_CTX.set(tenant_id)
+        
+        # Para endpoints públicos, não exigir X-Tenant-ID
+        if self._is_public_endpoint(request.url.path):
+            return await call_next(request)
+            
         if not tenant_id and not self._allow_missing:
-            # Não permita fallback silencioso em produção
+            # Não permita fallback silencioso em produção para endpoints privados
             return Response(
                 content='{"detail":"X-Tenant-ID ausente"}',
                 media_type="application/json",
