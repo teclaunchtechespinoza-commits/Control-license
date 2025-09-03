@@ -1499,6 +1499,17 @@ import asyncio
 @app.on_event("startup")
 async def startup_event():
     await initialize_system()
+    
+    # Desabilitar seed/demo fora de desenvolvimento
+    app_env = os.getenv("APP_ENV", os.getenv("ENV", "development")).lower()
+    seed_demo = os.getenv("SEED_DEMO", "false").lower() in {"1", "true", "yes"}
+    if app_env not in {"dev", "development"} and seed_demo:
+        # Apenas alerta em runtime; a recomendação é remover a flag do env de prod.
+        print("[warn] SEED_DEMO está habilitado, mas o APP_ENV não é desenvolvimento. Ignorando seed.")
+        os.environ["SEED_DEMO"] = "false"
+
+    # Sinaliza header padronizado no app (para debug/observabilidade)
+    app.state.TENANT_HEADER = TENANT_HEADER
 
 @api_router.get("/auth/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
