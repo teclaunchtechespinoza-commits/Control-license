@@ -203,7 +203,7 @@ export const inviteHelpers = {
     try {
       // Criar instância sem interceptors de auth para esta chamada
       const publicApi = axios.create({
-        baseURL: `${BACKEND_URL}/api`,
+        baseURL: `${BACKEND_URL_FOR_INVITES}/api`,
         timeout: 30000,
         headers: {
           'Content-Type': 'application/json',
