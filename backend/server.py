@@ -36,6 +36,7 @@ from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTe
 
 # Import authorization module
 from authz import build_scope_filter, enforce_object_scope
+from filters import whitelist_filter, merge_with_scope
 from bson import ObjectId
 from datetime import datetime
 import uuid
