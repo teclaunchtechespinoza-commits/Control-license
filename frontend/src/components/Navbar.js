@@ -32,7 +32,8 @@ import {
   BarChart3,
   Activity,
   Eye,
-  Package
+  Package,
+  Mail
 } from 'lucide-react';
 
 const Navbar = () => {
