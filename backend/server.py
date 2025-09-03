@@ -56,13 +56,30 @@ class PageParams(BaseModel):
     size: int = 50
 
 # ---------- Helpers de Tenant ----------
-def require_tenant_header(request: Request) -> str:
-    # Header padronizado
-    tenant_id = request.headers.get("X-Tenant-ID")
+TENANT_HEADER = "X-Tenant-ID"
+
+def require_tenant(request: Request) -> str:
+    """
+    Obtém tenant do header padronizado 'X-Tenant-ID'.
+    Em paralelo, suporta fallback via ContextVar para cobrir pontos legados.
+    """
+    tenant_id = request.headers.get(TENANT_HEADER) or TENANT_CTX.get()
     if not tenant_id:
-        # Em produção, NÃO faça fallback silencioso
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="X-Tenant-ID ausente")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{TENANT_HEADER} ausente")
     return tenant_id
+
+def add_tenant_filter(base: Dict[str, Any] | None = None, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Helper legado: agora *exige* tenant. Se não for fornecido, tenta obter do ContextVar (middleware).
+    Isso corrige chamadas antigas como add_tenant_filter({...}) que antes deixavam passar sem filtro.
+    """
+    f = dict(base or {})
+    tid = tenant_id or TENANT_CTX.get()
+    if not tid:
+        # Segurança em profundidade: nunca prosseguir sem tenant
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{TENANT_HEADER} ausente")
+    f["tenant_id"] = tid
+    return f
 
 # Import notification system
 from notification_system import (
