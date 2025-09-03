@@ -3998,26 +3998,6 @@ class LicenseManagementAPITester:
             print(f"❌ INVESTIGAÇÃO REVELOU PROBLEMAS CRÍTICOS!")
             print(f"   Ação imediata necessária no sistema de autenticação.")
             return 1
-            },
-            {
-                "name": "Superadmin com senha que usuário tentou",
-                "email": "superadmin@autotech.com",
-                "password": "superadmin123", 
-                "expected": 401
-            },
-            {
-                "name": "Email incorreto",
-                "email": "super@autotech.com",
-                "password": "secure-temp-password-123",
-                "expected": 401
-            }
-        ]
-        
-        for cred_test in test_credentials:
-            credentials = {
-                "email": cred_test["email"],
-                "password": cred_test["password"]
-            }
 
 if __name__ == "__main__":
     import sys
