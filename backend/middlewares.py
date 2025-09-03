@@ -40,9 +40,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 class ResponseTenantHeaderMiddleware(BaseHTTPMiddleware):
     """
-    Copia o header de tenant do request para a resposta usando o nome padronizado 'X-Tenant-ID'.
-    Não faz fallback automático para 'default'; se ausente, deixa a view/dependency (require_tenant)
-    decidir o que fazer (por ex., retornar 400).
+    Espelha o header de tenant do request para a resposta usando o nome padronizado 'X-Tenant-ID'.
+    Não faz fallback automático para 'default'; se ausente, deixa a dependency (require_tenant)
+    decidir o que fazer (ex.: retornar 400).
     """
     TENANT_HEADER = "X-Tenant-ID"
 
@@ -52,3 +52,30 @@ class ResponseTenantHeaderMiddleware(BaseHTTPMiddleware):
         if tenant_id:
             response.headers[self.TENANT_HEADER] = tenant_id
         return response
+
+# ----------------- Tenant Context (fallback seguro para add_tenant_filter) -----------------
+TENANT_CTX: contextvars.ContextVar[str | None] = contextvars.ContextVar("TENANT_CTX", default=None)
+
+class TenantContextMiddleware(BaseHTTPMiddleware):
+    """
+    Extrai X-Tenant-ID do request e guarda em ContextVar para ser usado como fallback
+    por helpers que, historicamente, não recebiam tenant explicitamente.
+    Produção: se X-Tenant-ID estiver ausente, retorna 400.
+    """
+    TENANT_HEADER = "X-Tenant-ID"
+
+    def __init__(self, app):
+        super().__init__(app)
+        self._allow_missing = os.getenv("TENANT_HEADER_OPTIONAL", "false").lower() in {"1", "true", "yes"}
+
+    async def dispatch(self, request: Request, call_next):
+        tenant_id = request.headers.get(self.TENANT_HEADER)
+        TENANT_CTX.set(tenant_id)
+        if not tenant_id and not self._allow_missing:
+            # Não permita fallback silencioso em produção
+            return Response(
+                content='{"detail":"X-Tenant-ID ausente"}',
+                media_type="application/json",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        return await call_next(request)
