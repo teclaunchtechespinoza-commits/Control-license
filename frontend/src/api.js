@@ -67,9 +67,12 @@ api.interceptors.response.use(
       
       // Redirect to login (avoid infinite loops)
       if (!window.location.pathname.includes('/login')) {
-        // Show user-friendly message
-        if (window.toast) {
-          window.toast.error('Sessão expirada. Redirecionando para login...');
+        // Show user-friendly message only if user was actually using the system
+        const hasToken = localStorage.getItem('access_token') || localStorage.getItem('token');
+        if (hasToken) {
+          if (window.toast) {
+            window.toast.error('Sessão expirada. Redirecionando para login...');
+          }
         }
         
         // Redirect after a brief delay
