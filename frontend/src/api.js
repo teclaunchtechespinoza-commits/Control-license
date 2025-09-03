@@ -182,5 +182,64 @@ export const apiHelpers = {
   }
 };
 
+// ---------- Sprint 2: Convites ----------
+export const inviteHelpers = {
+  // Criar convite (Admin)
+  createInvitation: async (email) => {
+    try {
+      const response = await api.post('/admin/invitations', { email });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create invitation:', error);
+      throw error;
+    }
+  },
+
+  // Aceitar convite (público - sem auth)
+  acceptInvite: async (token, password = null) => {
+    try {
+      // Criar instância sem interceptors de auth para esta chamada
+      const publicApi = axios.create({
+        baseURL: `${BACKEND_URL}/api`,
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const body = { token };
+      if (password) body.password = password;
+      
+      const response = await publicApi.post('/auth/accept-invite', body);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to accept invitation:', error);
+      throw error;
+    }
+  },
+
+  // Revogar convite (Admin)
+  revokeInvitation: async (token) => {
+    try {
+      const response = await api.post('/admin/invitations/revoke', { token });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to revoke invitation:', error);
+      throw error;
+    }
+  },
+
+  // Listar convites (Admin)
+  listInvitations: async () => {
+    try {
+      const response = await api.get('/admin/invitations');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to list invitations:', error);
+      throw error;
+    }
+  }
+};
+
 // Export default api instance
 export default api;
