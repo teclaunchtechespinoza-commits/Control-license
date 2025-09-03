@@ -4708,6 +4708,8 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
     await db.licenses.delete_one({"_id": doc["_id"]})
     return Response(status_code=204)
 
+@api_router.post("/licenses", response_model=License)
+
 # Enhanced Dashboard Stats
 @api_router.get("/stats")
 async def get_stats(
