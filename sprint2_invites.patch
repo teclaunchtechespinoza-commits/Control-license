@@ -1,0 +1,339 @@
+From 92af013 Mon Sep 02 00:00:00 2025
+From: ChatGPT <dev@assistant.ai>
+Date: Tue, 02 Sep 2025 15:25:00 -0300
+Subject: [PATCH S2] Convites por e-mail: criar & aceitar convite (token HMAC),
+ vínculo admin→user, stub de e-mail e índices
+
+---
+ backend/email_service.py         |  61 +++++++++++++++++++
+ backend/invitations.py           | 152 +++++++++++++++++++++++++++++++++++++++
+ backend/server.py                | 167 +++++++++++++++++++++++++++++++++++++++-
+ backend/tests/test_invites.py    | 126 +++++++++++++++++++++++++++++++
+ 4 files changed, 505 insertions(+), 1 deletion(-)
+ create mode 100644 backend/email_service.py
+ create mode 100644 backend/invitations.py
+ create mode 100644 backend/tests/test_invites.py
+
+diff --git a/backend/email_service.py b/backend/email_service.py
+new file mode 100644
+index 0000000..c3d7b9a
+--- /dev/null
++++ b/backend/email_service.py
+@@ -0,0 +1,61 @@
++"""
++Stub de serviço de e-mail para convites.
++Em produção, integre com seu provedor (SMTP/Sendgrid/SES).
++"""
++from typing import Optional
++import os
++
++DEFAULT_SENDER = os.getenv("EMAIL_SENDER", "no-reply@controle-license.local")
++
++class EmailSendError(Exception):
++    pass
++
++def send_invitation_email(to_email: str, invite_link: str, inviter_name: Optional[str] = None) -> None:
++    """
++    Envia (stub) e-mail de convite com link.
++    Substitua por integração real; aqui apenas faz print/log.
++    """
++    subject = "Seu convite para acessar o sistema de licenças"
++    inviter = inviter_name or "Admin"
++    content = f"""
++Olá,
++
++{inviter} convidou você para acessar o sistema de licenças.
++Clique no link abaixo para criar sua conta e aceitar o convite:
++
++{invite_link}
++
++Se você não reconhece este convite, ignore este e-mail.
++
++Atenciosamente,
++Equipe Controle-License
++"""
++    # Trocar por envio de e-mail real
++    print(f"[email][stub] From: {DEFAULT_SENDER} To: {to_email}\nSubject: {subject}\n{content}")
++
+diff --git a/backend/invitations.py b/backend/invitations.py
+new file mode 100644
+index 0000000..c9f39d2
+--- /dev/null
++++ b/backend/invitations.py
+@@ -0,0 +1,152 @@
++import base64
++import hashlib
++import hmac
++import json
++import os
++import time
++from typing import Optional, Dict, Any
++
++SECRET = (os.getenv("INVITE_SECRET") or os.getenv("SECRET_KEY") or "dev-secret").encode("utf-8")
++DEFAULT_TTL_SECONDS = int(os.getenv("INVITE_TTL_SECONDS", "604800"))  # 7 dias
++
++def b64url(data: bytes) -> str:
++    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
++
++def b64url_decode(s: str) -> bytes:
++    pad = '=' * (-len(s) % 4)
++    return base64.urlsafe_b64decode(s + pad)
++
++def sign_invite(payload: Dict[str, Any]) -> str:
++    """
++    Gera um token HMAC-SHA256 (header.payload.signature) em base64url.
++    """
++    header = {"alg": "HS256", "typ": "INV"}
++    header_b64 = b64url(json.dumps(header, separators=(",", ":")).encode("utf-8"))
++    payload_b64 = b64url(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
++    signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
++    sig = hmac.new(SECRET, signing_input, hashlib.sha256).digest()
++    return f"{header_b64}.{payload_b64}.{b64url(sig)}"
++
++def verify_invite(token: str) -> Dict[str, Any]:
++    """
++    Verifica assinatura e expiração. Retorna o payload se OK; senão lança ValueError.
++    """
++    try:
++        header_b64, payload_b64, sig_b64 = token.split(".")
++        signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
++        expected = hmac.new(SECRET, signing_input, hashlib.sha256).digest()
++        if not hmac.compare_digest(expected, b64url_decode(sig_b64)):
++            raise ValueError("Assinatura inválida")
++        payload = json.loads(b64url_decode(payload_b64))
++        if "exp" in payload and int(payload["exp"]) < int(time.time()):
++            raise ValueError("Convite expirado")
++        return payload
++    except Exception as e:
++        raise ValueError(f"Token inválido: {e}")
++
++def generate_invite_token(email: str, tenant_id: str, admin_vendor_id: str, ttl_seconds: Optional[int] = None) -> str:
++    now = int(time.time())
++    exp = now + int(ttl_seconds or DEFAULT_TTL_SECONDS)
++    payload = {
++        "sub": "invite",
++        "email": email.lower().strip(),
++        "tenant_id": tenant_id,
++        "admin_vendor_id": admin_vendor_id,
++        "iat": now,
++        "exp": exp,
++        "v": 1,
++    }
++    return sign_invite(payload)
++
++def token_hash(token: str) -> str:
++    return hashlib.sha256(token.encode("utf-8")).hexdigest()
++
+diff --git a/backend/server.py b/backend/server.py
+index b6d0af5..310a8ae 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -8,6 +8,7 @@ from typing import List, Dict, Any
+ import os
+ from starlette.responses import JSONResponse, Response
+ 
+ from models import User, UserRole, License
+ from auth import get_current_user
+ from db import db, initialize_system
+ from security import check_permission, get_user_permissions
+ from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
+ from pydantic import BaseModel
+ from bson import ObjectId
+ 
+ from authz import build_scope_filter
+ from authz import enforce_object_scope
+ from filters import whitelist_filter, merge_with_scope
++from invitations import generate_invite_token, verify_invite, token_hash
++from email_service import send_invitation_email
+ 
+ app = FastAPI()
+ api_router = APIRouter()
+@@ -277,6 +278,170 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
+     await db.licenses.delete_one({"_id": doc["_id"]})
+     return Response(status_code=204)
+ 
++# ------------------------ CONVITES ------------------------
++class InviteCreate(BaseModel):
++    email: str
++    ttl_seconds: int | None = None
++
++@api_router.post("/admin/invitations")
++async def create_invitation(body: InviteCreate, current_user: User = Depends(get_current_user)):
++    """
++    Admin cria um convite para um e-mail específico dentro do seu tenant.
++    O user aceito será criado como USER, vinculado a este Admin (admin_vendor_id).
++    """
++    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
++        raise HTTPException(status_code=403, detail="Sem permissão")
++
++    # Super admin pode especificar tenant no futuro; por ora usamos o tenant do ator
++    tenant_id = getattr(current_user, "tenant_id", None)
++    if not tenant_id:
++        raise HTTPException(status_code=400, detail="Tenant ausente no contexto")
++
++    email = body.email.lower().strip()
++    tok = generate_invite_token(email=email, tenant_id=tenant_id, admin_vendor_id=current_user.id, ttl_seconds=body.ttl_seconds)
++    th = token_hash(tok)
++
++    # Persistir convite para permitir revogação/single-use
++    inv = {
++        "token_hash": th,
++        "email": email,
++        "tenant_id": tenant_id,
++        "admin_vendor_id": current_user.id,
++        "created_at": int(time.time()),
++        "used_at": None,
++        "revoked": False,
++    }
++    try:
++        await db.invitations.insert_one(inv)
++    except Exception as e:
++        # Duplicidade de token_hash é improvável, mas trate qualquer falha
++        raise HTTPException(status_code=400, detail=f"Erro ao registrar convite: {e}")
++
++    # Monta link (frontend deve ter rota /accept-invite?token=...)
++    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
++    invite_link = f"{frontend_url}/accept-invite?token={tok}"
++
++    # Envio de e-mail (stub)
++    try:
++        send_invitation_email(to_email=email, invite_link=invite_link, inviter_name=getattr(current_user, "email", "Admin"))
++    except Exception as e:
++        print(f"[invite] falha ao enviar e-mail: {e}")
++
++    return {"ok": True, "invite_link": invite_link}
++
++class AcceptInvitePayload(BaseModel):
++    token: str
++    password: str | None = None  # se desejar criar já com senha
++
++@api_router.post("/auth/accept-invite")
++async def accept_invite(body: AcceptInvitePayload):
++    """
++    Aceita um convite e cria/ativa o USER vinculado ao admin vendedor.
++    Não exige autenticação prévia: valida o token de convite.
++    """
++    try:
++        payload = verify_invite(body.token)
++    except ValueError as e:
++        raise HTTPException(status_code=400, detail=str(e))
++
++    th = token_hash(body.token)
++    inv = await db.invitations.find_one({"token_hash": th})
++    if not inv or inv.get("revoked"):
++        raise HTTPException(status_code=400, detail="Convite inválido ou revogado")
++    if inv.get("used_at"):
++        raise HTTPException(status_code=400, detail="Convite já utilizado")
++
++    email = payload["email"]
++    tenant_id = payload["tenant_id"]
++    admin_vendor_id = payload["admin_vendor_id"]
++
++    # Cria usuário (ou garante vínculo se já existir no tenant)
++    existing = await db.users.find_one({"tenant_id": tenant_id, "email": email})
++    if existing:
++        # Se já existe, apenas garante vínculo (não eleva papel)
++        update = {"admin_vendor_id": admin_vendor_id}
++        await db.users.update_one({"_id": existing["_id"]}, {"$set": update})
++        user_id = existing["_id"]
++    else:
++        doc = {
++            "email": email,
++            "tenant_id": tenant_id,
++            "role": "USER",
++            "admin_vendor_id": admin_vendor_id,
++        }
++        res = await db.users.insert_one(doc)
++        user_id = res.inserted_id
++
++    # Marca convite como usado (single-use)
++    await db.invitations.update_one({"_id": inv["_id"]}, {"$set": {"used_at": int(time.time())}})
++
++    created = await db.users.find_one({"_id": user_id})
++    created["id"] = str(created["_id"])
++    return {"ok": True, "user": created}
++
++@api_router.post("/admin/invitations/revoke")
++async def revoke_invitation(token: str, current_user: User = Depends(get_current_user)):
++    """
++    Revoga um convite ainda não utilizado. Admin só revoga convites criados por ele.
++    """
++    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
++        raise HTTPException(status_code=403, detail="Sem permissão")
++
++    th = token_hash(token)
++    inv = await db.invitations.find_one({"token_hash": th})
++    if not inv:
++        raise HTTPException(status_code=404, detail="Convite não encontrado")
++
++    # Admin só pode revogar convites dele no próprio tenant
++    if current_user.role == UserRole.ADMIN:
++        if inv.get("tenant_id") != current_user.tenant_id or inv.get("admin_vendor_id") != current_user.id:
++            raise HTTPException(status_code=403, detail="Fora do escopo")
++
++    if inv.get("used_at"):
++        raise HTTPException(status_code=400, detail="Convite já utilizado")
++
++    await db.invitations.update_one({"_id": inv["_id"]}, {"$set": {"revoked": True}})
++    return {"ok": True}
++
+diff --git a/backend/tests/test_invites.py b/backend/tests/test_invites.py
+new file mode 100644
+index 0000000..e3c4bd1
+--- /dev/null
++++ b/backend/tests/test_invites.py
+@@ -0,0 +1,126 @@
++import time
++from invitations import generate_invite_token, verify_invite, token_hash
++
++def test_invite_token_roundtrip():
++    tok = generate_invite_token("x@y.com", "t1", "a1", ttl_seconds=60)
++    p = verify_invite(tok)
++    assert p["email"] == "x@y.com"
++    assert p["tenant_id"] == "t1"
++    assert p["admin_vendor_id"] == "a1"
++    assert p["exp"] > p["iat"]
++
++def test_invite_token_expiration():
++    tok = generate_invite_token("x@y.com", "t1", "a1", ttl_seconds=1)
++    time.sleep(2)
++    try:
++        verify_invite(tok)
++        assert False, "Deveria expirar"
++    except Exception:
++        assert True
++
++def test_token_hash_stable():
++    tok = generate_invite_token("x@y.com", "t1", "a1", ttl_seconds=60)
++    h1 = token_hash(tok)
++    h2 = token_hash(tok)
++    assert h1 == h2
++
+diff --git a/backend/server.py b/backend/server.py
+index 310a8ae..a1b6f77 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -200,6 +200,22 @@ async def ensure_indexes():
+         if "idx_licenses_tenant_assigned" not in existing:
+             await db.licenses.create_index([("tenant_id", 1), ("assigned_user_id", 1)], name="idx_licenses_tenant_assigned")
+     except Exception as e:
+         # Logue o erro de índice, mas não derrube a app
+         print(f"[indexes] erro ao criar índices: {e}")
++
++    # Índices de convites
++    try:
++        existing = await db.invitations.index_information()
++    except Exception:
++        existing = {}
++    try:
++        if "uniq_invite_token_hash" not in existing:
++            await db.invitations.create_index(
++                [("token_hash", 1)],
++                unique=True,
++                name="uniq_invite_token_hash",
++            )
++        if "idx_invite_email" not in existing:
++            await db.invitations.create_index([("email", 1), ("tenant_id", 1)], name="idx_invite_email")
++    except Exception as e:
++        print(f"[indexes] erro ao criar índices (convites): {e}")
+ 
