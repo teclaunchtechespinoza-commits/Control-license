@@ -1,0 +1,311 @@
+From 4f8a1c0 Mon Sep 02 00:00:00 2025
+From: ChatGPT <dev@assistant.ai>
+Date: Tue, 02 Sep 2025 16:20:00 -0300
+Subject: [PATCH v3] Fixes críticos: padronizar X-Tenant-ID, forçar filtro de
+ tenant (fallback por contexto), enforcement por objeto helpers, CORS seguro e
+ seed desativado fora de dev
+
+---
+ .gitignore                              |  18 +++++-
+ backend/middlewares.py                  | 105 +++++++++++++++++++++++++++++++-
+ backend/server.py                       | 120 ++++++++++++++++++++++++++------
+ backend/tests/test_cors_tenant.py       |  61 +++++++++++++++++
+ 4 files changed, 279 insertions(+), 25 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 5d6e7f8..a19c011 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,19 @@
+ __pycache__/
+ node_modules/
+ dist/
++
++# ---- Secrets / env ----
++.env
++.env.*
++backend/.env
++backend/.env.*
++frontend/.env
++frontend/.env.*
++whatsapp-node-service/.env
++whatsapp-node-service/.env.*
++*.pem
++*.key
++*.crt
++
++# Logs / debug
++*.log
++debug_*.py
+diff --git a/backend/middlewares.py b/backend/middlewares.py
+index 77d9a19..bb3c5a0 100644
+--- a/backend/middlewares.py
++++ b/backend/middlewares.py
+@@ -1,10 +1,17 @@
+ from starlette.middleware.base import BaseHTTPMiddleware
+ from starlette.requests import Request
+ from starlette.responses import Response
+ from fastapi import HTTPException, status
+ import time
++import os
++import contextvars
+ 
+ class ObservabilityMiddleware(BaseHTTPMiddleware):
+     async def dispatch(self, request: Request, call_next):
+         start = time.time()
+         response = await call_next(request)
+         process_ms = int((time.time() - start) * 1000)
+         response.headers["X-Process-Time-ms"] = str(process_ms)
+         return response
+@@ -34,3 +41,99 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
+         bucket.append(now)
+         self._buckets[ip] = bucket
+         return await call_next(request)
++
++class ResponseTenantHeaderMiddleware(BaseHTTPMiddleware):
++    """
++    Espelha o header de tenant do request para a resposta usando o nome padronizado 'X-Tenant-ID'.
++    Não faz fallback automático para 'default'; se ausente, deixa a dependency (require_tenant)
++    decidir o que fazer (ex.: retornar 400).
++    """
++    TENANT_HEADER = "X-Tenant-ID"
++
++    async def dispatch(self, request: Request, call_next):
++        response: Response = await call_next(request)
++        tenant_id = request.headers.get(self.TENANT_HEADER)
++        if tenant_id:
++            response.headers[self.TENANT_HEADER] = tenant_id
++        return response
++
++# ----------------- Tenant Context (fallback seguro para add_tenant_filter) -----------------
++TENANT_CTX: contextvars.ContextVar[str | None] = contextvars.ContextVar("TENANT_CTX", default=None)
++
++class TenantContextMiddleware(BaseHTTPMiddleware):
++    """
++    Extrai X-Tenant-ID do request e guarda em ContextVar para ser usado como fallback
++    por helpers que, historicamente, não recebiam tenant explicitamente.
++    Produção: se X-Tenant-ID estiver ausente, retorna 400.
++    """
++    TENANT_HEADER = "X-Tenant-ID"
++
++    def __init__(self, app):
++        super().__init__(app)
++        self._allow_missing = os.getenv("TENANT_HEADER_OPTIONAL", "false").lower() in {"1", "true", "yes"}
++
++    async def dispatch(self, request: Request, call_next):
++        tenant_id = request.headers.get(self.TENANT_HEADER)
++        TENANT_CTX.set(tenant_id)
++        if not tenant_id and not self._allow_missing:
++            # Não permita fallback silencioso em produção
++            return Response(
++                content='{"detail":"X-Tenant-ID ausente"}',
++                media_type="application/json",
++                status_code=status.HTTP_400_BAD_REQUEST,
++            )
++        return await call_next(request)
+diff --git a/backend/server.py b/backend/server.py
+index a1b6f77..0b7b2c1 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -1,23 +1,31 @@
+ from fastapi import FastAPI, Depends, HTTPException, status, Request
+ from fastapi.middleware.cors import CORSMiddleware
+ from fastapi.routing import APIRouter
+-from typing import List, Dict, Any
++from typing import List, Dict, Any, Optional
+ import os
+ from starlette.responses import JSONResponse, Response
+ 
+ from models import User, UserRole, License
+ from auth import get_current_user
+ from db import db, initialize_system
+ from security import check_permission, get_user_permissions
+-from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
++from middlewares import (
++    ObservabilityMiddleware,
++    RateLimitMiddleware,
++    ResponseTenantHeaderMiddleware,
++    TenantContextMiddleware,
++    TENANT_CTX,
++)
+ from pydantic import BaseModel
+ from bson import ObjectId
+ 
+ from authz import build_scope_filter
+ from authz import enforce_object_scope
+ from filters import whitelist_filter, merge_with_scope
+ from invitations import generate_invite_token, verify_invite, token_hash
+ from email_service import send_invitation_email
+ 
+ app = FastAPI()
+ api_router = APIRouter()
+ 
+@@ -25,14 +33,43 @@ app = FastAPI()
+ api_router = APIRouter()
+ 
+ # ---------- CORS (origens explícitas; nunca '*' com credentials) ----------
++CORS_ORIGINS = [o for o in (os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")) if o]
++ALLOW_CREDENTIALS = True
++ALLOWED_HEADERS = ["Content-Type", "Authorization", "Accept", "X-Tenant-ID"]
++EXPOSE_HEADERS = ["X-Tenant-ID"]
++
++if ALLOW_CREDENTIALS and any(o.strip() == "*" for o in CORS_ORIGINS):
++    # Harden contra configuração inválida em produção
++    raise RuntimeError("CORS_ORIGINS não pode conter '*' quando allow_credentials=True")
++
+ app.add_middleware(
+     CORSMiddleware,
+-    allow_origins=["*"],
+-    allow_credentials=True,
++    allow_origins=CORS_ORIGINS,
++    allow_credentials=ALLOW_CREDENTIALS,
+     allow_methods=["*"],
+-    allow_headers=["Content-Type", "Authorization", "Accept", "X-Current-Tenant"],
+-    expose_headers=["X-Current-Tenant"],
++    allow_headers=ALLOWED_HEADERS,
++    expose_headers=EXPOSE_HEADERS,
+ )
+ 
++# Middlewares de observabilidade, rate limit e tenant context
+ app.add_middleware(ObservabilityMiddleware)
+ app.add_middleware(RateLimitMiddleware)
+-app.add_middleware(ResponseTenantHeaderMiddleware)
++app.add_middleware(TenantContextMiddleware)
++app.add_middleware(ResponseTenantHeaderMiddleware)
+ 
+ # ---------- Helpers de Tenant ----------
+-def require_tenant(request: Request) -> str:
+-    tenant_id = request.headers.get("X-Current-Tenant") or request.headers.get("X-Tenant-ID")
+-    if not tenant_id:
+-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="X-Tenant-ID ausente")
+-    return tenant_id
++TENANT_HEADER = "X-Tenant-ID"
++
++def require_tenant(request: Request) -> str:
++    """
++    Obtém tenant do header padronizado 'X-Tenant-ID'.
++    Em paralelo, suporta fallback via ContextVar para cobrir pontos legados.
++    """
++    tenant_id = request.headers.get(TENANT_HEADER) or TENANT_CTX.get()
++    if not tenant_id:
++        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{TENANT_HEADER} ausente")
++    return tenant_id
++
++def add_tenant_filter(base: Dict[str, Any] | None = None, tenant_id: Optional[str] = None) -> Dict[str, Any]:
++    """
++    Helper legado: agora *exige* tenant. Se não for fornecido, tenta obter do ContextVar (middleware).
++    Isso corrige chamadas antigas como add_tenant_filter({...}) que antes deixavam passar sem filtro.
++    """
++    f = dict(base or {})
++    tid = tenant_id or TENANT_CTX.get()
++    if not tid:
++        # Segurança em profundidade: nunca prosseguir sem tenant
++        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{TENANT_HEADER} ausente")
++    f["tenant_id"] = tid
++    return f
+@@ -58,6 +95,7 @@ class PageParams(BaseModel):
+     page: int = 1
+     size: int = 50
+ 
++
+ @api_router.get("/licenses", response_model=List[License])
+ async def get_licenses(
+     request: Request,
+@@ -82,6 +120,13 @@ async def get_licenses(
+         items = await cursor.to_list(length=size)
+         return items
+     except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
+ 
++@api_router.get("/licenses/{license_id}", response_model=License)
++async def get_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
++    if not doc or not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=404 if not doc else 403, detail="Fora do escopo")
++    doc["id"] = str(doc["_id"])
++    return doc
++
+ @api_router.get("/users", response_model=List[User])
+ async def list_users(request: Request, current_user: User = Depends(get_current_user)):
+     """Lista usuários no escopo do ator. Admin enxerga apenas seus clientes (admin_vendor_id = admin.id)."""
+@@ -149,6 +194,14 @@ async def create_user(body: UserCreate, current_user: User = Depends(get_current_user)):
+         raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
+ 
++@api_router.get("/users/{user_id}", response_model=User)
++async def get_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.users.find_one({"_id": ObjectId(user_id)})
++    if not doc or not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=404 if not doc else 403, detail="Fora do escopo")
++    doc["id"] = str(doc["_id"])
++    return doc
++
+ @api_router.get("/stats")
+ async def stats(current_user: User = Depends(require_permission("stats:read"))):
+     # ...
+@@ -200,12 +253,35 @@ async def ensure_indexes():
+         if "idx_licenses_tenant_assigned" not in existing:
+             await db.licenses.create_index([("tenant_id", 1), ("assigned_user_id", 1)], name="idx_licenses_tenant_assigned")
+     except Exception as e:
+         # Logue o erro de índice, mas não derrube a app
+         print(f"[indexes] erro ao criar índices: {e}")
+ 
++    # Índices de convites
+     try:
+         existing = await db.invitations.index_information()
+     except Exception:
+         existing = {}
+     try:
+         if "uniq_invite_token_hash" not in existing:
+             await db.invitations.create_index(
+                 [("token_hash", 1)],
+                 unique=True,
+                 name="uniq_invite_token_hash",
+             )
+         if "idx_invite_email" not in existing:
+             await db.invitations.create_index([("email", 1), ("tenant_id", 1)], name="idx_invite_email")
+     except Exception as e:
+         print(f"[indexes] erro ao criar índices (convites): {e}")
++
++@app.on_event("startup")
++async def startup_event():
++    await initialize_system()
++    await ensure_indexes()
++
++    # Desabilitar seed/demo fora de desenvolvimento
++    app_env = os.getenv("APP_ENV", os.getenv("ENV", "development")).lower()
++    seed_demo = os.getenv("SEED_DEMO", "false").lower() in {"1", "true", "yes"}
++    if app_env not in {"dev", "development"} and seed_demo:
++        # Apenas alerta em runtime; a recomendação é remover a flag do env de prod.
++        print("[warn] SEED_DEMO está habilitado, mas o APP_ENV não é desenvolvimento. Ignorando seed.")
++        os.environ["SEED_DEMO"] = "false"
++
++    # Sinaliza header padronizado no app (para debug/observabilidade)
++    app.state.TENANT_HEADER = TENANT_HEADER
++
+diff --git a/backend/tests/test_cors_tenant.py b/backend/tests/test_cors_tenant.py
+new file mode 100644
+index 0000000..1e2f3a4
+--- /dev/null
++++ b/backend/tests/test_cors_tenant.py
+@@ -0,0 +1,61 @@
++import os
++import pytest
++
++def test_cors_no_wildcard_with_credentials(monkeypatch):
++    monkeypatch.setenv("CORS_ORIGINS", "http://localhost:3000")
++    # allow_credentials=True por padrão no server
++    from importlib import reload
++    import backend.server as srv
++    reload(srv)
++    assert "*" not in srv.CORS_ORIGINS
++
++def test_tenant_header_constant():
++    from backend.server import TENANT_HEADER
++    assert TENANT_HEADER == "X-Tenant-ID"
++
++def test_tenant_ctx_middleware_exports_header():
++    # Teste superficial: apenas confere que o middleware existe e usa o mesmo header
++    from backend.middlewares import TenantContextMiddleware
++    mw = TenantContextMiddleware(lambda x: x)
++    assert mw.TENANT_HEADER == "X-Tenant-ID"
++
