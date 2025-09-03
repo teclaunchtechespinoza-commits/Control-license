@@ -1,0 +1,270 @@
+From a1b2c3d Mon Sep 02 00:00:00 2025
+From: ChatGPT <dev@assistant.ai>
+Date: Tue, 02 Sep 2025 15:45:00 -0300
+Subject: [PATCH FE-S2] Frontend: /accept-invite e /admin/invitations (convites)
+
+---
+ frontend/src/api.js                        |  43 ++++++++++++++++
+ frontend/src/pages/AcceptInvitePage.jsx    |  89 +++++++++++++++++++++++++++++
+ frontend/src/pages/AdminInvitePage.jsx     |  86 ++++++++++++++++++++++++++++
+ frontend/src/App.js                        |  33 ++++++++---
+ 4 files changed, 241 insertions(+), 10 deletions(-)
+ create mode 100644 frontend/src/pages/AcceptInvitePage.jsx
+ create mode 100644 frontend/src/pages/AdminInvitePage.jsx
+
+diff --git a/frontend/src/api.js b/frontend/src/api.js
+index 1a2b3c4..5d6e7f8 100644
+--- a/frontend/src/api.js
++++ b/frontend/src/api.js
+@@ -1,6 +1,49 @@
+ export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
+ 
++async function jsonFetch(url, opts = {}) {
++  const res = await fetch(url, {
++    headers: {
++      "Content-Type": "application/json",
++      ...(opts.headers || {}),
++    },
++    credentials: "include",
++    ...opts,
++  });
++  if (!res.ok) {
++    let msg = `HTTP ${res.status}`;
++    try {
++      const data = await res.json();
++      if (data && data.detail) msg = data.detail;
++    } catch {}
++    throw new Error(msg);
++  }
++  return res.json().catch(() => ({}));
++}
++
+ export async function login(email, password) {
+   // existente...
+ }
++
++// ---------- Sprint 2: Convites ----------
++export async function createInvitation(email) {
++  const body = { email };
++  return jsonFetch(`${API_BASE}/admin/invitations`, {
++    method: "POST",
++    body: JSON.stringify(body),
++  });
++}
++
++export async function acceptInvite(token, password) {
++  const body = { token };
++  if (password) body.password = password;
++  return jsonFetch(`${API_BASE}/auth/accept-invite`, {
++    method: "POST",
++    body: JSON.stringify(body),
++  });
++}
++
++export async function revokeInvitation(token) {
++  const body = token; // endpoint espera body=token simples
++  return jsonFetch(`${API_BASE}/admin/invitations/revoke`, {
++    method: "POST",
++    body: JSON.stringify(body),
++  });
++}
+diff --git a/frontend/src/pages/AcceptInvitePage.jsx b/frontend/src/pages/AcceptInvitePage.jsx
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/frontend/src/pages/AcceptInvitePage.jsx
+@@ -0,0 +1,89 @@
++import React, { useEffect, useMemo, useState } from "react";
++import { useLocation, useNavigate } from "react-router-dom";
++import { acceptInvite } from "../api";
++
++function useQuery() {
++  const { search } = useLocation();
++  return useMemo(() => new URLSearchParams(search), [search]);
++}
++
++export default function AcceptInvitePage() {
++  const q = useQuery();
++  const token = q.get("token") || "";
++  const navigate = useNavigate();
++  const [password, setPassword] = useState("");
++  const [loading, setLoading] = useState(false);
++  const [error, setError] = useState("");
++  const [success, setSuccess] = useState(null);
++
++  useEffect(() => {
++    if (!token) setError("Token de convite ausente na URL.");
++  }, [token]);
++
++  const onSubmit = async (e) => {
++    e.preventDefault();
++    setError("");
++    setLoading(true);
++    try {
++      const resp = await acceptInvite(token, password || undefined);
++      setSuccess(resp?.user || { ok: true });
++      // Opcional: redirecionar para login
++      // setTimeout(() => navigate("/login"), 1500);
++    } catch (err) {
++      setError(err.message || "Falha ao aceitar convite");
++    } finally {
++      setLoading(false);
++    }
++  };
++
++  return (
++    <div style={{ maxWidth: 480, margin: "40px auto", padding: 16 }}>
++      <h2>Aceitar Convite</h2>
++      {!success && (
++        <form onSubmit={onSubmit}>
++          <div style={{ margin: "12px 0" }}>
++            <label>Senha (opcional)</label>
++            <input
++              type="password"
++              value={password}
++              onChange={(e) => setPassword(e.target.value)}
++              placeholder="Defina uma senha (opcional)"
++              style={{ width: "100%", padding: 8 }}
++            />
++          </div>
++          {error && <div style={{ color: "crimson", marginBottom: 8 }}>{error}</div>}
++          <button type="submit" disabled={!token || loading}>
++            {loading ? "Processando..." : "Aceitar convite"}
++          </button>
++        </form>
++      )}
++      {success && (
++        <div style={{ background: "#e7fff0", border: "1px solid #b4f0c9", padding: 12, marginTop: 12 }}>
++          <strong>Convite aceito!</strong>
++          <div style={{ fontSize: 14, marginTop: 8 }}>
++            Usuário criado/vinculado com sucesso. Você já pode fazer login.
++          </div>
++          <button style={{ marginTop: 12 }} onClick={() => navigate("/login")}>
++            Ir para login
++          </button>
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/frontend/src/pages/AdminInvitePage.jsx b/frontend/src/pages/AdminInvitePage.jsx
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/frontend/src/pages/AdminInvitePage.jsx
+@@ -0,0 +1,86 @@
++import React, { useState } from "react";
++import { createInvitation, revokeInvitation } from "../api";
++
++export default function AdminInvitePage() {
++  const [email, setEmail] = useState("");
++  const [inviteLink, setInviteLink] = useState("");
++  const [error, setError] = useState("");
++  const [loading, setLoading] = useState(false);
++  const [revoking, setRevoking] = useState(false);
++
++  const onCreate = async (e) => {
++    e.preventDefault();
++    setError("");
++    setInviteLink("");
++    setLoading(true);
++    try {
++      const resp = await createInvitation(email.trim());
++      setInviteLink(resp?.invite_link || "");
++    } catch (err) {
++      setError(err.message || "Falha ao criar convite");
++    } finally {
++      setLoading(false);
++    }
++  };
++
++  const onRevoke = async () => {
++    if (!inviteLink) return;
++    const url = new URL(inviteLink);
++    const token = url.searchParams.get("token");
++    if (!token) return setError("Token não encontrado no link.");
++    setRevoking(true);
++    setError("");
++    try {
++      await revokeInvitation(token);
++      setInviteLink("");
++    } catch (err) {
++      setError(err.message || "Falha ao revogar convite");
++    } finally {
++      setRevoking(false);
++    }
++  };
++
++  return (
++    <div style={{ maxWidth: 640, margin: "40px auto", padding: 16 }}>
++      <h2>Convites (Admin)</h2>
++      <form onSubmit={onCreate}>
++        <div style={{ margin: "12px 0" }}>
++          <label>E-mail do cliente</label>
++          <input
++            type="email"
++            required
++            placeholder="cliente@empresa.com"
++            value={email}
++            onChange={(e) => setEmail(e.target.value)}
++            style={{ width: "100%", padding: 8 }}
++          />
++        </div>
++        {error && <div style={{ color: "crimson", marginBottom: 8 }}>{error}</div>}
++        <button type="submit" disabled={loading}>
++          {loading ? "Enviando..." : "Gerar convite"}
++        </button>
++      </form>
++
++      {inviteLink && (
++        <div style={{ marginTop: 16, padding: 12, background: "#f4f7ff", border: "1px solid #d7e3ff" }}>
++          <div><strong>Link de convite:</strong></div>
++          <div style={{ wordBreak: "break-all" }}>{inviteLink}</div>
++          <div style={{ marginTop: 8 }}>
++            <button onClick={onRevoke} disabled={revoking}>
++              {revoking ? "Revogando..." : "Revogar convite"}
++            </button>
++          </div>
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/frontend/src/App.js b/frontend/src/App.js
+index 3333333..4444444 100644
+--- a/frontend/src/App.js
++++ b/frontend/src/App.js
+@@ -1,17 +1,30 @@
+ import React from "react";
+-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
++import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+ import LoginPage from "./pages/LoginPage";
+ import Dashboard from "./pages/Dashboard";
++import AcceptInvitePage from "./pages/AcceptInvitePage";
++import AdminInvitePage from "./pages/AdminInvitePage";
+ 
+ export default function App() {
+   return (
+     <Router>
+-      <Routes>
+-        <Route path="/login" element={<LoginPage />} />
+-        <Route path="/" element={<Dashboard />} />
+-      </Routes>
++      <div>
++        <nav style={{ padding: 8 }}>
++          <Link to="/">Home</Link>{" | "}
++          <Link to="/login">Login</Link>{" | "}
++          <Link to="/accept-invite">Aceitar Convite</Link>{" | "}
++          <Link to="/admin/invitations">Convites (Admin)</Link>
++        </nav>
++        <Routes>
++          <Route path="/login" element={<LoginPage />} />
++          <Route path="/accept-invite" element={<AcceptInvitePage />} />
++          <Route path="/admin/invitations" element={<AdminInvitePage />} />
++          <Route path="/" element={<Dashboard />} />
++        </Routes>
++      </div>
+     </Router>
+   );
+ }
+ 
