@@ -3,6 +3,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 from fastapi import HTTPException, status
 import time
+import os
+import contextvars
 
 class ObservabilityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
