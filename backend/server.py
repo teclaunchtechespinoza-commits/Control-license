@@ -5581,13 +5581,11 @@ app.add_middleware(
     expose_headers=EXPOSE_HEADERS,
 )
 
-# Add enterprise security headers middleware
-app.add_middleware(SecurityHeadersMiddleware)
-
-# Middlewares de observabilidade e rate limit (ativar em produção)
+# Middlewares de observabilidade, rate limit e tenant context
+app.add_middleware(ObservabilityMiddleware)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(TenantContextMiddleware)
 app.add_middleware(ResponseTenantHeaderMiddleware)
-# app.add_middleware(ObservabilityMiddleware)  # Comentar por enquanto devido a conflitos
-# app.add_middleware(RateLimitMiddleware)  # Comentar por enquanto para evitar conflitos
 
 # Debug middleware to log all requests
 @app.middleware("http")
