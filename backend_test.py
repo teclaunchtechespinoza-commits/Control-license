@@ -4465,10 +4465,10 @@ if __name__ == "__main__":
                 exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix")
             exit_code = 1
     else:
-        # Default: run superadmin investigation
-        exit_code = tester.run_superadmin_investigation()
+        # Default: run critical hotfix test
+        exit_code = 0 if tester.test_tenant_id_hotfix_critical() else 1
     
     sys.exit(exit_code)
