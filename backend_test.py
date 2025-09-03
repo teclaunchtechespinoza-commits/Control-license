@@ -4444,6 +4444,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ CRITICAL SECURITY TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "hotfix":
+            # Run the critical hotfix test for X-Tenant-ID ausente issue
+            print("🚀 RUNNING CRITICAL HOTFIX TEST: X-TENANT-ID AUSENTE LOGIN ISSUE")
+            success = tester.test_tenant_id_hotfix_critical()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL HOTFIX TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 85:
+                print(f"🎉 CRITICAL HOTFIX TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL HOTFIX TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security")
