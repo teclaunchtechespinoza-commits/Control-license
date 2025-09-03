@@ -4708,40 +4708,6 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
     await db.licenses.delete_one({"_id": doc["_id"]})
     return Response(status_code=204)
 
-@api_router.put("/licenses/{license_id}", response_model=License)
-async def update_license(
-    license_id: str,
-    license_update: LicenseUpdate,
-    current_user: User = Depends(get_current_admin_user),
-    tenant_id: str = Depends(require_tenant)
-):
-    update_data = {k: v for k, v in license_update.dict().items() if v is not None}
-    update_data["updated_at"] = datetime.utcnow()
-    
-    result = await db.licenses.update_one(
-        add_tenant_filter({"id": license_id}, tenant_id),
-        {"$set": update_data}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="License not found")
-    
-    query_filter = add_tenant_filter({"id": license_id})
-    updated_license = await db.licenses.find_one(query_filter)
-    return License(**updated_license)
-
-@api_router.delete("/licenses/{license_id}")
-async def delete_license(
-    license_id: str,
-    current_user: User = Depends(get_current_admin_user)
-):
-    query_filter = add_tenant_filter({"id": license_id})
-    result = await db.licenses.delete_one(query_filter)
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="License not found")
-    
-    return {"message": "License deleted successfully"}
-
 # Enhanced Dashboard Stats
 @api_router.get("/stats")
 async def get_stats(
