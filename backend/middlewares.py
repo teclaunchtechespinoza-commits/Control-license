@@ -71,6 +71,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         "/docs",
         "/openapi.json",
         "/health",
+        "/api/health",  # Add API prefixed version
         "/",
         "/api/accept-invite"  # Para aceitar convites
     }
