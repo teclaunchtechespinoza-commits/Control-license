@@ -1796,6 +1796,53 @@ async def create_user(body: UserCreate, current_user: User = Depends(get_current
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
 
+# ------------------------ USERS by :id ------------------------
+@api_router.get("/users/{user_id}", response_model=User)
+async def get_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
+    doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User não encontrado")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    doc["id"] = str(doc["_id"])
+    doc.pop("_id", None)
+    return User(**doc)
+
+class UserUpdate(BaseModel):
+    email: str | None = None
+
+@api_router.put("/users/{user_id}", response_model=User)
+async def update_user_by_id(user_id: str, body: UserUpdate, current_user: User = Depends(get_current_user)):
+    doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User não encontrado")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+
+    updates = {}
+    if body.email is not None:
+        updates["email"] = body.email.lower().strip()
+    if not updates:
+        doc["id"] = str(doc["_id"])
+        doc.pop("_id", None)
+        return User(**doc)
+
+    await db.users.update_one({"_id": doc["_id"]}, {"$set": updates})
+    updated = await db.users.find_one({"_id": doc["_id"]})
+    updated["id"] = str(updated["_id"])
+    updated.pop("_id", None)
+    return User(**updated)
+
+@api_router.delete("/users/{user_id}", status_code=204)
+async def delete_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
+    doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User não encontrado")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    await db.users.delete_one({"_id": doc["_id"]})
+    return Response(status_code=204)
+
 @api_router.put("/users/{user_id}/role")
 async def update_user_role(
     user_id: str, 
