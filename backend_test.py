@@ -4654,6 +4654,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ CRITICAL HOTFIX TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "session-fix":
+            # Run the session expired message fix test
+            print("🚀 RUNNING SESSION EXPIRED MESSAGE FIX TEST")
+            success = tester.test_session_expired_fix()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("SESSION EXPIRED FIX TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 90:
+                print(f"🎉 SESSION EXPIRED FIX TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ SESSION EXPIRED FIX TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix")
