@@ -4779,6 +4779,170 @@ async def search_licenses(request: Request, current_user: User = Depends(get_cur
     
     return valid_licenses
 
+# ------------------------ CONVITES ------------------------
+class InviteCreate(BaseModel):
+    email: str
+    ttl_seconds: int | None = None
+
+@api_router.post("/admin/invitations")
+async def create_invitation(body: InviteCreate, current_user: User = Depends(get_current_user)):
+    """
+    Admin cria um convite para um e-mail específico dentro do seu tenant.
+    O user aceito será criado como USER, vinculado a este Admin (admin_vendor_id).
+    """
+    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    # Super admin pode especificar tenant no futuro; por ora usamos o tenant do ator
+    tenant_id = getattr(current_user, "tenant_id", None)
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ausente no contexto")
+
+    email = body.email.lower().strip()
+    tok = generate_invite_token(email=email, tenant_id=tenant_id, admin_vendor_id=current_user.id, ttl_seconds=body.ttl_seconds)
+    th = token_hash(tok)
+
+    # Persistir convite para permitir revogação/single-use
+    inv = {
+        "token_hash": th,
+        "email": email,
+        "tenant_id": tenant_id,
+        "admin_vendor_id": current_user.id,
+        "created_at": int(time.time()),
+        "used_at": None,
+        "revoked": False,
+    }
+    try:
+        await db.invitations.insert_one(inv)
+    except Exception as e:
+        # Duplicidade de token_hash é improvável, mas trate qualquer falha
+        raise HTTPException(status_code=400, detail=f"Erro ao registrar convite: {e}")
+
+    # Monta link (frontend deve ter rota /accept-invite?token=...)
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+    invite_link = f"{frontend_url}/accept-invite?token={tok}"
+
+    # Envio de e-mail (stub)
+    try:
+        send_invitation_email(to_email=email, invite_link=invite_link, inviter_name=getattr(current_user, "email", "Admin"))
+    except Exception as e:
+        print(f"[invite] falha ao enviar e-mail: {e}")
+
+    return {"ok": True, "invite_link": invite_link}
+
+class AcceptInvitePayload(BaseModel):
+    token: str
+    password: str | None = None  # se desejar criar já com senha
+
+@api_router.post("/auth/accept-invite")
+async def accept_invite(body: AcceptInvitePayload):
+    """
+    Aceita um convite e cria/ativa o USER vinculado ao admin vendedor.
+    Não exige autenticação prévia: valida o token de convite.
+    """
+    try:
+        payload = verify_invite(body.token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    th = token_hash(body.token)
+    inv = await db.invitations.find_one({"token_hash": th})
+    if not inv or inv.get("revoked"):
+        raise HTTPException(status_code=400, detail="Convite inválido ou revogado")
+    if inv.get("used_at"):
+        raise HTTPException(status_code=400, detail="Convite já utilizado")
+
+    email = payload["email"]
+    tenant_id = payload["tenant_id"]
+    admin_vendor_id = payload["admin_vendor_id"]
+
+    # Cria usuário (ou garante vínculo se já existir no tenant)
+    existing = await db.users.find_one({"tenant_id": tenant_id, "email": email})
+    if existing:
+        # Se já existe, apenas garante vínculo (não eleva papel)
+        update = {"admin_vendor_id": admin_vendor_id}
+        await db.users.update_one({"_id": existing["_id"]}, {"$set": update})
+        user_id = existing["_id"]
+    else:
+        doc = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "name": email.split("@")[0].title(),
+            "tenant_id": tenant_id,
+            "role": "user",
+            "admin_vendor_id": admin_vendor_id,
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+        }
+        if body.password:
+            from passlib.context import CryptContext
+            pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+            doc["password_hash"] = pwd_context.hash(body.password)
+        
+        res = await db.users.insert_one(doc)
+        user_id = res.inserted_id
+
+    # Marca convite como usado (single-use)
+    await db.invitations.update_one({"_id": inv["_id"]}, {"$set": {"used_at": int(time.time())}})
+
+    created = await db.users.find_one({"_id": user_id})
+    if created:
+        created.pop("_id", None)
+        created.pop("password_hash", None)  # Não retornar hash de senha
+        return {"ok": True, "user": created}
+    else:
+        raise HTTPException(status_code=500, detail="Erro ao criar usuário")
+
+class RevokeInvitePayload(BaseModel):
+    token: str
+
+@api_router.post("/admin/invitations/revoke")
+async def revoke_invitation(body: RevokeInvitePayload, current_user: User = Depends(get_current_user)):
+    """
+    Revoga um convite ainda não utilizado. Admin só revoga convites criados por ele.
+    """
+    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    th = token_hash(body.token)
+    inv = await db.invitations.find_one({"token_hash": th})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Convite não encontrado")
+
+    # Admin só pode revogar convites dele no próprio tenant
+    if current_user.role == UserRole.ADMIN:
+        if inv.get("tenant_id") != current_user.tenant_id or inv.get("admin_vendor_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Fora do escopo")
+
+    if inv.get("used_at"):
+        raise HTTPException(status_code=400, detail="Convite já utilizado")
+
+    await db.invitations.update_one({"_id": inv["_id"]}, {"$set": {"revoked": True}})
+    return {"ok": True}
+
+@api_router.get("/admin/invitations")
+async def list_invitations(current_user: User = Depends(get_current_user)):
+    """
+    Lista convites criados pelo admin atual.
+    """
+    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    # Admin vê apenas seus convites no próprio tenant
+    query = {}
+    if current_user.role == UserRole.ADMIN:
+        query = {"tenant_id": current_user.tenant_id, "admin_vendor_id": current_user.id}
+
+    invites = await db.invitations.find(query).sort("created_at", -1).limit(100).to_list(100)
+    
+    result = []
+    for invite in invites:
+        invite.pop("_id", None)
+        invite.pop("token_hash", None)  # Não expor hash do token
+        result.append(invite)
+    
+    return result
+
 # Enhanced Dashboard Stats
 @api_router.get("/stats")
 async def get_stats(
