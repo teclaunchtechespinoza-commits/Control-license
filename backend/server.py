@@ -4708,6 +4708,74 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
     await db.licenses.delete_one({"_id": doc["_id"]})
     return Response(status_code=204)
 
+# ------------------------ SEARCH endpoints with safe filters ------------------------
+@api_router.get("/search/users", response_model=List[User])
+async def search_users(request: Request, current_user: User = Depends(get_current_user)):
+    """
+    Busca usuários com filtros seguros via query params.
+    Exemplo: /search/users?email=test&role=USER
+    """
+    client_filter = dict(request.query_params)
+    page = int(client_filter.pop("page", "1"))
+    size = min(200, int(client_filter.pop("size", "50")))
+    
+    # Campos permitidos para filtro (whitelist)
+    safe_filter = whitelist_filter(client_filter, ["email", "role", "is_active"])
+    user_scope = build_scope_filter(current_user, {})
+    final_filter = merge_with_scope(user_scope, safe_filter)
+    
+    cursor = db.users.find(final_filter).skip((page - 1) * size).limit(size)
+    users = await cursor.to_list(length=size)
+    
+    result = []
+    for user in users:
+        user.pop("_id", None)
+        result.append(User(**user))
+    return result
+
+@api_router.get("/search/licenses", response_model=List[License])
+async def search_licenses(request: Request, current_user: User = Depends(get_current_user)):
+    """
+    Busca licenças com filtros seguros via query params.
+    Exemplo: /search/licenses?status=active&serial=123
+    """
+    client_filter = dict(request.query_params)
+    page = int(client_filter.pop("page", "1"))
+    size = min(200, int(client_filter.pop("size", "50")))
+    
+    # Campos permitidos para filtro (whitelist)
+    safe_filter = whitelist_filter(client_filter, ["status", "serial", "assigned_user_id"])
+    user_scope = build_scope_filter(current_user, {})
+    final_filter = merge_with_scope(user_scope, safe_filter)
+    
+    cursor = db.licenses.find(final_filter).skip((page - 1) * size).limit(size)
+    licenses = await cursor.to_list(length=size)
+    
+    valid_licenses = []
+    for license_data in licenses:
+        try:
+            # Remove MongoDB ObjectId
+            license_data.pop("_id", None)
+            
+            # Ensure required fields exist
+            if "name" not in license_data or not license_data["name"]:
+                license_data["name"] = f"License {license_data.get('id', 'Unknown')}"
+            
+            if "created_by" not in license_data or not license_data["created_by"]:
+                license_data["created_by"] = "system"
+            
+            # Convert datetime objects to ISO strings
+            for field in ["created_at", "updated_at", "expires_at"]:
+                if field in license_data and isinstance(license_data[field], datetime):
+                    license_data[field] = license_data[field].isoformat()
+            
+            valid_licenses.append(License(**license_data))
+        except Exception as e:
+            logger.error(f"Error processing license {license_data.get('id')}: {e}")
+            continue
+    
+    return valid_licenses
+
 # Enhanced Dashboard Stats
 @api_router.get("/stats")
 async def get_stats(
