@@ -77,10 +77,17 @@ const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to fetch user:', error);
       console.error('Error response:', error.response);
+      
+      // Clear auth data
       localStorage.removeItem('token');
       localStorage.removeItem('access_token');
       delete axios.defaults.headers.common['Authorization'];
-      toast.error('Session expired. Please login again.');
+      
+      // Only show session expired message if user was previously logged in
+      // (don't show it on initial page load with expired tokens)
+      if (error.response?.status === 401 && user !== null) {
+        toast.error('Session expired. Please login again.');
+      }
     } finally {
       setLoading(false);
     }
