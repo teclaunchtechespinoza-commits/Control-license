@@ -4031,9 +4031,28 @@ if __name__ == "__main__":
         elif test_type == "notifications":
             # Run notification system tests
             exit_code = tester.run_notification_system_tests()
+        elif test_type == "critical-security":
+            # Run Critical Fixes Consolidation Patch v3 security tests
+            print("🚀 RUNNING CRITICAL FIXES CONSOLIDATION PATCH V3 SECURITY TESTS")
+            success = tester.test_critical_fixes_consolidation_patch_v3()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL SECURITY TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 90:
+                print(f"🎉 CRITICAL SECURITY TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL SECURITY TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security")
             exit_code = 1
     else:
         # Default: run superadmin investigation
