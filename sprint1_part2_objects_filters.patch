@@ -1,0 +1,275 @@
+From 8c4df10 Mon Sep 02 00:00:00 2025
+From: ChatGPT <dev@assistant.ai>
+Date: Tue, 02 Sep 2025 15:05:00 -0300
+Subject: [PATCH S1-2] Escopo por objeto (users/licenses :id) e whitelist de filtros
+
+---
+ backend/filters.py              |  92 ++++++++++++++++++++++++++++++++
+ backend/server.py               | 149 ++++++++++++++++++++++++++++++++++++++++
+ backend/tests/test_filters.py   |  74 ++++++++++++++++++++++
+ backend/tests/test_objects.py   | 132 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 447 insertions(+)
+ create mode 100644 backend/filters.py
+ create mode 100644 backend/tests/test_filters.py
+ create mode 100644 backend/tests/test_objects.py
+
+diff --git a/backend/filters.py b/backend/filters.py
+new file mode 100644
+index 0000000..e3c5a1d
+--- /dev/null
++++ b/backend/filters.py
+@@ -0,0 +1,92 @@
++from typing import Dict, Any, Iterable
++
++FORBIDDEN_OPERATORS = {"$where", "$regex", "$ne", "$in", "$nin", "$gt", "$gte", "$lt", "$lte", "$or", "$and", "$nor"}
++
++def whitelist_filter(payload: Dict[str, Any], allowed_fields: Iterable[str]) -> Dict[str, Any]:
++    """
++    Constrói um filtro seguro a partir de um dicionário vindo do cliente,
++    mantendo somente campos explicitamente permitidos e rejeitando operadores perigosos.
++    """
++    if not payload:
++        return {}
++
++    allowed = set(allowed_fields or [])
++    out: Dict[str, Any] = {}
++    for k, v in payload.items():
++        if not isinstance(k, str):
++            continue
++        if k.startswith("$") or k in FORBIDDEN_OPERATORS:
++            # rejeita operadores
++            continue
++        if k not in allowed:
++            # campo não permitido
++            continue
++        out[k] = v
++    return out
++
++def merge_with_scope(user_scope: Dict[str, Any], client_filter: Dict[str, Any]) -> Dict[str, Any]:
++    """
++    Mescla o filtro do escopo do usuário (tenant, seller/assigned) com o filtro do cliente (já whitelitado).
++    Em caso de colisão de chaves, o ESCOPO prevalece para evitar bypass.
++    """
++    out = dict(client_filter or {})
++    for k, v in (user_scope or {}).items():
++        out[k] = v
++    return out
+diff --git a/backend/server.py b/backend/server.py
+index a6b7b40..b6d0af5 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -14,6 +14,9 @@ from security import check_permission, get_user_permissions
+ from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
+ from pydantic import BaseModel
+ from bson import ObjectId
+ 
+ from authz import build_scope_filter
++from authz import enforce_object_scope
++from filters import whitelist_filter, merge_with_scope
++
+ 
+ app = FastAPI()
+ api_router = APIRouter()
+@@ -98,6 +101,152 @@ def require_permission(permission: str):
+         return current_user
+     return permission_checker
+ 
++# ------------------------ USERS by :id ------------------------
++@api_router.get("/users/{user_id}", response_model=User)
++async def get_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.users.find_one({"_id": ObjectId(user_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="User não encontrado")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++    doc["id"] = str(doc["_id"])
++    return doc
++
++class UserUpdate(BaseModel):
++    email: str | None = None
++
++@api_router.put("/users/{user_id}", response_model=User)
++async def update_user_by_id(user_id: str, body: UserUpdate, current_user: User = Depends(get_current_user)):
++    doc = await db.users.find_one({"_id": ObjectId(user_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="User não encontrado")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++
++    updates = {}
++    if body.email is not None:
++        updates["email"] = body.email.lower().strip()
++    if not updates:
++        return {**doc, "id": str(doc["_id"])}
++
++    await db.users.update_one({"_id": doc["_id"]}, {"$set": updates})
++    updated = await db.users.find_one({"_id": doc["_id"]})
++    updated["id"] = str(updated["_id"])
++    return updated
++
++@api_router.delete("/users/{user_id}", status_code=204)
++async def delete_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.users.find_one({"_id": ObjectId(user_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="User não encontrado")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++    await db.users.delete_one({"_id": doc["_id"]})
++    return Response(status_code=204)
++
++# ------------------------ LICENSES by :id ------------------------
++@api_router.get("/licenses/{license_id}", response_model=License)
++async def get_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="Licença não encontrada")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++    doc["id"] = str(doc["_id"])
++    return doc
++
++class LicenseUpdate(BaseModel):
++    serial: str | None = None
++    assigned_user_id: str | None = None
++
++@api_router.put("/licenses/{license_id}", response_model=License)
++async def update_license_by_id(license_id: str, body: LicenseUpdate, current_user: User = Depends(get_current_user)):
++    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="Licença não encontrada")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++
++    updates = {}
++    if body.serial is not None:
++        updates["serial"] = body.serial.strip()
++    if body.assigned_user_id is not None:
++        updates["assigned_user_id"] = body.assigned_user_id
++    if not updates:
++        return {**doc, "id": str(doc["_id"])}
++
++    await db.licenses.update_one({"_id": doc["_id"]}, {"$set": updates})
++    updated = await db.licenses.find_one({"_id": doc["_id"]})
++    updated["id"] = str(updated["_id"])
++    return updated
++
++@api_router.delete("/licenses/{license_id}", status_code=204)
++async def delete_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
++    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
++    if not doc:
++        raise HTTPException(status_code=404, detail="Licença não encontrada")
++    if not enforce_object_scope(doc, current_user):
++        raise HTTPException(status_code=403, detail="Fora do escopo")
++    await db.licenses.delete_one({"_id": doc["_id"]})
++    return Response(status_code=204)
++
++# ------------------------ SEARCH com whitelist ------------------------
++class SearchPayload(BaseModel):
++    filter: Dict[str, Any] | None = None
++    page: int = 1
++    size: int = 50
++
++ALLOWED_USER_FIELDS = {"email", "role", "admin_vendor_id", "tenant_id"}
++ALLOWED_LICENSE_FIELDS = {"serial", "assigned_user_id", "seller_admin_id", "tenant_id"}
++
++@api_router.post("/users/search", response_model=List[User])
++async def search_users(body: SearchPayload, current_user: User = Depends(get_current_user)):
++    scope = build_scope_filter(current_user, {})
++    client = whitelist_filter(body.filter or {}, ALLOWED_USER_FIELDS)
++    q = merge_with_scope(scope, client)
++
++    page = max(1, int(body.page or 1))
++    size = min(200, max(1, int(body.size or 50)))
++    cursor = db.users.find(q).skip((page - 1) * size).limit(size)
++    items = await cursor.to_list(length=size)
++    for it in items:
++        it["id"] = str(it["_id"])
++    return items
++
++@api_router.post("/licenses/search", response_model=List[License])
++async def search_licenses(body: SearchPayload, current_user: User = Depends(get_current_user)):
++    scope = build_scope_filter(current_user, {})
++    client = whitelist_filter(body.filter or {}, ALLOWED_LICENSE_FIELDS)
++    q = merge_with_scope(scope, client)
++
++    page = max(1, int(body.page or 1))
++    size = min(200, max(1, int(body.size or 50)))
++    cursor = db.licenses.find(q).skip((page - 1) * size).limit(size)
++    items = await cursor.to_list(length=size)
++    for it in items:
++        it["id"] = str(it["_id"])
++    return items
++
+diff --git a/backend/tests/test_filters.py b/backend/tests/test_filters.py
+new file mode 100644
+index 0000000..845f9d4
+--- /dev/null
++++ b/backend/tests/test_filters.py
+@@ -0,0 +1,74 @@
++from filters import whitelist_filter, merge_with_scope
++
++def test_whitelist_filter_blocks_operators():
++    payload = {"$where": "this.a == 1", "email": "x@y.com", "$ne": 1, "role": "USER"}
++    out = whitelist_filter(payload, ["email", "role"])
++    assert "$where" not in out
++    assert "$ne" not in out
++    assert out["email"] == "x@y.com"
++    assert out["role"] == "USER"
++
++def test_whitelist_filter_blocks_non_allowed_fields():
++    payload = {"email": "x@y.com", "tenant_id": "t1", "foo": "bar"}
++    out = whitelist_filter(payload, ["email", "tenant_id"])
++    assert "email" in out
++    assert "tenant_id" in out
++    assert "foo" not in out
++
++def test_merge_with_scope_overrides_client_filter():
++    scope = {"tenant_id": "t1", "seller_admin_id": "a1"}
++    client = {"tenant_id": "t2", "seller_admin_id": "hack", "email": "x@y.com"}
++    out = merge_with_scope(scope, client)
++    assert out["tenant_id"] == "t1"
++    assert out["seller_admin_id"] == "a1"
++    assert out["email"] == "x@y.com"
+diff --git a/backend/tests/test_objects.py b/backend/tests/test_objects.py
+new file mode 100644
+index 0000000..ff1c2ee
+--- /dev/null
++++ b/backend/tests/test_objects.py
+@@ -0,0 +1,132 @@
++import pytest
++from types import SimpleNamespace
++from authz import enforce_object_scope, Role
++
++def mk_user(role, tid="t1", uid="u1"):
++    return SimpleNamespace(role=role, tenant_id=tid, id=uid)
++
++def test_object_scope_superadmin_ok():
++    su = mk_user(Role.SUPER_ADMIN, tid=None, uid="root")
++    obj = {"tenant_id": "tX", "seller_admin_id": "a1", "assigned_user_id": "u123"}
++    assert enforce_object_scope(obj, su) is True
++
++def test_object_scope_admin_ok_same_seller():
++    admin = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t1", "seller_admin_id": "a1"}
++    assert enforce_object_scope(obj, admin) is True
++
++def test_object_scope_admin_block_other_seller():
++    admin = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t1", "seller_admin_id": "a2"}
++    assert enforce_object_scope(obj, admin) is False
++
++def test_object_scope_user_ok_self():
++    user = mk_user(Role.USER, tid="t1", uid="u1")
++    obj = {"tenant_id": "t1", "assigned_user_id": "u1"}
++    assert enforce_object_scope(obj, user) is True
++
++def test_object_scope_user_block_other():
++    user = mk_user(Role.USER, tid="t1", uid="u1")
++    obj = {"tenant_id": "t1", "assigned_user_id": "u2"}
++    assert enforce_object_scope(obj, user) is False
++
++def test_object_scope_wrong_tenant():
++    admin = mk_user(Role.ADMIN, tid="t1", uid="a1")
++    obj = {"tenant_id": "t2", "seller_admin_id": "a1"}
++    assert enforce_object_scope(obj, admin) is False
++
