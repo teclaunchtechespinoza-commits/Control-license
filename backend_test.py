@@ -15,10 +15,13 @@ class LicenseManagementAPITester:
         self.created_roles = []
         self.created_permissions = []
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, token=None, params=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None, params=None, tenant_id="default"):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Tenant-ID': tenant_id  # Always include tenant header for security patch v3
+        }
         if token:
             headers['Authorization'] = f'Bearer {token}'
 
