@@ -287,6 +287,18 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                
+                {/* Sprint 2 - Convites */}
+                <Route path="/accept-invite" element={<AcceptInvitePage />} />
+                <Route 
+                  path="/admin/convites" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <AdminInvitePage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 <Route path="/" element={<Navigate to="/dashboard" />} />
               </Routes>
             </div>
