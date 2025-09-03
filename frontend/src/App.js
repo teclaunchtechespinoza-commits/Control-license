@@ -24,14 +24,7 @@ import QuickAccessPanel from './components/QuickAccessPanel';
 import LoadingSpinner from './components/LoadingSpinner';
 import { HelpProvider } from './components/help/HelpProvider';
 
-// API Configuration
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-// Set default axios headers
-axios.defaults.baseURL = API;
-
-// Note: Axios interceptors are configured in api.js to avoid duplication
+// Note: API configuration and interceptors are handled in api.js
 
 // Auth Context
 const AuthContext = createContext();
