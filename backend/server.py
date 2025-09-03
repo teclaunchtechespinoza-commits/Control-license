@@ -4638,6 +4638,76 @@ async def get_licenses(
         logger.error(f"Error fetching licenses: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching licenses: {str(e)}")
 
+# ------------------------ LICENSES by :id ------------------------
+@api_router.get("/licenses/{license_id}", response_model=License)
+async def get_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
+    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Remove MongoDB ObjectId
+    doc.pop("_id", None)
+    doc["id"] = doc.get("id", str(ObjectId()))
+    
+    # Ensure required fields exist
+    if "name" not in doc or not doc["name"]:
+        doc["name"] = f"License {doc.get('id', 'Unknown')}"
+    
+    if "created_by" not in doc or not doc["created_by"]:
+        doc["created_by"] = "system"
+    
+    # Convert datetime objects to ISO strings
+    for field in ["created_at", "updated_at", "expires_at"]:
+        if field in doc and isinstance(doc[field], datetime):
+            doc[field] = doc[field].isoformat()
+    
+    return License(**doc)
+
+class LicenseUpdate(BaseModel):
+    serial: str | None = None
+    assigned_user_id: str | None = None
+
+@api_router.put("/licenses/{license_id}", response_model=License)
+async def update_license_by_id(license_id: str, body: LicenseUpdate, current_user: User = Depends(get_current_user)):
+    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+
+    updates = {}
+    if body.serial is not None:
+        updates["serial"] = body.serial.strip()
+    if body.assigned_user_id is not None:
+        updates["assigned_user_id"] = body.assigned_user_id
+    if not updates:
+        doc.pop("_id", None)
+        doc["id"] = doc.get("id", str(ObjectId()))
+        return License(**doc)
+
+    await db.licenses.update_one({"_id": doc["_id"]}, {"$set": updates})
+    updated = await db.licenses.find_one({"_id": doc["_id"]})
+    updated.pop("_id", None)
+    updated["id"] = updated.get("id", str(ObjectId()))
+    
+    # Ensure required fields exist
+    if "name" not in updated or not updated["name"]:
+        updated["name"] = f"License {updated.get('id', 'Unknown')}"
+    
+    return License(**updated)
+
+@api_router.delete("/licenses/{license_id}", status_code=204)
+async def delete_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
+    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    if not enforce_object_scope(doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    await db.licenses.delete_one({"_id": doc["_id"]})
+    return Response(status_code=204)
+
 @api_router.get("/licenses/{license_id}", response_model=License)
 async def get_license(license_id: str, current_user: User = Depends(get_current_user)):
     query_filter = add_tenant_filter({"id": license_id})
