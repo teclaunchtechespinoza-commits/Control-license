@@ -5,6 +5,10 @@ import { initializePreloader } from './utils/preloader';
 import { FooterVersion } from './components/VersionControl';
 import { toast, Toaster } from 'sonner';
 
+// Sprint 2 - Pages
+import AcceptInvitePage from './pages/AcceptInvitePage';
+import AdminInvitePage from './pages/AdminInvitePage';
+
 // Components
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
