@@ -3961,6 +3961,20 @@ class LicenseManagementAPITester:
                 "email": "superadmin@autotech.com", 
                 "password": "admin123",
                 "expected": 401
+            }
+        ]
+        
+        for cred_test in test_credentials:
+            credentials = {
+                "email": cred_test["email"],
+                "password": cred_test["password"]
+            }
+            success, response = self.run_test(cred_test["name"], "POST", "auth/login", cred_test["expected"], credentials)
+            if success:
+                print(f"   ✅ {cred_test['name']} - comportamento esperado")
+            else:
+                print(f"   ❌ {cred_test['name']} - comportamento inesperado")
+
     def run_superadmin_investigation(self):
         """Run the superadmin login investigation as requested in review"""
         print("🚀 INVESTIGAÇÃO CRÍTICA - ERRO DE LOGIN DO SUPERADMIN")
