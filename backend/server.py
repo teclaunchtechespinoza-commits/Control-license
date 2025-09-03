@@ -5866,8 +5866,21 @@ async def ensure_indexes():
         await db.clientes_pj.create_index([("tenant_id", 1), ("cnpj", 1)], unique=True)
         await db.roles.create_index([("tenant_id", 1), ("id", 1)], unique=True)
         await db.permissions.create_index([("tenant_id", 1), ("id", 1)], unique=True)
+
+        # Índices de convites
+        existing = await db.invitations.index_information()
+        if "uniq_invite_token_hash" not in existing:
+            await db.invitations.create_index(
+                [("token_hash", 1)],
+                unique=True,
+                name="uniq_invite_token_hash",
+            )
+        if "idx_invite_email" not in existing:
+            await db.invitations.create_index([("email", 1), ("tenant_id", 1)], name="idx_invite_email")
+        if "idx_invite_admin" not in existing:
+            await db.invitations.create_index([("tenant_id", 1), ("admin_vendor_id", 1)], name="idx_invite_admin")
         
-        print("✅ Índices únicos e compostos criados com sucesso")
+        print("✅ Índices únicos e compostos criados com sucesso (incluindo convites)")
     except Exception as e:
         # Logue o erro de índice, mas não derrube a app
         print(f"[indexes] erro ao criar índices: {e}")
