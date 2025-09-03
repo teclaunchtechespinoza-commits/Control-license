@@ -32,7 +32,13 @@ from tenant_system import (
 )
 
 # Import middlewares
-from middlewares import ObservabilityMiddleware, RateLimitMiddleware, ResponseTenantHeaderMiddleware
+from middlewares import (
+    ObservabilityMiddleware,
+    RateLimitMiddleware,
+    ResponseTenantHeaderMiddleware,
+    TenantContextMiddleware,
+    TENANT_CTX,
+)
 
 # Import authorization module
 from authz import build_scope_filter, enforce_object_scope
