@@ -5562,18 +5562,23 @@ async def structured_logging_middleware(request: Request, call_next):
 # app.add_middleware(PerformanceMonitoringMiddleware) 
 # app.add_middleware(StructuredLoggingMiddleware)
 
-# CORS middleware - Secure configuration
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+# ---------- CORS (origens explícitas; nunca '*' com credentials) ----------
+CORS_ORIGINS = [o for o in (os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")) if o]
+ALLOW_CREDENTIALS = True
+ALLOWED_HEADERS = ["Content-Type", "Authorization", "Accept", "X-Tenant-ID"]
+EXPOSE_HEADERS = ["X-Tenant-ID"]
 
-# CORS config (padronizar X-Tenant-ID em TODAS as camadas)
+if ALLOW_CREDENTIALS and any(o.strip() == "*" for o in CORS_ORIGINS):
+    # Harden contra configuração inválida em produção
+    raise RuntimeError("CORS_ORIGINS não pode conter '*' quando allow_credentials=True")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=cors_origins,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "Accept", "X-Tenant-ID"],
-    expose_headers=["X-Tenant-ID"],
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=["*"],
+    allow_headers=ALLOWED_HEADERS,
+    expose_headers=EXPOSE_HEADERS,
 )
 
 # Add enterprise security headers middleware
