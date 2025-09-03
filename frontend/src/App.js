@@ -31,40 +31,7 @@ const API = `${BACKEND_URL}/api`;
 // Set default axios headers
 axios.defaults.baseURL = API;
 
-// Setup Axios interceptors for robust authentication
-// Request interceptor - automatically inject token
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor - handle 401 errors automatically
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('access_token');
-      delete axios.defaults.headers.common['Authorization'];
-      
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/login')) {
-        toast.error('Session expired. Redirecting to login...');
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 1500);
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// Note: Axios interceptors are configured in api.js to avoid duplication
 
 // Auth Context
 const AuthContext = createContext();
