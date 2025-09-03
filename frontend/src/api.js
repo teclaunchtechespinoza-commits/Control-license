@@ -183,6 +183,9 @@ export const apiHelpers = {
 };
 
 // ---------- Sprint 2: Convites ----------
+// Get backend URL for public API calls
+const BACKEND_URL_FOR_INVITES = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:8001';
+
 export const inviteHelpers = {
   // Criar convite (Admin)
   createInvitation: async (email) => {
