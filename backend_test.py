@@ -5113,7 +5113,7 @@ if __name__ == "__main__":
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix, session-fix")
             exit_code = 1
     else:
-        # Default: run session expired fix test as requested in review
-        exit_code = 0 if tester.test_session_expired_fix() else 1
+        # Default: run critical data loading errors fix test as requested in review
+        exit_code = 0 if tester.test_critical_data_loading_errors_fix() else 1
     
     sys.exit(exit_code)
