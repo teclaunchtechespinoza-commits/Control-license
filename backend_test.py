@@ -1740,31 +1740,20 @@ class LicenseManagementAPITester:
                 print(f"      - Name: {user_data.get('name', 'N/A')}")
                 print(f"      - Tenant ID: {user_data.get('tenant_id', 'N/A')}")
             
-            # For HttpOnly cookies, we need to test with /api/auth/me endpoint instead
-            # Let's test if we can get user info using cookies
+            # Test if cookies are working by calling /api/auth/me
             print("      - Testing cookie-based authentication...")
-            
-            # Test /api/auth/me with cookies (no Authorization header needed)
-            import requests
-            try:
-                # Make a request to get user info using cookies
-                me_response = requests.get(f"{self.base_url}/auth/me")
-                if me_response.status_code == 200:
-                    print("      ✅ Cookie-based authentication working")
-                    # For subsequent tests, we'll need to use a different approach
-                    # Let's try to get a token for testing purposes
-                    self.admin_token = "cookie_based_auth"  # Flag to use cookie-based auth
+            me_success, me_response = self.run_test("Test auth/me with cookies", "GET", "auth/me", 200)
+            if me_success:
+                print("      ✅ Cookie-based authentication working")
+                self.admin_token = "cookie_based_auth"  # Flag to use cookie-based auth
+            else:
+                print("      ⚠️ Cookie-based authentication not working, trying token fallback")
+                # Fallback: try to extract token if available
+                if 'access_token' in response:
+                    self.admin_token = response['access_token']
                 else:
-                    print(f"      ⚠️ Cookie-based auth test returned: {me_response.status_code}")
-                    # Fallback: try to extract token if available
-                    if 'access_token' in response:
-                        self.admin_token = response['access_token']
-                    else:
-                        print("      ⚠️ No access token available, will test without token")
-                        self.admin_token = None
-            except Exception as e:
-                print(f"      ⚠️ Error testing cookie auth: {e}")
-                self.admin_token = None
+                    print("      ⚠️ No access token available")
+                    self.admin_token = None
         else:
             print("   ❌ CRITICAL: Login failed!")
             return False
