@@ -1354,7 +1354,7 @@ async def verify_refresh_token(refresh_token: str) -> Optional[dict]:
         if redis_client:
             try:
                 token_data = await redis_client.hgetall(f"refresh_token:{jti}")
-                if not token_data or not token_data.get("active"):
+                if not token_data or token_data.get("active") != "true":
                     return None
             except Exception as e:
                 print(f"❌ Failed to verify refresh token: {e}")
