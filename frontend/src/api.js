@@ -22,14 +22,35 @@ api.interceptors.request.use(
     // 🔐 SECURITY UPGRADE: Cookies are sent automatically (HttpOnly)
     // No need to manually add Authorization header - cookies handle this
     
-    // Add tenant header if available (stored for compatibility)
-    const tenantId = localStorage.getItem('tenant_id');
-    if (tenantId) {
-      config.headers['X-Tenant-ID'] = tenantId;
+    // 🚨 CRITICAL FIX: Always ensure X-Tenant-ID is sent
+    let tenantId = localStorage.getItem('tenant_id');
+    
+    // Fallback: try to get tenant from user data if tenant_id is missing
+    if (!tenantId) {
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          tenantId = user.tenant_id || 'default';
+          // Save it for next time
+          localStorage.setItem('tenant_id', tenantId);
+        }
+      } catch (e) {
+        console.warn('Failed to parse user data for tenant_id:', e);
+      }
     }
+    
+    // Always add tenant header (fallback to 'default' if still missing)
+    const finalTenantId = tenantId || 'default';
+    config.headers['X-Tenant-ID'] = finalTenantId;
     
     // Ensure cookies are included in requests
     config.withCredentials = true;
+    
+    // Debug: log missing tenant scenarios
+    if (!tenantId) {
+      console.warn('⚠️ X-Tenant-ID not found in localStorage, using fallback:', finalTenantId);
+    }
     
     return config;
   },
