@@ -110,13 +110,51 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }, 1500);
       }
+    } else if (response?.status === 400) {
+      // 🚨 CRITICAL: Handle missing tenant header specifically
+      const errorDetail = response?.data?.detail || '';
+      if (errorDetail.includes('X-Tenant-ID') || errorDetail.includes('tenant')) {
+        console.error('❌ X-Tenant-ID header missing or invalid');
+        if (window.toast) {
+          window.toast.error('Erro de configuração: Selecione um tenant para continuar');
+        }
+        // Try to reload tenant_id from user data
+        try {
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            const user = JSON.parse(userData);
+            if (user.tenant_id) {
+              localStorage.setItem('tenant_id', user.tenant_id);
+              console.log('🔄 Tenant ID restored from user data:', user.tenant_id);
+              // Could retry the request here if needed
+            }
+          }
+        } catch (e) {
+          console.error('Failed to restore tenant_id:', e);
+        }
+      } else {
+        console.warn('Bad Request (400):', errorDetail);
+        if (window.toast) {
+          window.toast.error('Requisição inválida: ' + errorDetail);
+        }
+      }
     } else if (response?.status === 403) {
-      // Forbidden - show access denied message
-      console.warn('Access denied:', response.data?.detail || 'Insufficient permissions');
-      
+      // Forbidden - insufficient permissions (user is authenticated but lacks permission)
+      console.warn('Access denied (403) - authenticated but insufficient permissions');
       if (window.toast) {
         window.toast.error('Acesso negado: Você não tem permissão para esta ação.');
       }
+    } else if (response?.status === 404) {
+      // Not Found - possibly wrong URL (classic /api/api problem)
+      console.warn('Not Found (404) - check if URL is correct');
+      const requestUrl = config?.url || 'unknown';
+      if (requestUrl.includes('/api/api')) {
+        console.error('🚨 DETECTED /api/api double prefix in URL:', requestUrl);
+        if (window.toast) {
+          window.toast.error('Erro de configuração: URL duplicada detectada');
+        }
+      }
+    }
     } else if (response?.status >= 500) {
       // Server error
       console.error('Server error:', response.data);
