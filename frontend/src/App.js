@@ -45,12 +45,10 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     console.log('App useEffect executando...');
-    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-    console.log('Token encontrado:', token ? 'SIM' : 'NÃO');
     
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('Configurando axios com token e chamando fetchUser...');
+    // Check if user is authenticated using apiHelpers
+    if (apiHelpers.isAuthenticated()) {
+      console.log('Token encontrado, chamando fetchUser...');
       fetchUser();
     } else {
       console.log('Nenhum token encontrado, definindo loading como false');
