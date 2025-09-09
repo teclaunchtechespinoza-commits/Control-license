@@ -61,12 +61,14 @@ const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       console.log('Tentando buscar dados do usuário...');
-      console.log('Axios baseURL:', axios.defaults.baseURL);
-      console.log('Authorization header:', axios.defaults.headers.common['Authorization']);
       
-      const response = await axios.get('/auth/me');
-      console.log('Resposta fetchUser:', response.data);
-      setUser(response.data);
+      const userData = await apiHelpers.getCurrentUser();
+      if (userData) {
+        console.log('Resposta fetchUser:', userData);
+        setUser(userData);
+      } else {
+        throw new Error('No user data returned');
+      }
     } catch (error) {
       console.error('Failed to fetch user:', error);
       console.error('Error response:', error.response);
@@ -74,7 +76,7 @@ const AuthProvider = ({ children }) => {
       // Clear auth data
       localStorage.removeItem('token');
       localStorage.removeItem('access_token');
-      delete axios.defaults.headers.common['Authorization'];
+      localStorage.removeItem('tenant_id');
       
       // Only show session expired message if user was previously logged in
       // (don't show it on initial page load with expired tokens)
