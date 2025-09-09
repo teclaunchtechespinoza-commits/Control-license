@@ -49,22 +49,29 @@ api.interceptors.response.use(
     const { response, config } = error;
     
     if (response?.status === 401) {
-      // 🔄 SECURITY UPGRADE: Try to refresh token before redirecting
-      console.warn('Access token expired, attempting refresh...');
+      // 🔄 SECURITY UPGRADE: Try to refresh token but prevent infinite loops
+      console.warn('Access token expired...');
       
-      try {
-        // Try to refresh the token
-        const refreshResponse = await api.post('/auth/refresh');
-        if (refreshResponse.status === 200) {
-          console.log('✅ Token refreshed successfully, retrying original request');
-          // Retry the original request
-          return api.request(config);
+      // 🚫 CRITICAL: Prevent infinite loops - don't retry refresh endpoints
+      if (config.url?.includes('/auth/refresh') || config.url?.includes('/auth/me')) {
+        console.warn('❌ Auth endpoint failed, redirecting to login...');
+      } else {
+        console.warn('Attempting token refresh...');
+        
+        try {
+          // Try to refresh the token
+          const refreshResponse = await api.post('/auth/refresh');
+          if (refreshResponse.status === 200) {
+            console.log('✅ Token refreshed successfully, retrying original request');
+            // Retry the original request
+            return api.request(config);
+          }
+        } catch (refreshError) {
+          console.warn('❌ Token refresh failed:', refreshError.response?.status);
         }
-      } catch (refreshError) {
-        console.warn('❌ Token refresh failed:', refreshError.response?.status);
       }
       
-      // If refresh failed, clear auth data and redirect
+      // If refresh failed or was skipped, clear auth data and redirect
       console.warn('Authentication failed, redirecting to login...');
       
       // Clear remaining auth-related data (cookies cleared by server)
