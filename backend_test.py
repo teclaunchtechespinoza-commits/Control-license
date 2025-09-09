@@ -5290,6 +5290,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ CRITICAL ENDPOINTS TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "critical-x-tenant-id":
+            # Run the critical X-Tenant-ID header fix test
+            print("🚀 RUNNING CRITICAL X-TENANT-ID HEADER FIX TEST")
+            success = tester.test_critical_x_tenant_id_header_fix()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL X-TENANT-ID HEADER FIX TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 90:
+                print(f"🎉 CRITICAL X-TENANT-ID HEADER FIX TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL X-TENANT-ID HEADER FIX TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix, session-fix, critical-endpoints")
