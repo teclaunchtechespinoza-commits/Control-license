@@ -476,7 +476,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Reduzido para 15 minutos (mais seguro)
 REFRESH_TOKEN_EXPIRE_DAYS = 30
 
 # Redis Configuration for Refresh Tokens
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 redis_client = None
 
 # Initialize Redis connection for refresh tokens
