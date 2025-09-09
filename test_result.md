@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "ERRO DASHBOARD + VALIDAÇÃO DE SEGURANÇA: 1) Usuário comum (role='user') está recebendo 'Erro ao Carregar Dashboard' de vendas (esperado após patch de segurança), 2) Relatório de segurança identifica possíveis problemas não resolvidos completamente: multitenancy não garantido em todas consultas (79 operações sem tenant_id), necessidade de validação completa das correções aplicadas."
+user_problem_statement: "🚨 TESTE CRÍTICO DE CORREÇÃO - LOOP INFINITO FRONTEND: Sistema em loop sem fim, nem a tela de login é mostrada. Tela fica presa em 'Carregando... Aguarde um momento...' infinitamente. Sistema não consegue carregar interface de usuário. CAUSA: Loop infinito no AuthProvider causado por useEffect sem proteções, Response interceptor tentando refresh automático sem proteção contra loops, fetchUser sendo chamado repetidamente causando loops."
 
 backend:
   - task: "HttpOnly Cookies + Refresh Tokens Security Upgrade - P0 Critical"
