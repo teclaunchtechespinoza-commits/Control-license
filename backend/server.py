@@ -1296,6 +1296,96 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def create_refresh_token(user_id: str, tenant_id: str) -> str:
+    """Create a refresh token with JTI for revocation"""
+    jti = str(uuid.uuid4())  # Unique token ID for revocation
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    payload = {
+        "sub": user_id,
+        "tenant_id": tenant_id,
+        "jti": jti,
+        "type": "refresh",
+        "exp": expire
+    }
+    
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+async def store_refresh_token(jti: str, user_id: str, tenant_id: str, ttl_seconds: int = None):
+    """Store refresh token in Redis with TTL"""
+    if not ttl_seconds:
+        ttl_seconds = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+    
+    token_data = {
+        "user_id": user_id,
+        "tenant_id": tenant_id,
+        "created_at": datetime.utcnow().isoformat(),
+        "active": True
+    }
+    
+    if redis_client:
+        try:
+            await redis_client.hset(f"refresh_token:{jti}", mapping=token_data)
+            await redis_client.expire(f"refresh_token:{jti}", ttl_seconds)
+            return True
+        except Exception as e:
+            print(f"❌ Failed to store refresh token: {e}")
+            return False
+    else:
+        # Fallback to in-memory storage (not recommended for production)
+        if not hasattr(store_refresh_token, "_memory_store"):
+            store_refresh_token._memory_store = {}
+        store_refresh_token._memory_store[jti] = token_data
+        return True
+
+async def verify_refresh_token(refresh_token: str) -> Optional[dict]:
+    """Verify and decode refresh token"""
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        if payload.get("type") != "refresh":
+            return None
+            
+        jti = payload.get("jti")
+        if not jti:
+            return None
+        
+        # Check if token exists and is active in store
+        if redis_client:
+            try:
+                token_data = await redis_client.hgetall(f"refresh_token:{jti}")
+                if not token_data or not token_data.get("active"):
+                    return None
+            except Exception as e:
+                print(f"❌ Failed to verify refresh token: {e}")
+                return None
+        else:
+            # Fallback to in-memory storage
+            memory_store = getattr(store_refresh_token, "_memory_store", {})
+            if jti not in memory_store or not memory_store[jti].get("active"):
+                return None
+        
+        return payload
+        
+    except jwt.JWTError:
+        return None
+
+async def revoke_refresh_token(jti: str):
+    """Revoke a refresh token"""
+    if redis_client:
+        try:
+            await redis_client.hset(f"refresh_token:{jti}", "active", "false")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to revoke refresh token: {e}")
+            return False
+    else:
+        # Fallback to in-memory storage
+        memory_store = getattr(store_refresh_token, "_memory_store", {})
+        if jti in memory_store:
+            memory_store[jti]["active"] = False
+        return True
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
