@@ -1854,22 +1854,29 @@ class LicenseManagementAPITester:
         # Test 8: Verify X-Tenant-ID headers work correctly
         print("\n🔍 TESTE CRÍTICO 8: Headers X-Tenant-ID funcionam corretamente")
         
-        # Test with explicit X-Tenant-ID header
-        import requests
+        # Test with explicit X-Tenant-ID header using session
         try:
             headers_with_tenant = {
                 'Content-Type': 'application/json',
-                'Authorization': f'Bearer {self.admin_token}',
                 'X-Tenant-ID': 'default'
             }
             
-            response = requests.get(f"{self.base_url}/users", headers=headers_with_tenant)
+            # Add Authorization header only if we have a token (not cookie-based)
+            if self.admin_token and self.admin_token != "cookie_based_auth":
+                headers_with_tenant['Authorization'] = f'Bearer {self.admin_token}'
+            
+            response = self.session.get(f"{self.base_url}/users", headers=headers_with_tenant)
             if response.status_code == 200:
                 print(f"   ✅ Headers X-Tenant-ID funcionam corretamente")
                 users_data = response.json()
                 print(f"      - {len(users_data)} usuários retornados com header X-Tenant-ID")
             else:
                 print(f"   ❌ Headers X-Tenant-ID failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"      - Error: {error_data}")
+                except:
+                    print(f"      - Error: {response.text}")
         except Exception as e:
             print(f"   ⚠️ Error testing X-Tenant-ID headers: {e}")
 
