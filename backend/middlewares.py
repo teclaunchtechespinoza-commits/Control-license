@@ -67,13 +67,16 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
     # Endpoints que não requerem X-Tenant-ID header
     PUBLIC_ENDPOINTS = {
         "/api/auth/login",
-        "/api/auth/register", 
+        "/api/auth/register",
+        "/api/auth/me",       # 🔐 Allow auth/me with cookies (tenant extracted from JWT)
+        "/api/auth/refresh",  # 🔄 Allow refresh endpoint
+        "/api/auth/logout",   # 🚪 Allow logout endpoint
         "/docs",
         "/openapi.json",
         "/health",
-        "/api/health",  # Add API prefixed version
+        "/api/health",
         "/",
-        "/api/accept-invite"  # Para aceitar convites
+        "/api/accept-invite"
     }
 
     def __init__(self, app):
