@@ -91,14 +91,10 @@ const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       console.log('Fazendo login com credenciais:', credentials.email);
-      const response = await axios.post('/auth/login', credentials);
-      console.log('Resposta do servidor:', response.data);
+      const loginResult = await apiHelpers.login(credentials.email, credentials.password);
+      console.log('Resposta do servidor:', loginResult);
       
-      const { access_token, user: userData } = response.data;
-      
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('token', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      const userData = loginResult.user;
       setUser(userData);
       
       // Initialize preloader after successful login
