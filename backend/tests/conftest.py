@@ -12,7 +12,7 @@ os.environ.setdefault("JWT_ALG", "HS256")
 os.environ.setdefault("TZ", "America/Recife")
 os.environ.setdefault("TENANT_DB_PREFIX", "licenser_")
 
-from backend.server import app
+from server import app
 
 @pytest.fixture(scope="session")
 def event_loop():
