@@ -45,31 +45,36 @@ api.interceptors.response.use(
     // Successful response
     return response;
   },
-  (error) => {
-    const { response } = error;
+  async (error) => {
+    const { response, config } = error;
     
     if (response?.status === 401) {
-      // Unauthorized - clear auth data and redirect to login
-      console.warn('Authentication expired, redirecting to login...');
+      // 🔄 SECURITY UPGRADE: Try to refresh token before redirecting
+      console.warn('Access token expired, attempting refresh...');
       
-      // Clear all auth-related data
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('token');
+      try {
+        // Try to refresh the token
+        const refreshResponse = await api.post('/auth/refresh');
+        if (refreshResponse.status === 200) {
+          console.log('✅ Token refreshed successfully, retrying original request');
+          // Retry the original request
+          return api.request(config);
+        }
+      } catch (refreshError) {
+        console.warn('❌ Token refresh failed:', refreshError.response?.status);
+      }
+      
+      // If refresh failed, clear auth data and redirect
+      console.warn('Authentication failed, redirecting to login...');
+      
+      // Clear remaining auth-related data (cookies cleared by server)
       localStorage.removeItem('user');
       localStorage.removeItem('tenant_id');
-      sessionStorage.removeItem('access_token');
-      
-      // Clear axios default headers
-      delete api.defaults.headers.common['Authorization'];
       
       // Redirect to login (avoid infinite loops)
       if (!window.location.pathname.includes('/login')) {
-        // Show user-friendly message only if user was actually using the system
-        const hasToken = localStorage.getItem('access_token') || localStorage.getItem('token');
-        if (hasToken) {
-          if (window.toast) {
-            window.toast.error('Sessão expirada. Redirecionando para login...');
-          }
+        if (window.toast) {
+          window.toast.error('Sessão expirada. Redirecionando para login...');
         }
         
         // Redirect after a brief delay
