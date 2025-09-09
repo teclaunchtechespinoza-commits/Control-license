@@ -5370,6 +5370,11 @@ async def health_check():
         "service": "License Management System"
     }
 
+# Also provide root-level health check (without /api prefix)  
+@app.get("/health")
+async def root_health_check():
+    return {"status": "healthy", "timestamp": datetime.utcnow(), "version": "1.3.1", "service": "License Management System"}
+
 @api_router.get("/health/detailed")
 async def detailed_health_check(current_user: User = Depends(get_current_admin_user)):
     """Detailed health check with system metrics (admin only)"""
