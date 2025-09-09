@@ -5134,12 +5134,31 @@ if __name__ == "__main__":
             else:
                 print(f"❌ SESSION EXPIRED FIX TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "critical-endpoints":
+            # Run the critical endpoints test as requested in the review
+            print("🚀 RUNNING CRITICAL ENDPOINTS TEST FROM SCREENSHOTS")
+            success = tester.test_critical_endpoints_from_screenshots()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL ENDPOINTS TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 80:
+                print(f"🎉 CRITICAL ENDPOINTS TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL ENDPOINTS TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix, session-fix")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, critical-security, hotfix, session-fix, critical-endpoints")
             exit_code = 1
     else:
-        # Default: run critical data loading errors fix test as requested in review
-        exit_code = 0 if tester.test_critical_data_loading_errors_fix() else 1
+        # Default: run critical endpoints test as requested in review
+        exit_code = 0 if tester.test_critical_endpoints_from_screenshots() else 1
     
     sys.exit(exit_code)
