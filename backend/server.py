@@ -1386,19 +1386,31 @@ async def revoke_refresh_token(jti: str):
             memory_store[jti]["active"] = False
         return True
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_current_user(request: Request):
+    """🔐 Get current user from HttpOnly cookie (more secure than Authorization header)"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        detail="Could not validate credentials"
     )
+    
+    # Try to get token from HttpOnly cookie first (preferred)
+    token = request.cookies.get("access_token")
+    
+    # Fallback to Authorization header for API compatibility
+    if not token:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if not token:
+        raise credentials_exception
+    
     try:
-        token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
+    except jwt.JWTError:
         raise credentials_exception
     
     # CRÍTICO: Usar tenant_id do token para buscar usuário
