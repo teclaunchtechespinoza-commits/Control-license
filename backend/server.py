@@ -1320,7 +1320,7 @@ async def store_refresh_token(jti: str, user_id: str, tenant_id: str, ttl_second
         "user_id": user_id,
         "tenant_id": tenant_id,
         "created_at": datetime.utcnow().isoformat(),
-        "active": True
+        "active": "true"  # Redis requires string values
     }
     
     if redis_client:
