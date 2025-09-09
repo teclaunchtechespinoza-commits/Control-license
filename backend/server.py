@@ -5901,7 +5901,7 @@ app.add_middleware(
 )
 
 # Middlewares de observabilidade, rate limit e tenant context
-app.add_middleware(ObservabilityMiddleware)
+# app.add_middleware(ObservabilityMiddleware)  # Disabled due to __call__ signature conflict
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(TenantContextMiddleware)
 app.add_middleware(ResponseTenantHeaderMiddleware)
