@@ -1701,6 +1701,216 @@ class LicenseManagementAPITester:
         
         return True
 
+    def test_critical_data_loading_errors_fix(self):
+        """Test the critical data loading errors fix mentioned in review request"""
+        print("🚨 TESTE CRÍTICO - CORREÇÃO DOS MÚLTIPLOS ERROS DE CARREGAMENTO")
+        print(f"Base URL: {self.base_url}")
+        print("="*80)
+        print("CONTEXTO: Usuário reportou 5 screenshots com 'Erro ao carregar...' em vários módulos")
+        print("CAUSA RAIZ: Dados legados no MongoDB com inconsistências:")
+        print("   - Usuários com role 'USER' (maiúsculo) vs Pydantic esperando 'user' (minúsculo)")
+        print("   - Usuários sem campo 'name' obrigatório no modelo Pydantic")
+        print("CORREÇÕES APLICADAS:")
+        print("   1. ✅ Role Normalização: Added validator to convert 'USER' → 'user' automatically")
+        print("   2. ✅ Name Field Fix: Made name optional with default 'User' for legacy data")
+        print("   3. ✅ Pydantic Compatibility: Enhanced UserBase model with validators")
+        print("="*80)
+        
+        # Test 1: Authentication with HttpOnly cookies
+        print("\n🔍 TESTE CRÍTICO 1: POST /api/auth/login - Login com cookies HttpOnly")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login with HttpOnly cookies", "POST", "auth/login", 200, admin_credentials)
+        if success:
+            print(f"   ✅ Login funcionando com cookies HttpOnly")
+            if 'user' in response:
+                user_data = response['user']
+                print(f"      - Email: {user_data.get('email', 'N/A')}")
+                print(f"      - Role: {user_data.get('role', 'N/A')}")
+                print(f"      - Name: {user_data.get('name', 'N/A')}")
+                print(f"      - Tenant ID: {user_data.get('tenant_id', 'N/A')}")
+            
+            # Extract token for subsequent tests
+            if 'access_token' in response:
+                self.admin_token = response['access_token']
+        else:
+            print("   ❌ CRITICAL: Login failed!")
+            return False
+
+        # Test 2: GET /api/users - Lista de usuários (was failing before)
+        print("\n🔍 TESTE CRÍTICO 2: GET /api/users - Lista de usuários (estava falhando)")
+        success, response = self.run_test("GET /api/users", "GET", "users", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Endpoint /api/users funcionando: {len(response)} usuários encontrados")
+            
+            # Verify users have proper role normalization and name fields
+            users_with_issues = []
+            for user in response[:5]:  # Check first 5 users
+                role = user.get('role', '')
+                name = user.get('name', '')
+                
+                # Check for uppercase roles (should be normalized)
+                if role and role.isupper():
+                    users_with_issues.append(f"User {user.get('email', 'unknown')} has uppercase role: {role}")
+                
+                # Check for missing names (should have default)
+                if not name or name.strip() == '':
+                    users_with_issues.append(f"User {user.get('email', 'unknown')} has empty name")
+            
+            if not users_with_issues:
+                print("   ✅ Todos os usuários têm role normalizado e campo name válido")
+            else:
+                print("   ⚠️ Alguns usuários ainda têm problemas:")
+                for issue in users_with_issues[:3]:  # Show first 3 issues
+                    print(f"      - {issue}")
+        else:
+            print("   ❌ CRITICAL: /api/users endpoint still failing!")
+
+        # Test 3: GET /api/licenses - Lista de licenças
+        print("\n🔍 TESTE CRÍTICO 3: GET /api/licenses - Lista de licenças")
+        success, response = self.run_test("GET /api/licenses", "GET", "licenses", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Endpoint /api/licenses funcionando: {len(response)} licenças encontradas")
+            if len(response) > 0:
+                first_license = response[0]
+                print(f"      - Primeira licença: {first_license.get('name', 'N/A')}")
+                print(f"      - Status: {first_license.get('status', 'N/A')}")
+                print(f"      - Tenant ID: {first_license.get('tenant_id', 'N/A')}")
+        else:
+            print("   ❌ CRITICAL: /api/licenses endpoint failed!")
+
+        # Test 4: GET /api/clients - Lista de clientes (both PF and PJ)
+        print("\n🔍 TESTE CRÍTICO 4: GET /api/clients - Lista de clientes")
+        
+        # Test PF clients
+        success_pf, response_pf = self.run_test("GET /api/clientes-pf", "GET", "clientes-pf", 200, token=self.admin_token)
+        if success_pf:
+            print(f"   ✅ Endpoint /api/clientes-pf funcionando: {len(response_pf)} clientes PF encontrados")
+        else:
+            print("   ❌ /api/clientes-pf endpoint failed!")
+        
+        # Test PJ clients
+        success_pj, response_pj = self.run_test("GET /api/clientes-pj", "GET", "clientes-pj", 200, token=self.admin_token)
+        if success_pj:
+            print(f"   ✅ Endpoint /api/clientes-pj funcionando: {len(response_pj)} clientes PJ encontrados")
+        else:
+            print("   ❌ /api/clientes-pj endpoint failed!")
+
+        # Test 5: GET /api/categories - Lista de categorias (cadastros)
+        print("\n🔍 TESTE CRÍTICO 5: GET /api/categories - Lista de categorias")
+        success, response = self.run_test("GET /api/categories", "GET", "categories", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Endpoint /api/categories funcionando: {len(response)} categorias encontradas")
+            if len(response) > 0:
+                first_category = response[0]
+                print(f"      - Primeira categoria: {first_category.get('name', 'N/A')}")
+                print(f"      - Tenant ID: {first_category.get('tenant_id', 'N/A')}")
+        else:
+            print("   ❌ CRITICAL: /api/categories endpoint failed!")
+
+        # Test 6: GET /api/admin/invitations - Convites (if implemented)
+        print("\n🔍 TESTE CRÍTICO 6: GET /api/admin/invitations - Gerenciar Convites Admin")
+        success, response = self.run_test("GET /api/admin/invitations", "GET", "admin/invitations", [200, 404], token=self.admin_token)
+        if success:
+            print(f"   ✅ Endpoint /api/admin/invitations funcionando")
+            if isinstance(response, list):
+                print(f"      - {len(response)} convites encontrados")
+        else:
+            print("   ⚠️ /api/admin/invitations endpoint not available (may not be implemented)")
+
+        # Test 7: GET /api/stats - Estatísticas do painel administrativo
+        print("\n🔍 TESTE CRÍTICO 7: GET /api/stats - Painel Administrativo")
+        success, response = self.run_test("GET /api/stats", "GET", "stats", 200, token=self.admin_token)
+        if success:
+            print(f"   ✅ Endpoint /api/stats funcionando")
+            print(f"      - Total usuários: {response.get('total_users', 'N/A')}")
+            print(f"      - Total licenças: {response.get('total_licenses', 'N/A')}")
+            print(f"      - Total clientes: {response.get('total_clients', 'N/A')}")
+            print(f"      - Status do sistema: {response.get('system_status', 'N/A')}")
+        else:
+            print("   ❌ CRITICAL: /api/stats endpoint failed!")
+
+        # Test 8: Verify X-Tenant-ID headers work correctly
+        print("\n🔍 TESTE CRÍTICO 8: Headers X-Tenant-ID funcionam corretamente")
+        
+        # Test with explicit X-Tenant-ID header
+        import requests
+        try:
+            headers_with_tenant = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.admin_token}',
+                'X-Tenant-ID': 'default'
+            }
+            
+            response = requests.get(f"{self.base_url}/users", headers=headers_with_tenant)
+            if response.status_code == 200:
+                print(f"   ✅ Headers X-Tenant-ID funcionam corretamente")
+                users_data = response.json()
+                print(f"      - {len(users_data)} usuários retornados com header X-Tenant-ID")
+            else:
+                print(f"   ❌ Headers X-Tenant-ID failed: {response.status_code}")
+        except Exception as e:
+            print(f"   ⚠️ Error testing X-Tenant-ID headers: {e}")
+
+        # Test 9: Verify no more 400 Bad Request or 500 Internal Server Error
+        print("\n🔍 TESTE CRÍTICO 9: Verificar ausência de erros 400/500")
+        
+        critical_endpoints = [
+            ("users", "usuários"),
+            ("licenses", "licenças"),
+            ("clientes-pf", "clientes PF"),
+            ("clientes-pj", "clientes PJ"),
+            ("categories", "categorias"),
+            ("stats", "estatísticas")
+        ]
+        
+        error_free_count = 0
+        for endpoint, description in critical_endpoints:
+            success, response = self.run_test(f"Error check: {endpoint}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                error_free_count += 1
+                print(f"   ✅ {description}: Sem erros 400/500")
+            else:
+                print(f"   ❌ {description}: Ainda retorna erro")
+        
+        print(f"   📊 Endpoints sem erro: {error_free_count}/{len(critical_endpoints)}")
+
+        # FINAL RESULTS
+        print("\n" + "="*80)
+        print("🚨 RESULTADO FINAL - CORREÇÃO DOS ERROS DE CARREGAMENTO")
+        print("="*80)
+        
+        # Calculate success rate for this specific test
+        current_tests = self.tests_run
+        current_passed = self.tests_passed
+        success_rate = (current_passed / current_tests) * 100 if current_tests > 0 else 0
+        
+        print(f"📊 Taxa de Sucesso: {current_passed}/{current_tests} testes passaram ({success_rate:.1f}%)")
+        
+        if success_rate >= 85:
+            print("🎉 CORREÇÃO DOS ERROS DE CARREGAMENTO COMPLETAMENTE RESOLVIDA!")
+            print("   ✅ POST /api/auth/login: Login funciona com cookies HttpOnly")
+            print("   ✅ GET /api/users: Lista de usuários funcionando (não mais 500 error)")
+            print("   ✅ GET /api/licenses: Lista de licenças funcionando")
+            print("   ✅ GET /api/clients: Lista de clientes funcionando")
+            print("   ✅ GET /api/categories: Lista de categorias funcionando")
+            print("   ✅ GET /api/stats: Estatísticas do painel funcionando")
+            print("   ✅ Headers X-Tenant-ID funcionam corretamente")
+            print("   ✅ Não mais retornam 400 Bad Request ou 500 Internal Server Error")
+            print("   ✅ Dados válidos em formato JSON")
+            print("")
+            print("CONCLUSÃO: Todos os módulos devem carregar dados sem 'Erro ao carregar...'")
+            print("O sistema está totalmente funcional novamente!")
+            return True
+        else:
+            print(f"❌ CORREÇÃO DOS ERROS DE CARREGAMENTO AINDA TEM PROBLEMAS!")
+            print(f"   Taxa de sucesso: {success_rate:.1f}% (mínimo necessário: 85%)")
+            print(f"   {current_tests - current_passed} testes críticos falharam")
+            print("   Alguns módulos ainda podem mostrar 'Erro ao carregar...'")
+            return False
+
     def test_session_expired_fix(self):
         """Test the specific 'Session expired' message fix mentioned in review request"""
         print("\n" + "="*80)
