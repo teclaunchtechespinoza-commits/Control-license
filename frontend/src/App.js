@@ -46,11 +46,29 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log('App useEffect executando...');
     
-    // 🔐 SECURITY UPGRADE: With HttpOnly cookies, always try to fetch user
-    // Cookies are sent automatically - no need to check localStorage tokens
-    console.log('Tentando buscar usuário com cookies...');
+    // 🚫 CRITICAL: Prevent infinite loops - only fetch if not already loading
+    if (!loading) {
+      return;
+    }
+    
+    // 🔐 SECURITY UPGRADE: With HttpOnly cookies, try to fetch user
+    // But add fallback to check localStorage first to avoid unnecessary API calls
+    const existingUser = localStorage.getItem('user');
+    if (existingUser) {
+      try {
+        const userData = JSON.parse(existingUser);
+        console.log('✅ Usuario encontrado no localStorage:', userData.email);
+        setUser(userData);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.log('❌ Erro ao parsear usuário do localStorage, tentando API...');
+      }
+    }
+    
+    console.log('Tentando buscar usuário da API com cookies...');
     fetchUser();
-  }, []);
+  }, []); // Empty dependency array - run only once
 
   const fetchUser = async () => {
     try {
