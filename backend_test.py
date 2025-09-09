@@ -4820,7 +4820,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         test_type = sys.argv[1]
         
-        if test_type == "superadmin":
+        if test_type == "critical_login_flow":
+            # Run critical login flow test
+            exit_code = tester.run_critical_login_flow_test()
+        elif test_type == "superadmin":
             # Run superadmin login investigation
             exit_code = tester.run_superadmin_investigation()
         elif test_type == "all":
