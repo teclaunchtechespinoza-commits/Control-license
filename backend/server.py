@@ -1767,6 +1767,9 @@ async def initialize_system():
 import asyncio
 @app.on_event("startup")
 async def startup_event():
+    # 🔐 Initialize Redis for refresh tokens
+    await init_redis()
+    
     await initialize_system()
     
     # Desabilitar seed/demo fora de desenvolvimento
