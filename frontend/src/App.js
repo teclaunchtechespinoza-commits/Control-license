@@ -46,14 +46,10 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log('App useEffect executando...');
     
-    // Check if user is authenticated using apiHelpers
-    if (apiHelpers.isAuthenticated()) {
-      console.log('Token encontrado, chamando fetchUser...');
-      fetchUser();
-    } else {
-      console.log('Nenhum token encontrado, definindo loading como false');
-      setLoading(false);
-    }
+    // 🔐 SECURITY UPGRADE: With HttpOnly cookies, always try to fetch user
+    // Cookies are sent automatically - no need to check localStorage tokens
+    console.log('Tentando buscar usuário com cookies...');
+    fetchUser();
   }, []);
 
   const fetchUser = async () => {
