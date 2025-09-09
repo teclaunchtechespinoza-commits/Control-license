@@ -116,7 +116,7 @@ const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await axios.post('/auth/register', userData);
+      await apiHelpers.register(userData);
       toast.success('Account created successfully! Please login.');
       return { success: true };
     } catch (error) {
