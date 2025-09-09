@@ -16,23 +16,20 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor - automatically inject authorization token
+// Request interceptor - cookies handled automatically, add tenant header
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage (multiple possible keys for compatibility)
-    const token = localStorage.getItem('access_token') || 
-                  localStorage.getItem('token') || 
-                  sessionStorage.getItem('access_token');
+    // 🔐 SECURITY UPGRADE: Cookies are sent automatically (HttpOnly)
+    // No need to manually add Authorization header - cookies handle this
     
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    // Add tenant header if available
+    // Add tenant header if available (stored for compatibility)
     const tenantId = localStorage.getItem('tenant_id');
     if (tenantId) {
       config.headers['X-Tenant-ID'] = tenantId;
     }
+    
+    // Ensure cookies are included in requests
+    config.withCredentials = true;
     
     return config;
   },
