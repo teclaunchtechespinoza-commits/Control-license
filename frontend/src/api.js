@@ -182,6 +182,17 @@ export const apiHelpers = {
       console.error('Failed to parse user data:', error);
       return null;
     }
+  },
+  
+  // Register new user
+  register: async (userData) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
   }
 };
 
