@@ -1589,6 +1589,109 @@ async def login(user_credentials: UserLogin, response: Response):
         "token_expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
+@api_router.post("/auth/refresh")
+async def refresh_token(request: Request, response: Response):
+    """🔄 Refresh access token using HttpOnly refresh token"""
+    
+    # Get refresh token from HttpOnly cookie
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found"
+        )
+    
+    # Verify refresh token
+    payload = await verify_refresh_token(refresh_token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token"
+        )
+    
+    user_email = payload.get("sub")
+    tenant_id = payload.get("tenant_id", "default")
+    old_jti = payload.get("jti")
+    
+    # Get user data for role
+    user_filter = add_tenant_filter({"email": user_email}, tenant_id)
+    user_doc = await db.users.find_one(user_filter)
+    if not user_doc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    
+    # 🔄 SECURITY: Rotate refresh token (revoke old, create new)
+    await revoke_refresh_token(old_jti)
+    
+    # Create new tokens
+    new_access_token = create_access_token(
+        data={
+            "sub": user_email,
+            "tenant_id": tenant_id,
+            "role": user_doc.get("role", "user")
+        },
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    new_refresh_token = create_refresh_token(user_email, tenant_id)
+    
+    # Store new refresh token
+    new_refresh_payload = jwt.decode(new_refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    new_jti = new_refresh_payload.get("jti")
+    await store_refresh_token(new_jti, user_email, tenant_id)
+    
+    # Set new cookies
+    is_secure = os.getenv("HTTPS_ENABLED", "false").lower() == "true"
+    
+    response.set_cookie(
+        key="access_token",
+        value=new_access_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/"
+    )
+    
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="strict",
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        path="/api/auth"
+    )
+    
+    return {
+        "success": True,
+        "message": "Token refreshed successfully",
+        "token_expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    }
+
+@api_router.post("/auth/logout")
+async def logout(request: Request, response: Response):
+    """🚪 Logout user and revoke refresh token"""
+    
+    # Get refresh token to revoke it
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        try:
+            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            jti = payload.get("jti")
+            if jti:
+                await revoke_refresh_token(jti)
+        except jwt.JWTError:
+            pass  # Token already invalid
+    
+    # Clear cookies
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/api/auth")
+    
+    return {"success": True, "message": "Logged out successfully"}
+
 # Initialize System - Create default data on first run
 async def initialize_system():
     """Inicializa dados padrão do sistema se não existirem"""
