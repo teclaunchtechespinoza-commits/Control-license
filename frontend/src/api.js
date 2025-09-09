@@ -154,7 +154,6 @@ api.interceptors.response.use(
           window.toast.error('Erro de configuração: URL duplicada detectada');
         }
       }
-    }
     } else if (response?.status >= 500) {
       // Server error
       console.error('Server error:', response.data);
