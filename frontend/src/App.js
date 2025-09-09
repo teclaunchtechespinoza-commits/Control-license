@@ -54,23 +54,29 @@ const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      console.log('Tentando buscar dados do usuário...');
+      console.log('Tentando buscar dados do usuário com cookies...');
       
       const userData = await apiHelpers.getCurrentUser();
       if (userData) {
-        console.log('Resposta fetchUser:', userData);
+        console.log('✅ Usuário autenticado:', userData.email);
         setUser(userData);
+        
+        // Store user data and tenant_id for compatibility
+        localStorage.setItem('user', JSON.stringify(userData));
+        if (userData.tenant_id) {
+          localStorage.setItem('tenant_id', userData.tenant_id);
+        }
       } else {
-        throw new Error('No user data returned');
+        console.log('❌ Nenhum dado de usuário retornado');
+        setUser(null);
       }
     } catch (error) {
-      console.error('Failed to fetch user:', error);
-      console.error('Error response:', error.response);
+      console.log('❌ Erro ao buscar usuário:', error.response?.status || error.message);
       
       // Clear auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
       localStorage.removeItem('tenant_id');
+      setUser(null);
       
       // Only show session expired message if user was previously logged in
       // (don't show it on initial page load with expired tokens)
