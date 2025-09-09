@@ -14,6 +14,7 @@ class LicenseManagementAPITester:
         self.created_license_id = None
         self.created_roles = []
         self.created_permissions = []
+        self.session = requests.Session()  # Use session to maintain cookies
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None, params=None, tenant_id="default"):
         """Run a single API test"""
