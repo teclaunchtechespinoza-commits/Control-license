@@ -1502,8 +1502,8 @@ async def register(user_data: UserCreate):
     
     return user
 
-@api_router.post("/auth/login", response_model=Token)
-async def login(user_credentials: UserLogin):
+@api_router.post("/auth/login")
+async def login(user_credentials: UserLogin, response: Response):
     # CRÍTICO: Para login, buscar usuário em qualquer tenant
     user_doc = None
     
@@ -1538,18 +1538,56 @@ async def login(user_credentials: UserLogin):
         {"$set": {"last_login": datetime.utcnow()}}
     )
     
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # 🔐 SECURITY UPGRADE: Create short-lived access token + long-lived refresh token
     access_token = create_access_token(
         data={
             "sub": user_credentials.email,
             "tenant_id": user_tenant_id,
             "role": user_doc.get("role", "user")
         }, 
-        expires_delta=access_token_expires
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    # Create refresh token with unique JTI
+    refresh_token = create_refresh_token(user_credentials.email, user_tenant_id)
+    
+    # Store refresh token in Redis
+    refresh_payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    jti = refresh_payload.get("jti")
+    await store_refresh_token(jti, user_credentials.email, user_tenant_id)
+    
+    # 🍪 SECURITY: Set HttpOnly cookies (no localStorage exposure to XSS)
+    is_secure = os.getenv("HTTPS_ENABLED", "false").lower() == "true"
+    
+    # Access token cookie (short-lived)
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/"
+    )
+    
+    # Refresh token cookie (long-lived, more secure)
+    response.set_cookie(
+        key="refresh_token", 
+        value=refresh_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="strict",
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        path="/api/auth"  # Only sent to auth endpoints
     )
     
     user = User(**user_doc)
-    return Token(access_token=access_token, token_type="bearer", user=user)
+    return {
+        "success": True,
+        "message": "Login successful",
+        "user": user,
+        "token_expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    }
 
 # Initialize System - Create default data on first run
 async def initialize_system():
