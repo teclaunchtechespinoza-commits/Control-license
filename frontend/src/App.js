@@ -71,6 +71,12 @@ const AuthProvider = ({ children }) => {
   }, []); // Empty dependency array - run only once
 
   const fetchUser = async () => {
+    // 🚫 CRITICAL: Prevent multiple concurrent calls
+    if (!loading) {
+      console.log('⚠️ fetchUser chamado mas loading=false, ignorando...');
+      return;
+    }
+    
     try {
       console.log('Tentando buscar dados do usuário com cookies...');
       
@@ -81,7 +87,7 @@ const AuthProvider = ({ children }) => {
         
         // Store user data and tenant_id for compatibility
         localStorage.setItem('user', JSON.stringify(userData));
-        if (userData.tenant_id) {
+        if (userData.tenant_id) {  
           localStorage.setItem('tenant_id', userData.tenant_id);
         }
       } else {
@@ -102,6 +108,7 @@ const AuthProvider = ({ children }) => {
         toast.error('Session expired. Please login again.');
       }
     } finally {
+      // 🚫 CRITICAL: Always set loading to false to prevent infinite loading
       setLoading(false);
     }
   };
