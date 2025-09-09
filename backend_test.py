@@ -5214,9 +5214,18 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
-            self.admin_token = response['access_token']
-            print(f"   ✅ Admin authenticated successfully")
+        if success:
+            # Check for access_token or use cookie-based auth
+            if 'access_token' in response:
+                self.admin_token = response['access_token']
+                print(f"   ✅ Admin authenticated successfully with token")
+            elif response.get('success'):
+                # Cookie-based authentication
+                self.admin_token = "cookie_based_auth"
+                print(f"   ✅ Admin authenticated successfully with cookies")
+            else:
+                print("   ❌ CRITICAL: Admin authentication failed - no token or success flag!")
+                return False
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
             return False
