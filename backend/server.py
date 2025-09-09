@@ -472,7 +472,33 @@ load_dotenv(ROOT_DIR / '.env')
 # Security Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Reduzido para 15 minutos (mais seguro)
+REFRESH_TOKEN_EXPIRE_DAYS = 30
+
+# Redis Configuration for Refresh Tokens
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
+redis_client = None
+
+# Initialize Redis connection for refresh tokens
+async def init_redis():
+    global redis_client
+    try:
+        import redis.asyncio as redis
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        await redis_client.ping()
+        print("✅ Redis connected successfully for refresh tokens")
+    except ImportError:
+        print("⚠️ Redis not available - installing redis package")
+        import subprocess
+        subprocess.run(["pip", "install", "redis"], check=True)
+        import redis.asyncio as redis
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        await redis_client.ping()
+        print("✅ Redis installed and connected successfully")
+    except Exception as e:
+        print(f"❌ Redis connection failed: {e}")
+        print("⚠️ Falling back to in-memory store (not recommended for production)")
+        redis_client = None
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
