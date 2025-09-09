@@ -126,11 +126,21 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
-    toast.success('Logged out successfully');
+  const logout = async () => {
+    try {
+      await apiHelpers.logout();
+      setUser(null);
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout even if API call fails
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant_id');
+      toast.success('Logged out successfully');
+    }
   };
 
   const value = {
