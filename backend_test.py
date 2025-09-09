@@ -23,7 +23,7 @@ class LicenseManagementAPITester:
             'Content-Type': 'application/json',
             'X-Tenant-ID': tenant_id  # Always include tenant header for security patch v3
         }
-        if token:
+        if token and token != "cookie_based_auth":
             headers['Authorization'] = f'Bearer {token}'
 
         self.tests_run += 1
@@ -31,16 +31,22 @@ class LicenseManagementAPITester:
         print(f"   URL: {url}")
         
         try:
+            # Use session to maintain cookies for HttpOnly authentication
             if method == 'GET':
-                response = requests.get(url, headers=headers, params=params)
+                response = self.session.get(url, headers=headers, params=params)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers)
+                response = self.session.post(url, json=data, headers=headers)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=headers)
+                response = self.session.put(url, json=data, headers=headers)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers)
+                response = self.session.delete(url, headers=headers)
 
-            success = response.status_code == expected_status
+            # Handle multiple expected status codes
+            if isinstance(expected_status, list):
+                success = response.status_code in expected_status
+            else:
+                success = response.status_code == expected_status
+                
             if success:
                 self.tests_passed += 1
                 print(f"✅ Passed - Status: {response.status_code}")
@@ -52,7 +58,8 @@ class LicenseManagementAPITester:
                 except:
                     return True, {}
             else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                expected_str = str(expected_status) if not isinstance(expected_status, list) else f"one of {expected_status}"
+                print(f"❌ Failed - Expected {expected_str}, got {response.status_code}")
                 try:
                     error_data = response.json()
                     print(f"   Error: {error_data}")
