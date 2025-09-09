@@ -1136,7 +1136,7 @@ class PessoaJuridicaUpdate(BaseModel):
 # User Models (keeping existing)
 class UserBase(BaseModel):
     email: str
-    name: str
+    name: Optional[str] = "User"  # Made optional for legacy data compatibility
     role: UserRole = UserRole.USER
     
     @validator('role', pre=True)
@@ -1144,6 +1144,13 @@ class UserBase(BaseModel):
         """Normalize role to lowercase for compatibility with legacy data"""
         if isinstance(v, str):
             return v.lower()
+        return v
+    
+    @validator('name', pre=True)
+    def normalize_name(cls, v):
+        """Provide default name for legacy data without name field"""
+        if v is None or v == "":
+            return "User"
         return v
 
 class UserCreate(UserBase):
