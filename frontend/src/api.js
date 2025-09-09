@@ -147,32 +147,28 @@ export const apiHelpers = {
   // Logout
   logout: async () => {
     try {
-      // Clear local data
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('token');
+      // 🔐 SECURITY UPGRADE: Call logout endpoint to revoke refresh token
+      await api.post('/auth/logout');
+      
+      // Clear local data (cookies cleared by server)
       localStorage.removeItem('user');
       localStorage.removeItem('tenant_id');
-      sessionStorage.removeItem('access_token');
-      
-      // Clear axios headers
-      delete api.defaults.headers.common['Authorization'];
-      delete api.defaults.headers.common['X-Tenant-ID'];
-      
-      // Optional: call logout endpoint if available
-      // await api.post('/auth/logout');
       
       return true;
     } catch (error) {
       console.error('Logout error:', error);
+      // Force clear even if API call fails
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant_id');
       return false;
     }
   },
   
   // Check if user is authenticated
   isAuthenticated: () => {
-    const token = localStorage.getItem('access_token') || 
-                  localStorage.getItem('token');
-    return !!token;
+    // 🔐 SECURITY UPGRADE: Check if user data exists (cookies handled automatically)
+    const user = localStorage.getItem('user');
+    return !!user;
   },
   
   // Get stored user data
