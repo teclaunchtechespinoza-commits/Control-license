@@ -1138,6 +1138,13 @@ class UserBase(BaseModel):
     email: str
     name: str
     role: UserRole = UserRole.USER
+    
+    @validator('role', pre=True)
+    def normalize_role(cls, v):
+        """Normalize role to lowercase for compatibility with legacy data"""
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
 class UserCreate(UserBase):
     password: str
