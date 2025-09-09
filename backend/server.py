@@ -5872,9 +5872,9 @@ async def structured_logging_middleware(request: Request, call_next):
         raise
 
 # Add structured logging middlewares
-# app.add_middleware(ErrorLoggingMiddleware)
-# app.add_middleware(PerformanceMonitoringMiddleware) 
-# app.add_middleware(StructuredLoggingMiddleware)
+app.add_middleware(ErrorLoggingMiddleware)
+app.add_middleware(PerformanceMonitoringMiddleware) 
+app.add_middleware(StructuredLoggingMiddleware)
 
 # ---------- CORS (origens explícitas; nunca '*' com credentials) ----------
 CORS_ORIGINS = [o for o in (os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")) if o]
