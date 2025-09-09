@@ -127,9 +127,9 @@ export const apiHelpers = {
     try {
       const response = await api.post('/auth/login', { email, password });
       
-      // Store auth data
-      if (response.data.access_token) {
-        localStorage.setItem('access_token', response.data.access_token);
+      // 🔐 SECURITY UPGRADE: Tokens now stored in HttpOnly cookies
+      // Only store user data and tenant_id for app functionality
+      if (response.data.user) {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
         if (response.data.user.tenant_id) {
