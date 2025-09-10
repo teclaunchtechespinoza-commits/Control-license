@@ -341,12 +341,12 @@ agent_communication:
           comment: "🎉 CORREÇÃO DOS ERROS DE CARREGAMENTO COMPLETAMENTE RESOLVIDA! Comprehensive testing of the critical data loading errors fix completed with 100% success rate (15/15 tests passed). CRITICAL VALIDATION RESULTS: ✅ CAUSA RAIZ IDENTIFICADA E CORRIGIDA: Dados legados no MongoDB com inconsistências (usuários com role 'USER' maiúsculo vs Pydantic esperando 'user' minúsculo, usuários sem campo 'name' obrigatório) foram corrigidos com validators automáticos, ✅ POST /api/auth/login: Login funciona perfeitamente com cookies HttpOnly - user data retornado com email, role, name e tenant_id corretos, ✅ GET /api/users: Lista de usuários funcionando (200 usuários encontrados) - NÃO MAIS 500 Internal Server Error! Todos os usuários têm role normalizado e campo name válido, ✅ GET /api/licenses: Lista de licenças funcionando (50 licenças encontradas) com dados válidos, ✅ GET /api/clientes-pf: Lista de clientes PF funcionando (143 clientes encontrados), ✅ GET /api/clientes-pj: Lista de clientes PJ funcionando (5 clientes encontrados), ✅ GET /api/categories: Lista de categorias funcionando (54 categorias encontradas) com tenant_id correto, ✅ GET /api/admin/invitations: Gerenciar convites funcionando (2 convites encontrados), ✅ GET /api/stats: Painel administrativo funcionando (230 usuários, 680 licenças, 545 clientes, status: operational), ✅ Headers X-Tenant-ID funcionam corretamente (200 usuários retornados), ✅ AUSÊNCIA DE ERROS 400/500: Todos 6/6 endpoints críticos sem erros (usuários, licenças, clientes PF, clientes PJ, categorias, estatísticas). CONCLUSÃO: Todos os módulos devem carregar dados sem 'Erro ao carregar...' - o sistema está totalmente funcional novamente! As correções de Role Normalização, Name Field Fix e Pydantic Compatibility resolveram completamente os problemas reportados nos 5 screenshots."
 
   - task: "Duplicate Welcome Messages Fix - Critical UX Issue"
-    implemented: false
-    working: false
-    file: "/app/frontend/src/App.js, /app/frontend/src/components/LoginPage.js, /app/frontend/src/components/Dashboard.js"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/LoginPage.js, /app/frontend/src/components/Dashboard.js, /app/frontend/src/hooks/useApiCache.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
@@ -354,6 +354,9 @@ agent_communication:
         - working: false
           agent: "main"
           comment: "🔍 ANÁLISE DO PROBLEMA REALIZADA: Identificadas 4 fontes de mensagens de boas-vindas duplicadas: 1) App.js linha 128: toast.success(`Welcome back, ${userData.name}!`) (inglês), 2) LoginPage.js linha 74: toast.success(`Bem-vindo, ${loginData.email}!`) (português), 3) Dashboard.js linha 110: elemento HTML 'Bem-vindo, {user.name}!' (português), 4) HelpProvider.js linha 194: tour 'Bem-vindo ao Sistema'. CAUSA: Múltiplas fontes gerando mensagens de boas-vindas em idiomas diferentes durante o processo de login/carregamento do dashboard."
+        - working: true
+          agent: "main"
+          comment: "🎉 PROBLEMA COMPLETAMENTE RESOLVIDO! CORREÇÕES APLICADAS: 1) ✅ App.js: Removido toast.success duplicado em inglês do AuthProvider, 2) ✅ LoginPage.js: Removido toast.success duplicado após login para evitar conflitos, 3) ✅ Dashboard.js: Implementado sistema de toast de boas-vindas único e controlado com estado welcomeShown e delay de 500ms para evitar conflitos, 4) ✅ useApiCache.js: Corrigido uso de axios direto substituído por instância centralizada api com headers X-Tenant-ID para evitar loops, 5) ✅ Padronização em português: Unificada mensagem para 'Bem-vindo de volta, {nome}!' apenas no Dashboard. RESULTADOS VALIDADOS: Screenshot confirmou apenas uma mensagem de boas-vindas aparecendo (toast verde 'Bem-vindo de volta, Demo Admin!'), dashboard carregando normalmente sem loops, sistema funcionando com dados corretos (680 licenças, 230 usuários). CONCLUSÃO: Mensagens duplicadas eliminadas, idioma padronizado em português, loops prevenidos."
 
   - task: "X-Tenant-ID Header Toast Errors Fix - Critical Frontend Integration"
     implemented: true
