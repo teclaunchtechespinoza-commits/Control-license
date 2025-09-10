@@ -459,11 +459,9 @@ const MaintenanceModule = () => {
   const assignRoles = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('/rbac/assign-roles', {
+      await api.post('/rbac/assign-roles', {
         user_id: selectedUser,
         role_ids: selectedRoles
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       toast.success('Papéis atribuídos com sucesso');
