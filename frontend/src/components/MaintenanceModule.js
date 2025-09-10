@@ -336,12 +336,8 @@ const MaintenanceModule = () => {
   // Função para verificar duplicatas antes de criar role
   const checkRoleDuplicates = async (roleName) => {
     try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       const { data: result } = await api.get('/system/check-duplicates/role');
       return result;
-      }
-      
-      return { has_duplicates: false };
     } catch (error) {
       console.error('Erro ao verificar duplicatas:', error);
       return { has_duplicates: false };
