@@ -220,13 +220,7 @@ const MaintenanceModule = () => {
       const testUrl = `${backendUrl}/api/rbac/roles`;
       console.log('Testando URL:', testUrl);
       
-      const response = await fetch(testUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.get('/rbac/roles');
       
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
