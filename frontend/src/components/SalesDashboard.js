@@ -29,19 +29,17 @@ const SalesDashboard = () => {
             setLoading(true);
             setError(null);
 
-            const token = localStorage.getItem('access_token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
+            // Usar API central que injeta Authorization + X-Tenant-ID automaticamente
             // Buscar resumo executivo
-            const summaryResponse = await axios.get(`${backendUrl}/api/sales-dashboard/summary`, { headers });
+            const summaryResponse = await api.get('/sales-dashboard/summary');
             setSummary(summaryResponse.data);
 
             // Buscar licenças expirando
-            const licensesResponse = await axios.get(`${backendUrl}/api/sales-dashboard/expiring-licenses?days_ahead=30`, { headers });
+            const licensesResponse = await api.get('/sales-dashboard/expiring-licenses', { params: { days_ahead: 30 } });
             setExpiringLicenses(licensesResponse.data);
 
             // Buscar analytics
-            const analyticsResponse = await axios.get(`${backendUrl}/api/sales-dashboard/analytics?period_days=30`, { headers });
+            const analyticsResponse = await api.get('/sales-dashboard/analytics', { params: { period_days: 30 } });
             setAnalytics(analyticsResponse.data);
 
         } catch (error) {
