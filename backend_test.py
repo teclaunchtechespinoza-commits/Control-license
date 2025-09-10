@@ -1770,12 +1770,7 @@ class LicenseManagementAPITester:
                 print("      ⚠️ Cookie-based authentication not working, trying token fallback")
                 # Fallback: try to extract token if available
                 if 'access_token' in response:
-                    if "access_token" in response:
-                self.admin_token = response["access_token"]
-            else:
-                # Using HttpOnly cookies - set flag to use cookie-based auth
-                self.admin_token = "cookie_based_auth"
-                print("   ✅ Admin authentication successful with HttpOnly cookies")
+                    self.admin_token = response["access_token"]
                 else:
                     print("      ⚠️ No access token available")
                     self.admin_token = None
