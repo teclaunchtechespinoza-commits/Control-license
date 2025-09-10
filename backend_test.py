@@ -6040,6 +6040,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ CRITICAL X-TENANT-ID HEADER FIX TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "superadmin-infinite-loading":
+            # Run the critical SuperAdmin infinite loading fix test
+            print("🚀 RUNNING CRITICAL SUPERADMIN INFINITE LOADING FIX TEST")
+            success = tester.test_superadmin_infinite_loading_fix()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL SUPERADMIN INFINITE LOADING FIX TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 85:
+                print(f"🎉 CRITICAL SUPERADMIN INFINITE LOADING FIX TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL SUPERADMIN INFINITE LOADING FIX TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id")
