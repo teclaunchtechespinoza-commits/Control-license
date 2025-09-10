@@ -81,7 +81,7 @@ const MaintenanceModule = () => {
   // Função para verificar saúde do sistema
   const checkSystemHealth = async () => {
     try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
       
       const { data: health } = await api.get('/system/health-check');
       setSystemHealth(health);
