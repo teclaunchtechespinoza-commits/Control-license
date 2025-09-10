@@ -6,7 +6,7 @@ import sys
 
 def test_comprehensive_registration():
     """Comprehensive test of user registration scenarios"""
-    base_url = "https://multitenantlms.preview.emergentagent.com/api"
+    base_url = "https://tenant-shield-app.preview.emergentagent.com/api"
     
     print("🚀 TESTE ABRANGENTE DO SISTEMA DE REGISTRO DE USUÁRIOS")
     print("="*80)
