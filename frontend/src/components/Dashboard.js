@@ -35,7 +35,7 @@ const Dashboard = () => {
       
       // Fetch stats if admin
       if (user.role === 'admin') {
-        const statsResponse = await axios.get('/stats');
+        const statsResponse = await api.get('/stats');
         setStats(statsResponse.data);
       }
       
