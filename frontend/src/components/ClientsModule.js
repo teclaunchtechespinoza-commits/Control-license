@@ -254,8 +254,8 @@ const ClientsModule = () => {
       // Add cache-busting parameter
       const timestamp = Date.now();
       const [pfResponse, pjResponse] = await Promise.all([
-        axios.get(`/clientes-pf?_=${timestamp}`),
-        axios.get(`/clientes-pj?_=${timestamp}`)
+        api.get('/clientes-pf', { params: { _: timestamp } }),
+        api.get('/clientes-pj', { params: { _: timestamp } })
       ]);
       
       setClientesPF(pfResponse.data);
