@@ -417,8 +417,6 @@ const MaintenanceModule = () => {
 
   const createPermission = async () => {
     try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-      
       await api.post('/rbac/permissions', newPermission);
       toast.success('Permissão criada com sucesso');
       setPermissionDialogOpen(false);
