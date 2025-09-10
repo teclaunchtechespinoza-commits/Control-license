@@ -5274,10 +5274,6 @@ class LicenseManagementAPITester:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
                 print("   ✅ Admin authentication successful with HttpOnly cookies")
-                print(f"   ✅ Admin authenticated successfully with cookies")
-            else:
-                print("   ❌ CRITICAL: Admin authentication failed - no token or success flag!")
-                return False
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
             return False
