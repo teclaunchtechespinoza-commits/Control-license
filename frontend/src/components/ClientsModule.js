@@ -271,8 +271,8 @@ const ClientsModule = () => {
   // Equipment functions
   const fetchEquipmentBrands = async () => {
     try {
-      const response = await axios.get('/equipment-brands');
-      setEquipmentBrands(response.data);
+      const { data } = await api.get('/equipment-brands');
+      setEquipmentBrands(data);
     } catch (error) {
       console.error('Failed to fetch equipment brands:', error);
     }
