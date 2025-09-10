@@ -107,13 +107,13 @@ const AdminPanel = () => {
       // Add cache-busting parameter  
       const timestamp = Date.now();
       const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
-        axios.get(`/licenses?_=${timestamp}`),
-        axios.get(`/users?_=${timestamp}`),
-        axios.get(`/categories?_=${timestamp}`),
-        axios.get(`/clientes-pf?_=${timestamp}`),
-        axios.get(`/clientes-pj?_=${timestamp}`),
-        axios.get(`/products?_=${timestamp}`),
-        axios.get(`/license-plans?_=${timestamp}`)
+        api.get('/licenses', { params: { _: timestamp } }),
+        api.get('/users', { params: { _: timestamp } }),
+        api.get('/categories', { params: { _: timestamp } }),
+        api.get('/clientes-pf', { params: { _: timestamp } }),
+        api.get('/clientes-pj', { params: { _: timestamp } }),
+        api.get('/products', { params: { _: timestamp } }),
+        api.get('/license-plans', { params: { _: timestamp } })
       ]);
       
       setLicenses(licensesResponse.data);
