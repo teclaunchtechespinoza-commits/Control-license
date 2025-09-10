@@ -64,7 +64,7 @@ const UserLicenses = () => {
   const fetchLicenses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/licenses');
+      const response = await api.get('/licenses');
       setLicenses(response.data);
     } catch (error) {
       console.error('Failed to fetch licenses:', error);
