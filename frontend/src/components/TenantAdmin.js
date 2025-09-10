@@ -81,8 +81,8 @@ const TenantAdmin = () => {
   const fetchTenants = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/tenants');
-      setTenants(response.data);
+      const { data } = await api.get('/tenants');
+      setTenants(data);
       setError(null);
     } catch (err) {
       setError('Erro ao carregar tenants: ' + (err.response?.data?.detail || err.message));
