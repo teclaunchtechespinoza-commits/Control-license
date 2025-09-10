@@ -64,15 +64,12 @@ const MaintenanceModule = () => {
       if (logFilters.category) queryParams.append('category', logFilters.category);
       queryParams.append('limit', logFilters.limit.toString());
       
-      const response = await fetch(`${getApiUrl('system/logs/advanced')}?${queryParams}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const { data } = await api.get('/system/logs/advanced', { 
+        params: Object.fromEntries(new URLSearchParams(queryParams))
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAdvancedLogs(data.logs || []);
-        console.log('📊 Logs avançados carregados:', data);
-      } else {
+      
+      setAdvancedLogs(data.logs || []);
+      console.log('📊 Logs avançados carregados:', data);
         throw new Error('Failed to fetch advanced logs');
       }
     } catch (error) {
