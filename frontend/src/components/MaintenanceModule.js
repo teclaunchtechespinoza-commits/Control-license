@@ -172,10 +172,10 @@ const MaintenanceModule = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/maintenance/logs?lines=100');
-      setLogs(response.data.logs);
-      setTotalLines(response.data.total_lines);
-      setShowingLines(response.data.showing);
+      const { data } = await api.get('/maintenance/logs', { params: { lines: 100 } });
+      setLogs(data.logs);
+      setTotalLines(data.total_lines);
+      setShowingLines(data.showing);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
       toast.error('Erro ao carregar logs de manutenção');
