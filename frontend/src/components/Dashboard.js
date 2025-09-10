@@ -5,7 +5,7 @@ import { Badge } from './ui/badge';
 import { LicenseStatusBadge, StatusBadgeWithDot } from './ui/semantic-badge';
 import { Progress } from './ui/progress';
 import { Separator } from './ui/separator';
-import axios from 'axios';
+import { api } from '../api';
 import { 
   Users, 
   FileText, 
