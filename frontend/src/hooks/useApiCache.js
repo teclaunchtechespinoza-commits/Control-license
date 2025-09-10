@@ -94,7 +94,8 @@ export const useApiBatch = (urls) => {
             return;
           }
 
-          const response = await axios.get(url, { timeout: 8000 });
+          // Use centralized API instance with proper X-Tenant-ID headers
+          const response = await api.get(url, { timeout: 8000 });
           
           // Cache result
           cache.set(url, {
