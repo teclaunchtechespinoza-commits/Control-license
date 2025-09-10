@@ -167,7 +167,7 @@ const AdminPanel = () => {
         }
       });
 
-      await axios.post('/licenses', formData);
+      await api.post('/licenses', formData);
       toast.success('Licença criada com sucesso!');
       
       resetLicenseForm();
