@@ -70,8 +70,7 @@ const LoginPage = () => {
       const result = await login(loginData);
       
       if (result.success) {
-        // Mostrar sucesso
-        toast.success(`Bem-vindo, ${loginData.email}!`);
+        // Success message will be shown by Dashboard component to avoid duplication
         
         // Aguardar um pouco e redirecionar
         setTimeout(() => {
