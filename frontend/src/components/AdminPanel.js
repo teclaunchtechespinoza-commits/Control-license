@@ -200,7 +200,7 @@ const AdminPanel = () => {
         }
       });
 
-      await axios.put(`/licenses/${editingLicense.id}`, formData);
+      await api.put(`/licenses/${editingLicense.id}`, formData);
       toast.success('Licença atualizada com sucesso!');
       
       setShowEditLicenseDialog(false);
