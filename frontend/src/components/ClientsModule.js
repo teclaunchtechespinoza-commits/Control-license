@@ -624,7 +624,7 @@ const ClientsModule = () => {
       
       console.log('Sending data to backend for edit:', cleanedData);
       
-      await axios.put(endpoint, cleanedData);
+      await api.put(endpoint, cleanedData);
       toast.success(`Cliente ${activeTab.toUpperCase()} atualizado com sucesso!`);
       
       setShowEditDialog(false);
