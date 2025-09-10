@@ -125,7 +125,7 @@ const AuthProvider = ({ children }) => {
       // Initialize preloader after successful login
       initializePreloader();
       
-      toast.success(`Welcome back, ${userData.name}!`);
+      // Welcome message moved to Dashboard.js to avoid duplication
       console.log('Login completado com sucesso');
       
       return { success: true };
