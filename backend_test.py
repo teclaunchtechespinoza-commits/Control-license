@@ -5578,6 +5578,9 @@ if __name__ == "__main__":
         if test_type == "critical_login_flow":
             # Run critical login flow test
             exit_code = tester.run_critical_login_flow_test()
+        elif test_type == "endpoints":
+            # Run critical endpoints test (new)
+            exit_code = tester.run_critical_endpoints_test()
         elif test_type == "superadmin":
             # Run superadmin login investigation
             exit_code = tester.run_superadmin_investigation()
