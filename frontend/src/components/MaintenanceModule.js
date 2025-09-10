@@ -445,23 +445,11 @@ const MaintenanceModule = () => {
     try {
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      const response = await fetch(getApiUrl('rbac/permissions'), {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newPermission)
-      });
-
-      if (response.ok) {
-        toast.success('Permissão criada com sucesso');
-        setPermissionDialogOpen(false);
-        setNewPermission({ name: '', description: '', resource: '', action: '' });
-        await fetchRbacData();
-      } else {
-        throw new Error('Failed to create permission');
-      }
+      await api.post('/rbac/permissions', newPermission);
+      toast.success('Permissão criada com sucesso');
+      setPermissionDialogOpen(false);
+      setNewPermission({ name: '', description: '', resource: '', action: '' });
+      await fetchRbacData();
     } catch (error) {
       console.error('Failed to create permission:', error);
       toast.error('Erro ao criar permissão');
