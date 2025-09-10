@@ -70,8 +70,6 @@ const MaintenanceModule = () => {
       
       setAdvancedLogs(data.logs || []);
       console.log('📊 Logs avançados carregados:', data);
-        throw new Error('Failed to fetch advanced logs');
-      }
     } catch (error) {
       console.error('Erro ao carregar logs avançados:', error);
       toast.error('Erro ao carregar logs avançados');
