@@ -45,7 +45,7 @@ import {
 import { Separator } from './ui/separator';
 import { Switch } from './ui/switch';
 import { ScrollArea } from './ui/scroll-area';
-import axios from 'axios';
+import { api } from '../api';
 import { toast } from 'sonner';
 import { 
   Plus,
