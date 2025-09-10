@@ -389,8 +389,6 @@ const MaintenanceModule = () => {
       }
       
       // PASSO 2: Prosseguir com criação se não houver duplicatas
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-      
       const { data: createdRole } = await api.post('/rbac/roles', newRole);
         toast.success(
           `✅ Papel "${createdRole.name}" criado com sucesso!`,
