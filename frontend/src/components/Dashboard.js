@@ -25,10 +25,22 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentLicenses, setRecentLicenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [welcomeShown, setWelcomeShown] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Show welcome message only once when component mounts and user is available
+  useEffect(() => {
+    if (user && !welcomeShown) {
+      // Small delay to avoid conflict with other toasts
+      setTimeout(() => {
+        toast.success(`Bem-vindo de volta, ${user.name}!`);
+        setWelcomeShown(true);
+      }, 500);
+    }
+  }, [user, welcomeShown]);
 
   const fetchDashboardData = async () => {
     try {
