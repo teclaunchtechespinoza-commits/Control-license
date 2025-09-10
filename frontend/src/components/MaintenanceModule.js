@@ -337,17 +337,8 @@ const MaintenanceModule = () => {
   const checkRoleDuplicates = async (roleName) => {
     try {
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-      const response = await fetch(getApiUrl('system/check-duplicates/role'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        return result;
+      const { data: result } = await api.get('/system/check-duplicates/role');
+      return result;
       }
       
       return { has_duplicates: false };
