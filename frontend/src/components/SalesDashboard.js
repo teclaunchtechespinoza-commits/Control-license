@@ -107,14 +107,7 @@ const SalesDashboard = () => {
         try {
             setSendingWhatsApp(prev => new Set([...prev, 'bulk']));
 
-            const token = localStorage.getItem('access_token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-            const response = await axios.post(
-                `${backendUrl}/api/sales-dashboard/bulk-whatsapp`,
-                { alert_ids: Array.from(selectedAlerts) },
-                { headers }
-            );
+            const response = await api.post('/sales-dashboard/bulk-whatsapp', { alert_ids: Array.from(selectedAlerts) });
 
             if (response.data) {
                 alert(`Campanha concluída!\n${response.data.sent} enviadas\n${response.data.failed} falharam`);
