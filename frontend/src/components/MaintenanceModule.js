@@ -254,17 +254,11 @@ const MaintenanceModule = () => {
   const fetchRbacData = async () => {
     try {
       setRbacLoading(true);
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      // Verificação crítica: não fazer requisições sem token
-      if (!token) {
-        console.warn('No token available for RBAC data fetch');
-        toast.error('Sessão não encontrada. Faça login novamente.');
-        setRbacLoading(false);
-        return;
-      }
+      // 🔐 SECURITY UPGRADE: With HttpOnly cookies, we don't check localStorage for tokens
+      // The api instance will automatically include cookies and X-Tenant-ID headers
       
-      console.log('Buscando dados RBAC com token válido...');
+      console.log('Buscando dados RBAC com cookies HttpOnly...');
       console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
       
       // Usar API central que injeta Authorization + X-Tenant-ID automaticamente
