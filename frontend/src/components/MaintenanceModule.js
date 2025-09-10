@@ -86,21 +86,18 @@ const MaintenanceModule = () => {
       const { data: health } = await api.get('/system/health-check');
       setSystemHealth(health);
         
-        // Alertar sobre problemas críticos
-        if (health.overall_status !== 'healthy') {
-          toast.warning(
-            `⚠️ Sistema com status: ${health.overall_status.toUpperCase()}`,
-            {
-              description: health.alerts?.join(', ') || 'Verifique os componentes',
-              duration: 8000
-            }
-          );
-        }
-        
-        console.log('💚 Health check realizado:', health);
-      } else {
-        throw new Error('Health check failed');
+      // Alertar sobre problemas críticos
+      if (health.overall_status !== 'healthy') {
+        toast.warning(
+          `⚠️ Sistema com status: ${health.overall_status.toUpperCase()}`,
+          {
+            description: health.alerts?.join(', ') || 'Verifique os componentes',
+            duration: 8000
+          }
+        );
       }
+      
+      console.log('💚 Health check realizado:', health);
     } catch (error) {
       console.error('Erro no health check:', error);
       toast.error('Erro ao verificar saúde do sistema');
