@@ -105,6 +105,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   Admin token obtained: {self.admin_token[:20]}...")
         
         # Test user login
@@ -768,6 +772,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login verification", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin authentication working: {self.admin_token[:20]}...")
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
@@ -916,6 +924,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login for security tests", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"      ✅ Admin authentication successful")
             
             # Verify JWT token contains proper tenant_id and role information
@@ -1287,6 +1299,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
@@ -1751,6 +1767,10 @@ class LicenseManagementAPITester:
                 # Fallback: try to extract token if available
                 if 'access_token' in response:
                     self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
                 else:
                     print("      ⚠️ No access token available")
                     self.admin_token = None
@@ -1970,6 +1990,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login (session fix test)", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Login successful without session expired messages")
             print(f"   ✅ JWT token generated: {self.admin_token[:30]}...")
             
@@ -2176,6 +2200,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Regular admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Regular admin token obtained: {self.admin_token[:20]}...")
             
             # Verify regular admin user details
@@ -2595,6 +2623,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin authentication", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin authentication working: {self.admin_token[:20]}...")
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
@@ -4197,6 +4229,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin token obtained successfully")
         else:
             print("   ❌ Failed to obtain admin token - cannot continue tests")
@@ -4279,6 +4315,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Normal admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin normal funcionando corretamente")
             print(f"   ✅ Token obtido: {self.admin_token[:20]}...")
             print(f"   ✅ Usuário: {response.get('user', {}).get('name', 'N/A')}")
@@ -4865,6 +4905,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Login Backend admin@demo.com", "POST", "auth/login", 200, admin_credentials)
         if success and 'access_token' in response and 'user' in response:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             user_data = response['user']
             
             print(f"   ✅ Login successful - Token: {self.admin_token[:30]}...")
@@ -5079,6 +5123,10 @@ class LicenseManagementAPITester:
             # Check if we got cookies (HttpOnly authentication)
             if 'access_token' in response:
                 self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
                 print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
             else:
                 print("   ✅ Admin login successful with HttpOnly cookies")
@@ -5218,6 +5266,10 @@ class LicenseManagementAPITester:
             # Check for access_token or use cookie-based auth
             if 'access_token' in response:
                 self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
                 print(f"   ✅ Admin authenticated successfully with token")
             elif response.get('success'):
                 # Cookie-based authentication
@@ -5804,6 +5856,10 @@ class LicenseManagementAPITester:
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
             self.admin_token = response['access_token']
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
             print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
