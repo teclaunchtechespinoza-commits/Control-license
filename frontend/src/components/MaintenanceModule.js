@@ -85,13 +85,8 @@ const MaintenanceModule = () => {
     try {
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      const response = await fetch(getApiUrl('system/health-check'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const health = await response.json();
-        setSystemHealth(health);
+      const { data: health } = await api.get('/system/health-check');
+      setSystemHealth(health);
         
         // Alertar sobre problemas críticos
         if (health.overall_status !== 'healthy') {
