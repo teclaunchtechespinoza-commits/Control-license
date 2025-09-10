@@ -209,10 +209,6 @@ const MaintenanceModule = () => {
       
       // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
       console.log('Auth: Using HttpOnly cookies');
-      
-      // Remove token validation - API will handle authentication via cookies
-        return;
-      }
 
       // Teste direto com URL completo
       const testUrl = `${backendUrl}/api/rbac/roles`;
