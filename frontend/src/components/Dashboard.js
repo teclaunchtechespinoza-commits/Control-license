@@ -25,22 +25,26 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentLicenses, setRecentLicenses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [welcomeShown, setWelcomeShown] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  // Show welcome message only once when component mounts and user is available
+  // Show welcome message only once per session using localStorage
   useEffect(() => {
-    if (user && !welcomeShown) {
-      // Small delay to avoid conflict with other toasts
-      setTimeout(() => {
-        toast.success(`Bem-vindo de volta, ${user.name}!`);
-        setWelcomeShown(true);
-      }, 500);
+    if (user && user.email) {
+      const welcomeKey = `welcome_shown_${user.email}_${new Date().toDateString()}`;
+      const welcomeShown = localStorage.getItem(welcomeKey);
+      
+      if (!welcomeShown) {
+        // Small delay to avoid conflict with other toasts
+        setTimeout(() => {
+          toast.success(`Bem-vindo de volta, ${user.name}!`);
+          localStorage.setItem(welcomeKey, 'true');
+        }, 500);
+      }
     }
-  }, [user, welcomeShown]);
+  }, [user]); // Remove welcomeShown from dependencies as we use localStorage now
 
   const fetchDashboardData = async () => {
     try {
