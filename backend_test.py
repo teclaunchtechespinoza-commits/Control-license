@@ -5128,16 +5128,12 @@ class LicenseManagementAPITester:
         if success:
             # Check if we got cookies (HttpOnly authentication)
             if 'access_token' in response:
-                if "access_token" in response:
                 self.admin_token = response["access_token"]
+                print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
                 print("   ✅ Admin authentication successful with HttpOnly cookies")
-                print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
-            else:
-                print("   ✅ Admin login successful with HttpOnly cookies")
-                self.admin_token = "cookie_based_auth"  # Flag for cookie-based auth
         else:
             print("   ❌ CRITICAL: Admin authentication failed!")
             return False
