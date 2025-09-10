@@ -395,17 +395,7 @@ const MaintenanceModule = () => {
       // PASSO 2: Prosseguir com criação se não houver duplicatas
       const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       
-      const response = await fetch(getApiUrl('rbac/roles'), {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newRole)
-      });
-
-      if (response.ok) {
-        const createdRole = await response.json();
+      const { data: createdRole } = await api.post('/rbac/roles', newRole);
         toast.success(
           `✅ Papel "${createdRole.name}" criado com sucesso!`,
           {
