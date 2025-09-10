@@ -403,28 +403,6 @@ const MaintenanceModule = () => {
         setRoleDialogOpen(false);
         setNewRole({ name: '', description: '', permissions: [] });
         await fetchRbacData();
-      } else {
-        const errorData = await response.json();
-        
-        // Tratar erro estruturado do backend
-        if (errorData.detail && typeof errorData.detail === 'object') {
-          const detail = errorData.detail;
-          
-          if (detail.type === 'DUPLICATE_ROLE') {
-            toast.error(
-              `❌ ${detail.message}`,
-              {
-                description: `Sugestões: ${detail.suggestions?.join(', ') || 'Tente um nome diferente'}`,
-                duration: 6000
-              }
-            );
-          } else {
-            toast.error(`❌ Erro: ${detail.message || errorData.detail}`);
-          }
-        } else {
-          toast.error(`❌ Erro ao criar papel: ${errorData.detail || 'Erro desconhecido'}`);
-        }
-      }
     } catch (error) {
       console.error('Erro na criação de papel:', error);
       toast.error(
