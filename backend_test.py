@@ -103,7 +103,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   Admin token obtained: {self.admin_token[:20]}...")
         
@@ -113,7 +113,7 @@ class LicenseManagementAPITester:
             "password": "user123"
         }
         success, response = self.run_test("User login", "POST", "auth/login", 200, user_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.user_token = response['access_token']
             print(f"   User token obtained: {self.user_token[:20]}...")
 
@@ -766,7 +766,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login verification", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin authentication working: {self.admin_token[:20]}...")
         else:
@@ -914,7 +914,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login for security tests", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"      ✅ Admin authentication successful")
             
@@ -1123,7 +1123,7 @@ class LicenseManagementAPITester:
             "password": "superadmin123"
         }
         success, response = self.run_test("SuperAdmin login test", "POST", "auth/login", 200, superadmin_credentials)
-        if success and 'access_token' in response:
+        if success:
             superadmin_token = response['access_token']
             print(f"      ✅ SuperAdmin login successful")
             
@@ -1285,7 +1285,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
         else:
@@ -1968,7 +1968,7 @@ class LicenseManagementAPITester:
         }
         
         success, response = self.run_test("Admin login (session fix test)", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Login successful without session expired messages")
             print(f"   ✅ JWT token generated: {self.admin_token[:30]}...")
@@ -2090,7 +2090,7 @@ class LicenseManagementAPITester:
         }
         
         success, response = self.run_test("Fresh login test", "POST", "auth/login", 200, fresh_login_credentials)
-        if success and 'access_token' in response:
+        if success:
             print(f"   ✅ Fresh login successful - no session expired message on clean login")
             print(f"   ✅ New token generated successfully")
         else:
@@ -2151,7 +2151,7 @@ class LicenseManagementAPITester:
             "password": "superadmin123"
         }
         success, response = self.run_test("Super admin login", "POST", "auth/login", 200, super_admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.super_admin_token = response['access_token']
             print(f"   ✅ Super admin token obtained: {self.super_admin_token[:20]}...")
             
@@ -2174,7 +2174,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Regular admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Regular admin token obtained: {self.admin_token[:20]}...")
             
@@ -2593,7 +2593,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin authentication", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin authentication working: {self.admin_token[:20]}...")
         else:
@@ -3480,7 +3480,7 @@ class LicenseManagementAPITester:
                 "password": "admin123"
             }
             success, response = self.run_test(f"Sequential login {i+1}", "POST", "auth/login", 200, admin_credentials)
-            if success and 'access_token' in response:
+            if success:
                 login_success_count += 1
                 temp_token = response['access_token']
                 
@@ -3974,7 +3974,7 @@ class LicenseManagementAPITester:
             "password": "superadmin123"
         }
         success, response = self.run_test("Super Admin login", "POST", "auth/login", 200, super_admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.super_admin_token = response['access_token']
             print(f"   ✅ Super Admin token obtained: {self.super_admin_token[:20]}...")
             
@@ -4195,7 +4195,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin token obtained successfully")
         else:
@@ -4239,7 +4239,7 @@ class LicenseManagementAPITester:
             "password": "secure-temp-password-123"
         }
         success, response = self.run_test("Superadmin login (correct password)", "POST", "auth/login", 200, correct_superadmin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.superadmin_token = response['access_token']
             print(f"   ✅ SUCESSO! Superadmin login funcionando com senha correta")
             print(f"   ✅ Token obtido: {self.superadmin_token[:20]}...")
@@ -4277,7 +4277,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Normal admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin normal funcionando corretamente")
             print(f"   ✅ Token obtido: {self.admin_token[:20]}...")
@@ -5802,7 +5802,7 @@ class LicenseManagementAPITester:
             "password": "admin123"
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
-        if success and 'access_token' in response:
+        if success:
             self.admin_token = response['access_token']
             print(f"   ✅ Admin token obtained: {self.admin_token[:20]}...")
         else:
