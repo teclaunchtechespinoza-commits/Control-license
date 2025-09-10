@@ -416,7 +416,7 @@ const MaintenanceModule = () => {
 
   const assignRoles = async () => {
     try {
-      const token = localStorage.getItem('access_token');
+      // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
       await api.post('/rbac/assign-roles', {
         user_id: selectedUser,
         role_ids: selectedRoles
