@@ -57,7 +57,7 @@ const MaintenanceModule = () => {
   const fetchAdvancedLogs = async () => {
     try {
       setLogsLoading(true);
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
       
       const queryParams = new URLSearchParams();
       if (logFilters.level) queryParams.append('level', logFilters.level);
