@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { api } from '../api'; // Use centralized API instance instead of direct axios
+import { api } from '../api';
+import axios from 'axios';
 
 // Simple in-memory cache
 const cache = new Map();
@@ -35,7 +36,8 @@ export const useApiCache = (url, dependencies = []) => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(url, {
+        // Use centralized API instance with proper X-Tenant-ID headers
+        const response = await api.get(url, {
           cancelToken: cancelTokenRef.current.token,
           timeout: 10000 // 10 second timeout
         });
