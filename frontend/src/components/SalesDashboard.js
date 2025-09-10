@@ -75,14 +75,7 @@ const SalesDashboard = () => {
         try {
             setSendingWhatsApp(prev => new Set(prev).add(alertId));
 
-            const token = localStorage.getItem('access_token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-            const response = await axios.post(
-                `${backendUrl}/api/sales-dashboard/send-whatsapp/${alertId}`,
-                {},
-                { headers }
-            );
+            const response = await api.post(`/sales-dashboard/send-whatsapp/${alertId}`, {});
 
             if (response.data) {
                 // Mostrar sucesso
