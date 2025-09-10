@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
 import { useApiCache } from '../hooks/useApiCache';
-import axios from 'axios';
+import { api } from '../api';
 import { Button } from './ui/button';
 import TenantSelector from './TenantSelector';
 import { 
