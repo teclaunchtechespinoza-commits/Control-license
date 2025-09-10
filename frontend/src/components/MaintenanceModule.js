@@ -187,7 +187,7 @@ const MaintenanceModule = () => {
   const clearLogs = async () => {
     try {
       setLoading(true);
-      await axios.post('/maintenance/clear-logs');
+      await api.post('/maintenance/clear-logs');
       toast.success('Logs limpos com sucesso');
       await fetchLogs();
     } catch (error) {
