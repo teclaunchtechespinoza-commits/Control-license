@@ -5700,6 +5700,6 @@ if __name__ == "__main__":
             exit_code = 1
     else:
         # Default: run critical endpoints test as requested in review
-        exit_code = 0 if tester.test_critical_endpoints_from_screenshots() else 1
+        exit_code = tester.run_critical_endpoints_test()
     
     sys.exit(exit_code)
