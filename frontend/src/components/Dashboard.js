@@ -6,6 +6,7 @@ import { LicenseStatusBadge, StatusBadgeWithDot } from './ui/semantic-badge';
 import { Progress } from './ui/progress';
 import { Separator } from './ui/separator';
 import { api } from '../api';
+import { toast } from 'sonner';
 import { 
   Users, 
   FileText, 
