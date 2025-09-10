@@ -237,7 +237,7 @@ const AdminPanel = () => {
 
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
-      await axios.put(`/users/${userId}/role?role=${newRole}`);
+      await api.put(`/users/${userId}/role`, null, { params: { role: newRole } });
       toast.success('Função do usuário atualizada com sucesso!');
       fetchData();
     } catch (error) {
