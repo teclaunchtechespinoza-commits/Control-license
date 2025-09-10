@@ -523,7 +523,7 @@ const ClientsModule = () => {
       
       console.log('Sending data to backend:', cleanedData);
       
-      const response = await axios.post(endpoint, cleanedData);
+      const response = await api.post(endpoint, cleanedData);
       toast.success(`Cliente ${activeTab.toUpperCase()} criado com sucesso!`);
       
       resetForm();
