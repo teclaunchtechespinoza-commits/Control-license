@@ -66,35 +66,19 @@ const LoginPage = () => {
         return;
       }
       
-      // Fazer login usando fetch direto
-      const backendUrl = process.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData)
-      });
+      // Usar o login via AuthProvider (que usa API central)
+      const result = await login(loginData);
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Salvar dados de autenticação
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
+      if (result.success) {
         // Mostrar sucesso
-        toast.success(`Bem-vindo, ${data.user.name}!`);
+        toast.success(`Bem-vindo, ${loginData.email}!`);
         
         // Aguardar um pouco e redirecionar
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          navigate('/dashboard');
         }, 500);
-        
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.detail || 'Falha no login');
+        toast.error(result.error || 'Falha no login');
       }
       
     } catch (error) {
