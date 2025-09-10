@@ -191,7 +191,7 @@ const RegistryModule = () => {
     try {
       const config = getTabConfig();
       
-      const response = await axios.post(`/${config.endpoint}`, formData);
+      const response = await api.post(`/${config.endpoint}`, formData);
       
       toast.success(`${config.title.slice(0, -1)} criado com sucesso!`);
       
