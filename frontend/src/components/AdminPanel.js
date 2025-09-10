@@ -42,7 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
-import axios from 'axios';
+import { api } from '../api';
 import { toast } from 'sonner';
 import { 
   Plus,
