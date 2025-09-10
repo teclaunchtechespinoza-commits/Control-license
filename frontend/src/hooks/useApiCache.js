@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../api'; // Use centralized API instance instead of direct axios
 
 // Simple in-memory cache
 const cache = new Map();
