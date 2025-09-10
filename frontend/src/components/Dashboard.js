@@ -40,7 +40,7 @@ const Dashboard = () => {
       }
       
       // Fetch recent licenses
-      const licensesResponse = await axios.get('/licenses');
+      const licensesResponse = await api.get('/licenses');
       const sortedLicenses = licensesResponse.data.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
