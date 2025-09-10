@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 import { useApiCache } from '../hooks/useApiCache';
 import { 
   Building, 
