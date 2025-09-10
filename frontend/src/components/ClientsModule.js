@@ -280,9 +280,10 @@ const ClientsModule = () => {
 
   const fetchEquipmentModels = async (brandId = '') => {
     try {
-      const url = brandId ? `/equipment-models?brand_id=${brandId}` : '/equipment-models';
-      const response = await axios.get(url);
-      setEquipmentModels(response.data);
+      const { data } = brandId 
+        ? await api.get('/equipment-models', { params: { brand_id: brandId } })
+        : await api.get('/equipment-models');
+      setEquipmentModels(data);
     } catch (error) {
       console.error('Failed to fetch equipment models:', error);
     }
