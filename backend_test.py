@@ -104,7 +104,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -771,7 +772,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login verification", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -923,7 +925,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login for security tests", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -1298,7 +1301,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -1766,7 +1770,8 @@ class LicenseManagementAPITester:
                 print("      ⚠️ Cookie-based authentication not working, trying token fallback")
                 # Fallback: try to extract token if available
                 if 'access_token' in response:
-                    self.admin_token = response['access_token']
+                    if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -1989,7 +1994,8 @@ class LicenseManagementAPITester:
         
         success, response = self.run_test("Admin login (session fix test)", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -2199,7 +2205,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Regular admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -2622,7 +2629,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin authentication", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -4228,7 +4236,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -4314,7 +4323,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Normal admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -4904,7 +4914,8 @@ class LicenseManagementAPITester:
         
         success, response = self.run_test("Login Backend admin@demo.com", "POST", "auth/login", 200, admin_credentials)
         if success and 'access_token' in response and 'user' in response:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -5122,7 +5133,8 @@ class LicenseManagementAPITester:
         if success:
             # Check if we got cookies (HttpOnly authentication)
             if 'access_token' in response:
-                self.admin_token = response['access_token']
+                if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -5265,7 +5277,8 @@ class LicenseManagementAPITester:
         if success:
             # Check for access_token or use cookie-based auth
             if 'access_token' in response:
-                self.admin_token = response['access_token']
+                if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
@@ -5855,7 +5868,8 @@ class LicenseManagementAPITester:
         }
         success, response = self.run_test("Admin login", "POST", "auth/login", 200, admin_credentials)
         if success:
-            self.admin_token = response['access_token']
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
