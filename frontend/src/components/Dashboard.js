@@ -30,21 +30,27 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Show welcome message only once per session using localStorage
+  // Show welcome message only once per session using sessionStorage (more appropriate than localStorage)
   useEffect(() => {
     if (user && user.email) {
-      const welcomeKey = `welcome_shown_${user.email}_${new Date().toDateString()}`;
-      const welcomeShown = localStorage.getItem(welcomeKey);
+      const welcomeKey = `welcome_shown_${user.email}`;
+      const welcomeShown = sessionStorage.getItem(welcomeKey);
       
       if (!welcomeShown) {
-        // Small delay to avoid conflict with other toasts
-        setTimeout(() => {
-          toast.success(`Bem-vindo de volta, ${user.name}!`);
-          localStorage.setItem(welcomeKey, 'true');
-        }, 500);
+        // Use a more robust check to prevent multiple calls
+        const timeoutId = setTimeout(() => {
+          // Double check if still not shown to prevent race conditions
+          if (!sessionStorage.getItem(welcomeKey)) {
+            toast.success(`Bem-vindo de volta, ${user.name}!`);
+            sessionStorage.setItem(welcomeKey, 'true');
+          }
+        }, 800); // Increased delay to avoid conflicts
+
+        // Cleanup timeout on unmount
+        return () => clearTimeout(timeoutId);
       }
     }
-  }, [user]); // Remove welcomeShown from dependencies as we use localStorage now
+  }, [user?.email]); // Only depend on user.email to avoid unnecessary re-runs
 
   const fetchDashboardData = async () => {
     try {
