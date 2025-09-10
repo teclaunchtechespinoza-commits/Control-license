@@ -5268,16 +5268,12 @@ class LicenseManagementAPITester:
         if success:
             # Check for access_token or use cookie-based auth
             if 'access_token' in response:
-                if "access_token" in response:
                 self.admin_token = response["access_token"]
+                print(f"   ✅ Admin authenticated successfully with token")
             else:
                 # Using HttpOnly cookies - set flag to use cookie-based auth
                 self.admin_token = "cookie_based_auth"
                 print("   ✅ Admin authentication successful with HttpOnly cookies")
-                print(f"   ✅ Admin authenticated successfully with token")
-            elif response.get('success'):
-                # Cookie-based authentication
-                self.admin_token = "cookie_based_auth"
                 print(f"   ✅ Admin authenticated successfully with cookies")
             else:
                 print("   ❌ CRITICAL: Admin authentication failed - no token or success flag!")
