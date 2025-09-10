@@ -435,7 +435,7 @@ const MaintenanceModule = () => {
 
   const deleteRole = async (roleId) => {
     try {
-      const token = localStorage.getItem('access_token');
+      // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
       await api.delete(`/rbac/roles/${roleId}`);
       
       toast.success('Papel excluído com sucesso');
