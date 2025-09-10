@@ -278,36 +278,16 @@ const MaintenanceModule = () => {
       console.log('Buscando dados RBAC com token válido...');
       console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
       
-      // Usar fetch direto com URLs absolutos (máscara de URL)
-      const requests = [
-        fetch(getApiUrl('rbac/roles'), {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(getApiUrl('rbac/permissions'), {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(getApiUrl('users'), {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ];
+      // Usar API central que injeta Authorization + X-Tenant-ID automaticamente
+      const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all([
+        api.get('/rbac/roles'),
+        api.get('/rbac/permissions'),
+        api.get('/users')
+      ]);
 
-      const responses = await Promise.all(requests);
-      
-      // Verificar se todas as respostas são válidas
-      for (let i = 0; i < responses.length; i++) {
-        if (!responses[i].ok) {
-          throw new Error(`Request ${i} failed: ${responses[i].status}`);
-        }
-      }
-
-      const [rolesResponse, permissionsResponse, usersResponse] = await Promise.all(
-        responses.map(response => response.json())
-      );
-
-      // Garantir que os dados sejam arrays válidos
-      const rolesData = Array.isArray(rolesResponse) ? rolesResponse : [];
-      const permissionsData = Array.isArray(permissionsResponse) ? permissionsResponse : [];
-      const usersData = Array.isArray(usersResponse) ? usersResponse : [];
+      const rolesData = rolesResponse.data;
+      const permissionsData = permissionsResponse.data;
+      const usersData = usersResponse.data;
 
       console.log('Dados RBAC carregados:', { 
         roles: rolesData.length, 
