@@ -27,7 +27,7 @@ import {
   Database,
   Clock
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../api';
 import { toast } from 'sonner';
 
 const MaintenanceModule = () => {
