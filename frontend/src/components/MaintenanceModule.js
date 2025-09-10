@@ -207,12 +207,10 @@ const MaintenanceModule = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
       console.log('Backend URL:', backendUrl);
       
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-      console.log('Token existe:', !!token);
-      console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'NENHUM');
+      // 🔐 SECURITY UPGRADE: Using HttpOnly cookies, no localStorage token check needed
+      console.log('Auth: Using HttpOnly cookies');
       
-      if (!token) {
-        toast.error('Token não encontrado - faça login primeiro');
+      // Remove token validation - API will handle authentication via cookies
         return;
       }
 
