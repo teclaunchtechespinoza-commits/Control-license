@@ -35,7 +35,7 @@ const TenantSelector = ({ currentUser }) => {
     setLoading(true);
     try {
       // Definir header X-Tenant-ID para próximas requisições
-      axios.defaults.headers.common['X-Tenant-ID'] = tenantId;
+      // Tenant ID is now handled automatically by api interceptors
       
       setIsOpen(false);
       
