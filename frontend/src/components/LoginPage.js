@@ -37,9 +37,9 @@ const LoginPage = () => {
     const fetchDemoCredentials = async () => {
       try {
         console.log('Buscando demo credentials...');
-        const response = await axios.get('/demo-credentials');
-        console.log('Demo credentials recebidas:', response.data);
-        setDemoCredentials(response.data);
+        const { data } = await api.get('/demo-credentials');
+        console.log('Demo credentials recebidas:', data);
+        setDemoCredentials(data);
       } catch (error) {
         console.error('Falha ao buscar demo credentials:', error);
       }
