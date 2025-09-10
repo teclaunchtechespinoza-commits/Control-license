@@ -217,7 +217,7 @@ const RegistryModule = () => {
     
     try {
       const config = getTabConfig();
-      await axios.put(`/${config.endpoint}/${editingItem.id}`, formData);
+      await api.put(`/${config.endpoint}/${editingItem.id}`, formData);
       toast.success(`${config.title.slice(0, -1)} atualizado com sucesso!`);
       
       setShowEditDialog(false);
