@@ -25,6 +25,10 @@ class CorrectionsAPITester:
         if token and token != "cookie_based_auth":
             headers["Authorization"] = f"Bearer {token}"
         
+        # CRITICAL FIX: Always add X-Tenant-ID header for authenticated requests
+        if token:
+            headers["X-Tenant-ID"] = "default"  # Use default tenant for testing
+        
         try:
             if method == "GET":
                 response = self.session.get(url, headers=headers)
@@ -40,6 +44,7 @@ class CorrectionsAPITester:
                 
             print(f"🔍 Testing {test_name}...")
             print(f"   URL: {url}")
+            print(f"   Headers: {dict(headers)}")
             
             # Check if status matches expected
             if isinstance(expected_status, list):
