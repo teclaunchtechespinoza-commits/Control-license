@@ -1686,7 +1686,7 @@ async def refresh_token(request: Request, response: Response):
         value=new_refresh_token,
         httponly=True,
         secure=is_secure,
-        samesite="strict",
+        samesite="lax",  # 🔐 Changed from "strict" to "lax" for better cross-origin compatibility
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
         path="/api/auth"
     )
