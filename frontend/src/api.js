@@ -11,6 +11,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_AP
 export const api = axios.create({
   baseURL: `${BACKEND_URL}/api`,
   timeout: 30000, // 30 second timeout
+  withCredentials: true, // 🔐 CRITICAL: Enable cookies for cross-origin requests
   headers: {
     'Content-Type': 'application/json',
   },
