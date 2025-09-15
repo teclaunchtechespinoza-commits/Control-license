@@ -6550,9 +6550,28 @@ if __name__ == "__main__":
             else:
                 print(f"❌ CRITICAL SUPERADMIN INFINITE LOADING FIX TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "rbac-specific":
+            # Run specific RBAC MaintenanceModule test as requested in review
+            print("🚀 RUNNING SPECIFIC RBAC MAINTENANCEMODULE TEST")
+            success = tester.test_rbac_maintenance_module_specific()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("RBAC MAINTENANCEMODULE SPECIFIC TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 80:
+                print(f"🎉 RBAC MAINTENANCEMODULE SPECIFIC TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ RBAC MAINTENANCEMODULE SPECIFIC TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific")
             exit_code = 1
     else:
         # Default: run critical endpoints test as requested in review
