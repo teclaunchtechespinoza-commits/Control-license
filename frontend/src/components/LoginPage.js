@@ -197,36 +197,6 @@ const LoginPage = () => {
                       </button>
                     </div>
                   </div>
-
-                  {demoCredentials && (
-                    <Alert>
-                      <AlertDescription>
-                        <div className="space-y-2">
-                          <p className="font-medium">Credenciais de demonstração:</p>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => useDemoCredentials('admin')}
-                              disabled={isLoading}
-                            >
-                              Admin
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => useDemoCredentials('user')}
-                              disabled={isLoading}
-                            >
-                              Usuário
-                            </Button>
-                          </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="w-full" disabled={isLoading}>
