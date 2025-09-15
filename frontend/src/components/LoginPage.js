@@ -103,25 +103,6 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
-  const useDemoCredentials = (type) => {
-    console.log('useDemoCredentials executado:', { type, demoCredentials });
-    
-    if (demoCredentials && demoCredentials[type]) {
-      const creds = demoCredentials[type];
-      console.log('Aplicando credenciais:', creds);
-      
-      setLoginData({
-        email: creds.email,
-        password: creds.password
-      });
-      
-      toast.success(`Credenciais ${type} carregadas!`);
-      console.log('Credenciais aplicadas com sucesso');
-    } else {
-      console.error('Demo credentials não disponíveis:', { demoCredentials, type });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
