@@ -32,19 +32,7 @@ const LoginPage = () => {
   });
 
   useEffect(() => {
-    // Fetch demo credentials
-    const fetchDemoCredentials = async () => {
-      try {
-        console.log('Buscando demo credentials...');
-        const { data } = await api.get('/demo-credentials');
-        console.log('Demo credentials recebidas:', data);
-        setDemoCredentials(data);
-      } catch (error) {
-        console.error('Falha ao buscar demo credentials:', error);
-      }
-    };
-    
-    fetchDemoCredentials();
+    // Component initialization if needed
   }, []);
 
   // If user is already logged in, redirect to dashboard
