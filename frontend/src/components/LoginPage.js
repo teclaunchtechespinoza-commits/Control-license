@@ -16,7 +16,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [demoCredentials, setDemoCredentials] = useState(null);
 
   // Login form state
   const [loginData, setLoginData] = useState({
