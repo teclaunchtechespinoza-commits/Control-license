@@ -303,13 +303,12 @@ function App() {
               </Routes>
             </div>
             
-            {/* Rodapé com Controle de Versão */}
-            <footer className="bg-white border-t border-gray-200 py-3 px-4 mt-auto">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+            {/* Rodapé simples e harmonioso */}
+            <footer className="bg-gray-50 py-4 px-4 mt-auto">
+              <div className="text-center">
+                <div className="text-sm text-gray-500">
                   © 2025 License Manager. Todos os direitos reservados.
                 </div>
-                <FooterVersion />
               </div>
             </footer>
             
