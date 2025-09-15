@@ -873,3 +873,4 @@
 [2025-09-15 17:36:54] [INFO] health - system_health_check: {"database_response_ms": 4.132000000000001, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-09-15 17:51:54] [INFO] health - system_health_check: {"database_response_ms": 3.133, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-09-15 18:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 30, "licenses_count": 2, "notification_type": "NotificationType.LICENSE_EXPIRING_30", "target_date": "2025-10-15"}
+[2025-09-15 18:06:19] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 59.416610399999996, "total_executions": 0}
