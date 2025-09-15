@@ -870,3 +870,4 @@
 [2025-09-15 11:11:06] [INFO] health - system_health_check: {"database_response_ms": 4.26, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-09-15 17:06:54] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-09-15 17:21:54] [INFO] health - system_health_check: {"database_response_ms": 3.18, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-09-15 17:36:54] [INFO] health - system_health_check: {"database_response_ms": 4.132000000000001, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
