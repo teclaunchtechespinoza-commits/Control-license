@@ -200,10 +200,14 @@ class Settings(BaseSettings):
     
     @validator("cors_origins", pre=True)
     def parse_cors_origins(cls, v):
-        """Parse CORS origins from comma-separated string"""
+        """Parse CORS origins from comma-separated string or list"""
         if isinstance(v, str):
+            # Remove quotes if present and split by comma
+            v = v.strip('"\'')
             return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+        elif isinstance(v, list):
+            return v
+        return []
     
     @validator("secret_key")
     def validate_secret_key(cls, v):
