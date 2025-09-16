@@ -220,7 +220,7 @@ class Settings(BaseSettings):
     def validate_cors_origins(cls, v, values):
         """Validate CORS configuration"""
         allow_credentials = values.get("allow_credentials", True)
-        if allow_credentials and "*" in v:
+        if allow_credentials and "*" in str(v):
             raise ValueError("Cannot use wildcard CORS origins with credentials enabled")
         return v
     
