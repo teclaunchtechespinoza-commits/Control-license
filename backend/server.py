@@ -2608,9 +2608,35 @@ class LicensePlan(LicensePlanBase, BaseEntity):
 
 @api_router.get("/license-plans", response_model=List[LicensePlan])
 async def get_license_plans(current_user: User = Depends(get_current_user)):
-    query_filter = add_tenant_filter({"is_active": True})
-    plans = await db.license_plans.find(query_filter).to_list(1000)
-    return [LicensePlan(**plan) for plan in plans]
+    """
+    Get license plans
+    🚀 SUB-FASE 2.2 - Enhanced with Redis caching (1 hour TTL)
+    """
+    try:
+        # 🚀 NEW: Try to get from cache first
+        from redis_cache_system import get_cached_license_plans
+        
+        tenant_id = get_current_tenant_id()
+        cached_plans = await get_cached_license_plans(tenant_id)
+        
+        if cached_plans:
+            logger.debug("💳 License plans served from Redis cache")
+            return [LicensePlan(**plan) for plan in cached_plans if plan.get("is_active", True)]
+        
+        # 🔄 FALLBACK: Get from database if cache miss
+        logger.debug("💳 License plans fetched from database (cache miss)")
+        
+        query_filter = add_tenant_filter({"is_active": True})
+        plans = await db.license_plans.find(query_filter).to_list(1000)
+        
+        return [LicensePlan(**plan) for plan in plans]
+        
+    except Exception as e:
+        logger.error(f"Error fetching license plans: {str(e)}")
+        # Fallback to direct database query
+        query_filter = add_tenant_filter({"is_active": True})
+        plans = await db.license_plans.find(query_filter).to_list(1000)
+        return [LicensePlan(**plan) for plan in plans]
 
 @api_router.post("/license-plans", response_model=LicensePlan)
 async def create_license_plan(
