@@ -5881,20 +5881,30 @@ async def structured_logging_middleware(request: Request, call_next):
         )
         raise
 
+# 🚀 PHASE 1 SECURITY IMPROVEMENTS - Add new middlewares
+# Order is critical: Error handling → Tenant validation → Existing middlewares
+
+# 1. Global error handling (catch all errors)
+app.add_middleware(ErrorHandlingMiddleware)
+
+# 2. Tenant validation (security-first)
+app.add_middleware(TenantValidationMiddleware, db=db)
+
 # Add structured logging middlewares
 app.add_middleware(ErrorLoggingMiddleware)
 app.add_middleware(PerformanceMonitoringMiddleware) 
 app.add_middleware(StructuredLoggingMiddleware)
 
 # ---------- CORS (origens explícitas; nunca '*' com credentials) ----------
-CORS_ORIGINS = [o for o in (os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")) if o]
-ALLOW_CREDENTIALS = True
+# Use settings from new configuration system
+CORS_ORIGINS = settings.cors_origins
+ALLOW_CREDENTIALS = settings.allow_credentials
 ALLOWED_HEADERS = ["Content-Type", "Authorization", "Accept", "X-Tenant-ID"]
 EXPOSE_HEADERS = ["X-Tenant-ID"]
 
-if ALLOW_CREDENTIALS and any(o.strip() == "*" for o in CORS_ORIGINS):
-    # Harden contra configuração inválida em produção
-    raise RuntimeError("CORS_ORIGINS não pode conter '*' quando allow_credentials=True")
+# Enhanced CORS validation using settings
+if ALLOW_CREDENTIALS and "*" in CORS_ORIGINS:
+    raise RuntimeError("CORS_ORIGINS cannot contain '*' when allow_credentials=True")
 
 app.add_middleware(
     CORSMiddleware,
@@ -5908,6 +5918,7 @@ app.add_middleware(
 # Middlewares de observabilidade, rate limit e tenant context
 # app.add_middleware(ObservabilityMiddleware)  # Disabled due to __call__ signature conflict
 app.add_middleware(RateLimitMiddleware)
+# NOTE: TenantContextMiddleware now works with TenantValidationMiddleware
 app.add_middleware(TenantContextMiddleware)
 app.add_middleware(ResponseTenantHeaderMiddleware)
 
