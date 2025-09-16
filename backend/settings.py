@@ -202,15 +202,12 @@ class Settings(BaseSettings):
     def parse_cors_origins(cls, v):
         """Parse CORS origins from comma-separated string"""
         if isinstance(v, str):
-            # Remove quotes if present and split by comma
-            v = v.strip('"\'')
-            origins = [origin.strip() for origin in v.split(",") if origin.strip()]
-            return origins
+            return v  # Keep as string, will be parsed later when used
         elif isinstance(v, list):
-            return v
+            return ",".join(v)  # Convert list back to string
         elif v is None:
-            return ["http://localhost:3000"]  # Default fallback
-        return [str(v)]  # Convert single value to list
+            return "http://localhost:3000"  # Default fallback
+        return str(v)  # Convert to string
     
     @validator("secret_key")
     def validate_secret_key(cls, v):
