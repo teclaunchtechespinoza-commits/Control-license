@@ -252,6 +252,16 @@ const RegistryModule = () => {
     e.preventDefault();
     
     try {
+      // 🚀 FASE 1 - Enhanced form validation before API call
+      const validationSchema = getValidationSchema(activeTab);
+      if (validationSchema) {
+        const { isValid, errors } = validateForm(formData, validationSchema);
+        if (!isValid) {
+          showValidationErrors(errors);
+          return;
+        }
+      }
+      
       const config = getTabConfig();
       await api.put(`/${config.endpoint}/${editingItem.id}`, formData);
       toast.success(`${config.title.slice(0, -1)} atualizado com sucesso!`);
@@ -266,10 +276,17 @@ const RegistryModule = () => {
       }, 500);
     } catch (error) {
       console.error(`Failed to update ${activeTab}:`, error);
-      const errorMessage = typeof error.response?.data?.detail === 'string' 
-        ? error.response.data.detail 
-        : `Erro ao atualizar ${activeTab}`;
-      toast.error(errorMessage);
+      
+      // 🚀 FASE 1 - Enhanced error handling
+      handleApiFormError(error, null);
+      
+      // Fallback for non-structured errors
+      if (!error.response?.data?.error_code) {
+        const errorMessage = typeof error.response?.data?.detail === 'string' 
+          ? error.response.data.detail 
+          : `Erro ao atualizar ${activeTab}`;
+        toast.error(errorMessage);
+      }
     }
   };
 
