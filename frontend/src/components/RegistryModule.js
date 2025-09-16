@@ -122,6 +122,16 @@ const RegistryModule = () => {
     setFormData({});
   };
 
+  // 🚀 FASE 1 - Get validation schema based on active tab
+  const getValidationSchema = (tabName) => {
+    switch (tabName) {
+      case 'companies':
+        return schemas.company;
+      default:
+        return null; // No validation for other tabs yet
+    }
+  };
+
   const getTabConfig = () => {
     const configs = {
       categories: {
