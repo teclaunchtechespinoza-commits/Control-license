@@ -100,13 +100,25 @@ class DatabaseOptimizer:
         
         try:
             # 1. CRITICAL: Unique compound index for login (most frequent query)
-            await self.db.users.create_index(
-                [("tenant_id", 1), ("email", 1)], 
-                unique=True,
-                name="idx_tenant_email_unique",
-                background=True
+            # Check if similar index already exists
+            existing_indexes = await self.db.users.list_indexes().to_list()
+            has_tenant_email_index = any(
+                'tenant_id_1_email_1' in str(idx.get('key', {})) or
+                idx.get('name', '').startswith('idx_tenant_email') or
+                idx.get('name') == 'uniq_tenant_email'
+                for idx in existing_indexes
             )
-            logger.info("   ✅ Created: tenant_id + email (unique) - LOGIN OPTIMIZATION")
+            
+            if not has_tenant_email_index:
+                await self.db.users.create_index(
+                    [("tenant_id", 1), ("email", 1)], 
+                    unique=True,
+                    name="idx_tenant_email_unique",
+                    background=True
+                )
+                logger.info("   ✅ Created: tenant_id + email (unique) - LOGIN OPTIMIZATION")
+            else:
+                logger.info("   ✅ Exists: tenant_id + email index - LOGIN OPTIMIZATION")
             
             # 2. User listing by tenant (dashboard, user management)
             await self.db.users.create_index(
@@ -120,7 +132,7 @@ class DatabaseOptimizer:
             await self.db.users.create_index(
                 [("tenant_id", 1), ("role", 1)],
                 name="idx_tenant_role",
-                background=True
+                background=True  
             )
             logger.info("   ✅ Created: tenant_id + role - RBAC QUERIES")
             
@@ -133,7 +145,10 @@ class DatabaseOptimizer:
             logger.info("   ✅ Created: tenant_id + text search - USER SEARCH")
             
         except Exception as e:
-            logger.warning(f"   ⚠️ Users collection optimization issue: {str(e)}")
+            if "already exists" in str(e).lower():
+                logger.info(f"   ℹ️ Users indexes already exist (skipping): {str(e)}")
+            else:
+                logger.warning(f"   ⚠️ Users collection optimization issue: {str(e)}")
     
     async def _optimize_licenses_collection(self):
         """Optimize licenses collection for expiration tracking and filtering"""
