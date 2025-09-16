@@ -60,6 +60,15 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
+// 🚀 FASE 1 - Import enhanced form validation
+import { 
+  validateForm, 
+  showValidationErrors, 
+  schemas, 
+  handleApiFormError,
+  fieldNames 
+} from '../utils/formValidation';
+
 const RegistryModule = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
