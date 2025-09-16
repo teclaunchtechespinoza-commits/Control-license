@@ -200,6 +200,16 @@ const RegistryModule = () => {
     try {
       const config = getTabConfig();
       
+      // 🚀 FASE 1 - Enhanced form validation before API call
+      const validationSchema = getValidationSchema(activeTab);
+      if (validationSchema) {
+        const { isValid, errors } = validateForm(formData, validationSchema);
+        if (!isValid) {
+          showValidationErrors(errors);
+          return;
+        }
+      }
+      
       const response = await api.post(`/${config.endpoint}`, formData);
       
       toast.success(`${config.title.slice(0, -1)} criado com sucesso!`);
@@ -214,10 +224,17 @@ const RegistryModule = () => {
     } catch (error) {
       console.error(`Failed to create ${activeTab}:`, error);
       console.error('Error details:', error.response);
-      const errorMessage = typeof error.response?.data?.detail === 'string' 
-        ? error.response.data.detail 
-        : `Erro ao criar ${activeTab}`;
-      toast.error(errorMessage);
+      
+      // 🚀 FASE 1 - Enhanced error handling with specific API error codes
+      handleApiFormError(error, null);
+      
+      // Fallback for non-structured errors
+      if (!error.response?.data?.error_code) {
+        const errorMessage = typeof error.response?.data?.detail === 'string' 
+          ? error.response.data.detail 
+          : `Erro ao criar ${activeTab}`;
+        toast.error(errorMessage);
+      }
     }
   };
 
