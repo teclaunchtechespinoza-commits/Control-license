@@ -2042,10 +2042,37 @@ async def get_scheduler_status(current_user: User = Depends(get_current_user)):
         logger.error(f"Error getting scheduler status: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting scheduler status: {str(e)}")
 
+# 🚀 SUB-FASE 2.2 - Import Redis cache system
+from redis_cache_system import get_cached_dashboard_stats
+
 @api_router.get("/stats", response_model=SystemStats)
 async def get_system_stats(current_user: User = Depends(get_current_user)):
-    """Get system-wide statistics"""
+    """
+    Get system-wide statistics
+    🚀 SUB-FASE 2.2 - Enhanced with Redis caching for massive performance boost
+    """
     try:
+        # 🚀 NEW: Try to get from cache first (5-minute TTL)
+        tenant_id = get_current_tenant_id()
+        cached_stats = await get_cached_dashboard_stats(tenant_id)
+        
+        if cached_stats:
+            logger.debug("📊 Dashboard stats served from Redis cache")
+            return SystemStats(
+                total_users=cached_stats["total_users"],
+                total_licenses=cached_stats["total_licenses"],  
+                total_clients=cached_stats["total_clients"],
+                total_categories=cached_stats.get("total_categories", 0),
+                total_products=cached_stats.get("total_products", 0),
+                active_users=cached_stats.get("active_users", cached_stats["total_users"]),
+                expired_licenses=cached_stats.get("expired_licenses", 0),
+                pending_licenses=cached_stats.get("pending_licenses", 0),
+                status="operational"
+            )
+        
+        # 🔄 FALLBACK: Calculate from database if cache miss
+        logger.debug("📊 Dashboard stats calculated from database (cache miss)")
+        
         # Apply tenant filter for data isolation
         tenant_filter = add_tenant_filter({})
         
