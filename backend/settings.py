@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     
     # CORS Configuration
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000"],
+        default_factory=lambda: ["http://localhost:3000"],
         env="CORS_ORIGINS",
         description="Allowed CORS origins (comma-separated)"
     )
