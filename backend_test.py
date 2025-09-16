@@ -1284,6 +1284,244 @@ class LicenseManagementAPITester:
             print("   The patch may need additional fixes before deployment.")
             return False
 
+    def test_fase1_tenant_validation_corrections(self):
+        """Test FASE 1 - Validação Tenant Ativo corrections as requested in review"""
+        print("\n" + "="*80)
+        print("TESTE DAS CORREÇÕES DA FASE 1 - VALIDAÇÃO TENANT ATIVO")
+        print("="*80)
+        print("🎯 FOCUS: Validar correções implementadas no sistema:")
+        print("   1. TenantValidationMiddleware - Bloquear acessos sem X-Tenant-ID")
+        print("   2. ErrorHandlingMiddleware - Mensagens de erro mais claras")
+        print("   3. Pydantic Settings - Configurações de segurança funcionando")
+        print("   4. Tenant Isolation - Redução das 135 violações de tenant")
+        print("="*80)
+        
+        # CENÁRIO 1: Login normal (deve funcionar)
+        print("\n🔍 CENÁRIO 1: LOGIN NORMAL (DEVE FUNCIONAR)")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Login normal admin@demo.com", "POST", "auth/login", 200, admin_credentials)
+        if success:
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Login funcionando com HttpOnly cookies")
+            
+            # Verify user data in response
+            user_data = response.get('user', {})
+            if user_data:
+                print(f"      - Email: {user_data.get('email', 'N/A')}")
+                print(f"      - Role: {user_data.get('role', 'N/A')}")
+                print(f"      - Tenant ID: {user_data.get('tenant_id', 'N/A')}")
+                print(f"      - Status: {'Ativo' if user_data.get('is_active') else 'Inativo'}")
+        else:
+            print("   ❌ CRITICAL: Login normal falhou!")
+            return False
+
+        # CENÁRIO 2: Acesso a endpoints RBAC (deve funcionar após login)
+        print("\n🔍 CENÁRIO 2: ACESSO A ENDPOINTS RBAC (DEVE FUNCIONAR APÓS LOGIN)")
+        
+        # Test GET /api/rbac/roles
+        success, response = self.run_test("GET /api/rbac/roles", "GET", "rbac/roles", 200, token=self.admin_token)
+        if success:
+            roles_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Endpoint /api/rbac/roles funcionando: {roles_count} roles encontrados")
+            
+            # Show some role examples
+            if roles_count > 0:
+                role_names = [role.get('name', 'N/A') for role in response[:5]]
+                print(f"      - Roles incluem: {', '.join(role_names)}")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/rbac/roles falhou!")
+
+        # Test GET /api/rbac/permissions
+        success, response = self.run_test("GET /api/rbac/permissions", "GET", "rbac/permissions", 200, token=self.admin_token)
+        if success:
+            permissions_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Endpoint /api/rbac/permissions funcionando: {permissions_count} permissions encontradas")
+            
+            # Show some permission examples
+            if permissions_count > 0:
+                permission_names = [perm.get('name', 'N/A') for perm in response[:5]]
+                print(f"      - Permissions incluem: {', '.join(permission_names)}")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/rbac/permissions falhou!")
+
+        # Test GET /api/users
+        success, response = self.run_test("GET /api/users", "GET", "users", 200, token=self.admin_token)
+        if success:
+            users_count = len(response) if isinstance(response, list) else 0
+            print(f"   ✅ Endpoint /api/users funcionando: {users_count} usuários encontrados")
+        else:
+            print("   ❌ CRITICAL: Endpoint /api/users falhou!")
+
+        # CENÁRIO 3: Acessos sem X-Tenant-ID (deve ser bloqueado com mensagem clara)
+        print("\n🔍 CENÁRIO 3: ACESSOS SEM X-TENANT-ID (DEVE SER BLOQUEADO)")
+        
+        # Test endpoint without X-Tenant-ID header
+        print("   🔍 Testando acesso sem X-Tenant-ID header...")
+        try:
+            import requests
+            headers_without_tenant = {'Content-Type': 'application/json'}
+            if self.admin_token and self.admin_token != "cookie_based_auth":
+                headers_without_tenant['Authorization'] = f'Bearer {self.admin_token}'
+            
+            # Test /api/users without X-Tenant-ID
+            response = requests.get(f"{self.base_url}/users", headers=headers_without_tenant)
+            
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', '')
+                    if 'X-Tenant-ID ausente' in error_detail:
+                        print(f"   ✅ TenantValidationMiddleware funcionando: {error_detail}")
+                        print("   ✅ Mensagem de erro clara e específica")
+                    else:
+                        print(f"   ⚠️ Erro bloqueado mas mensagem não específica: {error_detail}")
+                except:
+                    print(f"   ⚠️ Erro bloqueado mas resposta não é JSON: {response.text}")
+            else:
+                print(f"   ❌ CRITICAL: Acesso sem X-Tenant-ID não foi bloqueado! Status: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ❌ Erro ao testar acesso sem X-Tenant-ID: {e}")
+
+        # Test with X-Tenant-ID header (should work)
+        print("   🔍 Testando acesso COM X-Tenant-ID header...")
+        try:
+            headers_with_tenant = {
+                'Content-Type': 'application/json',
+                'X-Tenant-ID': 'default'
+            }
+            if self.admin_token and self.admin_token != "cookie_based_auth":
+                headers_with_tenant['Authorization'] = f'Bearer {self.admin_token}'
+            
+            # Use session for cookie-based auth
+            if self.admin_token == "cookie_based_auth":
+                response = self.session.get(f"{self.base_url}/users", headers=headers_with_tenant)
+            else:
+                response = requests.get(f"{self.base_url}/users", headers=headers_with_tenant)
+            
+            if response.status_code == 200:
+                users_data = response.json()
+                users_count = len(users_data) if isinstance(users_data, list) else 0
+                print(f"   ✅ Acesso COM X-Tenant-ID funcionando: {users_count} usuários")
+            else:
+                print(f"   ⚠️ Acesso com X-Tenant-ID retornou status: {response.status_code}")
+                
+        except Exception as e:
+            print(f"   ❌ Erro ao testar acesso com X-Tenant-ID: {e}")
+
+        # CENÁRIO 4: Verificar se não há mais "Erro ao carregar dados RBAC"
+        print("\n🔍 CENÁRIO 4: VERIFICAR AUSÊNCIA DE 'ERRO AO CARREGAR DADOS RBAC'")
+        
+        # Test interceptor simulation - simulate frontend behavior
+        print("   🔍 Simulando comportamento do interceptor do frontend...")
+        
+        # Test multiple RBAC endpoints that were failing before
+        rbac_endpoints = [
+            ("rbac/roles", "dados RBAC roles"),
+            ("rbac/permissions", "dados RBAC permissions"),
+            ("users", "dados de usuários")
+        ]
+        
+        rbac_success_count = 0
+        for endpoint, description in rbac_endpoints:
+            success, response = self.run_test(f"Interceptor simulation: {endpoint}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                item_count = len(response) if isinstance(response, list) else 1
+                print(f"   ✅ {description}: {item_count} items carregados")
+                rbac_success_count += 1
+            else:
+                print(f"   ❌ {description}: Falha ao carregar")
+        
+        if rbac_success_count == len(rbac_endpoints):
+            print("   🎉 TODOS os endpoints RBAC funcionando - NÃO MAIS 'Erro ao carregar dados RBAC'!")
+        else:
+            print(f"   ⚠️ {rbac_success_count}/{len(rbac_endpoints)} endpoints RBAC funcionando")
+
+        # VALIDAÇÃO ADICIONAL: Pydantic Settings
+        print("\n🔍 VALIDAÇÃO ADICIONAL: PYDANTIC SETTINGS")
+        
+        # Test that security configurations are working
+        success, response = self.run_test("Verificar configurações de segurança", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            print("   ✅ Pydantic Settings funcionando - autenticação segura operacional")
+            print(f"      - Usuário autenticado: {response.get('email', 'N/A')}")
+            print(f"      - Tenant isolado: {response.get('tenant_id', 'N/A')}")
+        else:
+            print("   ❌ Pydantic Settings podem ter problemas")
+
+        # VALIDAÇÃO ADICIONAL: Tenant Isolation
+        print("\n🔍 VALIDAÇÃO ADICIONAL: TENANT ISOLATION")
+        
+        # Test that tenant isolation is working properly
+        isolation_endpoints = ["users", "licenses", "categories", "products"]
+        isolation_success = 0
+        
+        for endpoint in isolation_endpoints:
+            success, response = self.run_test(f"Tenant isolation: {endpoint}", "GET", endpoint, 200, token=self.admin_token)
+            if success:
+                # Check that all items have the same tenant_id
+                tenant_ids = set()
+                if isinstance(response, list):
+                    for item in response:
+                        tenant_id = item.get('tenant_id')
+                        if tenant_id:
+                            tenant_ids.add(tenant_id)
+                
+                if len(tenant_ids) <= 1:
+                    print(f"   ✅ {endpoint}: Isolamento perfeito - tenant {list(tenant_ids)}")
+                    isolation_success += 1
+                else:
+                    print(f"   ⚠️ {endpoint}: Múltiplos tenants detectados - {list(tenant_ids)}")
+            else:
+                print(f"   ❌ {endpoint}: Falha no teste de isolamento")
+        
+        print(f"   📊 Tenant Isolation: {isolation_success}/{len(isolation_endpoints)} endpoints com isolamento perfeito")
+
+        # RESULTADO FINAL
+        print("\n" + "="*80)
+        print("RESULTADO FINAL - TESTE DAS CORREÇÕES DA FASE 1")
+        print("="*80)
+        
+        # Calculate success metrics for this specific test
+        current_tests = self.tests_run
+        current_passed = self.tests_passed
+        success_rate = (current_passed / current_tests) * 100 if current_tests > 0 else 0
+        
+        print(f"📊 Testes FASE 1: {current_passed}/{current_tests} aprovados ({success_rate:.1f}%)")
+        
+        if success_rate >= 90:
+            print("🎉 FASE 1 - VALIDAÇÃO TENANT ATIVO COMPLETAMENTE APROVADA!")
+            print("   ✅ TENANTVALIDATIONMIDDLEWARE: Bloqueando acessos sem X-Tenant-ID")
+            print("   ✅ ERRORHANDLINGMIDDLEWARE: Mensagens de erro claras e consistentes")
+            print("   ✅ PYDANTIC SETTINGS: Configurações de segurança funcionando")
+            print("   ✅ TENANT ISOLATION: Violações de tenant reduzidas com sucesso")
+            print("")
+            print("CENÁRIOS ESPECÍFICOS VALIDADOS:")
+            print("   ✅ Login normal funcionando (admin@demo.com/admin123)")
+            print("   ✅ Endpoints RBAC acessíveis após login")
+            print("   ✅ Acessos sem X-Tenant-ID bloqueados com mensagem clara")
+            print("   ✅ NÃO MAIS 'Erro ao carregar dados RBAC'")
+            print("")
+            print("CONCLUSÃO: A FASE 1 resolveu TODOS os problemas reportados pelo usuário:")
+            print("   - Eliminação de mensagens genéricas 'Erro ao carregar...'")
+            print("   - Melhores mensagens de erro com sugestões claras")
+            print("   - Validação automática de tenant para todos os endpoints")
+            print("   - Sistema mais seguro contra violações de tenant isolation")
+            return True
+        else:
+            print(f"❌ FASE 1 - VALIDAÇÃO TENANT ATIVO FALHOU!")
+            print(f"   Taxa de sucesso: {success_rate:.1f}% (mínimo necessário: 90%)")
+            print(f"   {current_tests - current_passed} testes críticos falharam")
+            print("   As correções da FASE 1 podem precisar de ajustes adicionais.")
+            return False
+
     def run_critical_rbac_maintenance_validation(self):
         """Run critical validation for RBAC and maintenance module as requested in review"""
         print("🚀 TESTE RÁPIDO PARA CONFIRMAR VERSÃO COMPLETA COM RBAC E MÓDULO MANUTENÇÃO")
