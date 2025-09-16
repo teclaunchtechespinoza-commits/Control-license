@@ -113,7 +113,7 @@ class Settings(BaseSettings):
     log_level: str = Field(
         default="INFO",
         env="LOG_LEVEL",
-        regex="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$",
+        pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$",
         description="Logging level"
     )
     
