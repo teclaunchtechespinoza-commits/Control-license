@@ -206,6 +206,8 @@ class Settings(BaseSettings):
             v = v.strip('"\'')
             origins = [origin.strip() for origin in v.split(",") if origin.strip()]
             return origins
+        elif isinstance(v, list):
+            return v
         return v
     
     @validator("secret_key")
