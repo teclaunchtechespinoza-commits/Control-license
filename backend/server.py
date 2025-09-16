@@ -23,6 +23,11 @@ import sys
 import random
 from starlette.responses import JSONResponse
 
+# 🚀 PHASE 1 SECURITY IMPROVEMENTS - Import new middlewares
+from tenant_validation import TenantValidationMiddleware, get_validated_tenant, get_tenant_id
+from error_handling import ErrorHandlingMiddleware, TenantError, BusinessLogicError
+from settings import settings, validate_production_settings, get_security_info
+
 # Import tenant system
 from tenant_system import (
     Tenant, TenantCreate, TenantUpdate, TenantStatus, TenantPlan,
