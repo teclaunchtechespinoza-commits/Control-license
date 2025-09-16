@@ -5096,10 +5096,76 @@ async def create_license(
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(
     request: Request,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    tenant_db = Depends(get_tenant_database),
+    pagination: Dict = Depends(get_pagination_params),
+    metrics: RequestMetrics = Depends(get_request_metrics)
 ):
+    """
+    Get licenses with pagination and scope filtering
+    🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and automatic tenant filtering
+    """
     try:
-        # paginação via query string ?page=&size= (limites razoáveis)
+        # 🚀 NEW: Use enhanced pagination from dependency injection
+        logger.debug(f"📄 Listing licenses with pagination: page={pagination['page']}, limit={pagination['limit']}")
+        
+        # Build scope filter (existing business logic)
+        base_filter = {}
+        
+        # Apply role-based scope filtering
+        if current_user.role == UserRole.ADMIN:
+            # Admin sees licenses for their clients
+            base_filter["admin_vendor_id"] = current_user.id
+        elif current_user.role == UserRole.USER:
+            # Users see only their own licenses
+            base_filter["user_id"] = current_user.id
+        # SUPER_ADMIN sees all licenses in the tenant
+        
+        # 🚀 NEW: Use tenant database with automatic tenant filtering
+        licenses = await tenant_db.find(
+            "licenses",
+            base_filter,
+            skip=pagination["skip"],
+            limit=pagination["limit"]
+        )
+        
+        # Record metrics
+        metrics.record_db_query()
+        
+        # Clean up licenses data and handle missing required fields
+        valid_licenses = []
+        for license_data in licenses:
+            # Remove MongoDB ObjectId
+            if "_id" in license_data:
+                license_data.pop("_id")
+            
+            # Ensure required fields have default values
+            if "license_type" not in license_data:
+                license_data["license_type"] = "standard"
+            if "status" not in license_data:
+                license_data["status"] = "active"
+            if "client_id" not in license_data:
+                license_data["client_id"] = ""
+            if "plan_id" not in license_data:
+                license_data["plan_id"] = ""
+            
+            try:
+                valid_license = License(**license_data)
+                valid_licenses.append(valid_license)
+            except Exception as validation_error:
+                logger.warning(f"Skipping invalid license {license_data.get('id', 'unknown')}: {validation_error}")
+                continue
+        
+        logger.debug(f"📄 Found {len(valid_licenses)} valid licenses for {current_user.role} user {current_user.email}")
+        
+        return valid_licenses
+        
+    except Exception as e:
+        logger.error(f"Error listing licenses: {str(e)}")
+        # 🔄 FALLBACK: Use original implementation if dependency injection fails
+        logger.warning("Falling back to original license listing implementation")
+        
+        # Original pagination logic
         try:
             page = int(request.query_params.get("page", "1"))
             size = int(request.query_params.get("size", "50"))
