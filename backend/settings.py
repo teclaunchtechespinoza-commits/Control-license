@@ -208,7 +208,9 @@ class Settings(BaseSettings):
             return origins
         elif isinstance(v, list):
             return v
-        return v
+        elif v is None:
+            return ["http://localhost:3000"]  # Default fallback
+        return [str(v)]  # Convert single value to list
     
     @validator("secret_key")
     def validate_secret_key(cls, v):
