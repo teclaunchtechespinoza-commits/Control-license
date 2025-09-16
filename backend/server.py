@@ -474,14 +474,29 @@ async def check_role_duplicates(name: str, exclude_id: str = None, tenant_id: st
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Security Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Reduzido para 15 minutos (mais seguro)
-REFRESH_TOKEN_EXPIRE_DAYS = 30
+# 🚀 PHASE 1 SECURITY IMPROVEMENTS - Use Pydantic Settings
+# Replace manual environment variable loading with secure settings validation
+
+# Validate production settings if needed
+if settings.is_production:
+    validate_production_settings()
+
+# Use settings from secure configuration
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+REFRESH_TOKEN_EXPIRE_DAYS = settings.refresh_token_expire_days
+
+# Log security configuration (safe information only)  
+structured_logger.info(
+    EventCategory.SECURITY,
+    "security_config_loaded",
+    "Security configuration loaded",
+    details=get_security_info()
+)
 
 # Redis Configuration for Refresh Tokens
-REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+REDIS_URL = settings.redis_url
 redis_client = None
 
 # Initialize Redis connection for refresh tokens
