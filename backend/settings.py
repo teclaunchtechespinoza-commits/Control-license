@@ -100,7 +100,7 @@ class Settings(BaseSettings):
     environment: str = Field(
         default="development",
         env="ENVIRONMENT",
-        regex="^(development|staging|production)$",
+        pattern="^(development|staging|production)$",
         description="Application environment"
     )
     
