@@ -2116,6 +2116,36 @@ async def get_system_stats(current_user: User = Depends(get_current_user)):
         logger.error(f"Error getting system stats: {e}")
         raise HTTPException(status_code=500, detail="Error retrieving system statistics")
 
+
+# 🚀 SUB-FASE 2.2 - Cache Performance Monitoring Endpoint
+@api_router.get("/cache/performance")
+async def get_cache_performance(current_user: User = Depends(get_current_admin_user)):
+    """
+    Get Redis cache performance statistics
+    🚀 SUB-FASE 2.2 - Monitor cache hit rates and performance
+    """
+    try:
+        from redis_cache_system import get_cache_performance_report
+        
+        performance_report = await get_cache_performance_report()
+        
+        return {
+            "cache_performance": performance_report,
+            "system_info": {
+                "timestamp": datetime.utcnow().isoformat(),
+                "tenant_id": get_current_tenant_id(),
+                "user": current_user.email
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting cache performance: {str(e)}")
+        return {
+            "error": "Cache performance monitoring unavailable",
+            "details": str(e),
+            "fallback_mode": True
+        }
+
 # User Management Routes (keeping existing)
 @api_router.get("/users", response_model=List[User])
 async def list_users(request: Request, current_user: User = Depends(get_current_user)):
