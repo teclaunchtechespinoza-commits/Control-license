@@ -61,119 +61,240 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle authentication errors and common responses
+// Response interceptor para tratamento de erros avançado
 api.interceptors.response.use(
-  (response) => {
-    // Successful response
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const { response, config } = error;
     
+    // 🚀 FASE 1 - TRATAMENTO DE ERROS CONSISTENTE
+    // Enhanced error handling with structured error codes
+    
+    if (response?.data) {
+      const errorData = response.data;
+      const errorCode = errorData.error_code;
+      const suggestion = errorData.suggestion;
+      const errorId = errorData.error_id;
+      
+      console.group('🚨 Enhanced Error Handling');
+      console.log('Status:', response.status);
+      console.log('Error Code:', errorCode);
+      console.log('Message:', errorData.detail);
+      console.log('Suggestion:', suggestion);
+      if (errorId) console.log('Error ID:', errorId);
+      console.groupEnd();
+      
+      // Handle specific error codes with enhanced UX
+      switch (errorCode) {
+        case 'AUTHENTICATION_REQUIRED':
+          return handleAuthenticationError(error, config);
+          
+        case 'TENANT_ID_REQUIRED':
+          return handleTenantError(errorData);
+          
+        case 'INSUFFICIENT_PERMISSIONS':
+          return handlePermissionError(errorData);
+          
+        case 'VALIDATION_ERROR':
+        case 'VALIDATION_FAILED':
+          return handleValidationError(errorData);
+          
+        case 'TENANT_NOT_FOUND':
+        case 'TENANT_INACTIVE':
+          return handleTenantStatusError(errorData);
+          
+        case 'INTERNAL_SERVER_ERROR':
+          return handleInternalError(errorData);
+          
+        default:
+          // Handle legacy 401 errors and fallback cases
+          if (response?.status === 401) {
+            return handleAuthenticationError(error, config);
+          }
+      }
+    }
+    
+    // Legacy error handling for old-style errors
     if (response?.status === 401) {
-      // 🔄 SECURITY UPGRADE: Try to refresh token but prevent infinite loops
-      console.warn('Access token expired...');
-      
-      // 🚫 CRITICAL: Prevent infinite loops - don't retry refresh endpoints
-      if (config.url?.includes('/auth/refresh') || config.url?.includes('/auth/me')) {
-        console.warn('❌ Auth endpoint failed, redirecting to login...');
-      } else {
-        console.warn('Attempting token refresh...');
-        
-        try {
-          // Try to refresh the token
-          const refreshResponse = await api.post('/auth/refresh');
-          if (refreshResponse.status === 200) {
-            console.log('✅ Token refreshed successfully, retrying original request');
-            // Retry the original request
-            return api.request(config);
-          }
-        } catch (refreshError) {
-          console.warn('❌ Token refresh failed:', refreshError.response?.status);
-        }
-      }
-      
-      // If refresh failed or was skipped, clear auth data and redirect
-      console.warn('Authentication failed, redirecting to login...');
-      
-      // Clear remaining auth-related data (cookies cleared by server)
-      localStorage.removeItem('user');
-      localStorage.removeItem('tenant_id');
-      
-      // Redirect to login (avoid infinite loops)
-      if (!window.location.pathname.includes('/login')) {
-        if (window.toast) {
-          window.toast.error('Sessão expirada. Redirecionando para login...');
-        }
-        
-        // Redirect after a brief delay
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 1500);
-      }
-    } else if (response?.status === 400) {
-      // 🚨 CRITICAL: Handle missing tenant header specifically
-      const errorDetail = response?.data?.detail || '';
-      if (errorDetail.includes('X-Tenant-ID') || errorDetail.includes('tenant')) {
-        console.error('❌ X-Tenant-ID header missing or invalid');
-        if (window.toast) {
-          window.toast.error('Erro de configuração: Selecione um tenant para continuar');
-        }
-        // Try to reload tenant_id from user data
-        try {
-          const userData = localStorage.getItem('user');
-          if (userData) {
-            const user = JSON.parse(userData);
-            if (user.tenant_id) {
-              localStorage.setItem('tenant_id', user.tenant_id);
-              console.log('🔄 Tenant ID restored from user data:', user.tenant_id);
-              // Could retry the request here if needed
-            }
-          }
-        } catch (e) {
-          console.error('Failed to restore tenant_id:', e);
-        }
-      } else {
-        console.warn('Bad Request (400):', errorDetail);
-        if (window.toast) {
-          window.toast.error('Requisição inválida: ' + errorDetail);
-        }
-      }
-    } else if (response?.status === 403) {
-      // Forbidden - insufficient permissions (user is authenticated but lacks permission)
-      console.warn('Access denied (403) - authenticated but insufficient permissions');
-      if (window.toast) {
-        window.toast.error('Acesso negado: Você não tem permissão para esta ação.');
-      }
-    } else if (response?.status === 404) {
-      // Not Found - possibly wrong URL (classic /api/api problem)
-      console.warn('Not Found (404) - check if URL is correct');
-      const requestUrl = config?.url || 'unknown';
-      if (requestUrl.includes('/api/api')) {
-        console.error('🚨 DETECTED /api/api double prefix in URL:', requestUrl);
-        if (window.toast) {
-          window.toast.error('Erro de configuração: URL duplicada detectada');
-        }
-      }
-    } else if (response?.status >= 500) {
-      // Server error
-      console.error('Server error:', response.data);
-      
-      if (window.toast) {
-        window.toast.error('Erro do servidor. Tente novamente em alguns instantes.');
-      }
-    } else if (!response) {
-      // Network error
-      console.error('Network error:', error.message);
-      
-      if (window.toast) {
-        window.toast.error('Erro de conexão. Verifique sua internet.');
-      }
+      return handleAuthenticationError(error, config);
     }
     
     return Promise.reject(error);
   }
 );
+
+// 🔐 Enhanced Authentication Error Handler
+async function handleAuthenticationError(error, config) {
+  console.warn('🔐 Authentication Error - Enhanced Handler');
+  
+  // 🚫 CRITICAL: Prevent infinite loops - don't retry refresh endpoints
+  if (config.url?.includes('/auth/refresh') || config.url?.includes('/auth/me')) {
+    console.warn('❌ Auth endpoint failed, redirecting to login...');
+    redirectToLogin('Sessão expirada. Faça login novamente.');
+    return Promise.reject(error);
+  }
+  
+  console.warn('🔄 Attempting token refresh...');
+  
+  try {
+    // Try to refresh the token
+    const refreshResponse = await api.post('/auth/refresh');
+    if (refreshResponse.status === 200) {
+      console.log('✅ Token refreshed successfully, retrying original request');
+      // Retry the original request
+      return api.request(config);
+    }
+  } catch (refreshError) {
+    console.warn('❌ Token refresh failed:', refreshError.response?.status);
+  }
+  
+  // If refresh failed, show enhanced message and redirect
+  redirectToLogin('Sua sessão expirou. Você será redirecionado para fazer login.');
+  return Promise.reject(error);
+}
+
+// 🏢 Tenant Error Handler
+function handleTenantError(errorData) {
+  if (window.toast) {
+    window.toast.error('Problema de organização detectado', {
+      description: 'Tente fazer logout e login novamente',
+      action: {
+        label: 'Logout',
+        onClick: () => {
+          // Trigger logout
+          localStorage.removeItem('user');
+          localStorage.removeItem('tenant_id');
+          window.location.href = '/login';
+        }
+      }
+    });
+  }
+  return Promise.reject(new Error(errorData.detail));
+}
+
+// 🚫 Permission Error Handler  
+function handlePermissionError(errorData) {
+  if (window.toast) {
+    window.toast.error('Acesso negado', {
+      description: errorData.detail,
+      action: {
+        label: 'Falar com Admin',
+        onClick: () => {
+          // Could open contact modal or redirect to help
+          console.log('User requested admin contact');
+        }
+      }
+    });
+  }
+  return Promise.reject(new Error(errorData.detail));
+}
+
+// 📝 Validation Error Handler
+function handleValidationError(errorData) {
+  console.group('📝 Validation Error Details');
+  
+  if (errorData.errors && Array.isArray(errorData.errors)) {
+    // Enhanced validation with field-specific errors
+    errorData.errors.forEach(err => {
+      console.log(`Field: ${err.field} - ${err.message}`);
+    });
+    
+    const fieldCount = errorData.errors.length;
+    const mainMessage = `${fieldCount} campo${fieldCount > 1 ? 's' : ''} ${fieldCount > 1 ? 'precisam' : 'precisa'} de correção`;
+    
+    if (window.toast) {
+      window.toast.error('Erro de validação', {
+        description: mainMessage,
+        duration: 5000 // Longer duration for validation errors
+      });
+    }
+  } else {
+    // Generic validation error
+    if (window.toast) {
+      window.toast.error('Dados inválidos', {
+        description: errorData.suggestion || 'Verifique os campos e tente novamente'
+      });
+    }
+  }
+  
+  console.groupEnd();
+  return Promise.reject(new Error(errorData.detail));
+}
+
+// 🏢 Tenant Status Error Handler
+function handleTenantStatusError(errorData) {
+  const isInactive = errorData.error_code === 'TENANT_INACTIVE';
+  const title = isInactive ? 'Organização Suspensa' : 'Organização Não Encontrada';
+  
+  if (window.toast) {
+    window.toast.error(title, {
+      description: errorData.detail,
+      action: {
+        label: 'Contatar Suporte',
+        onClick: () => {
+          // Could open support modal or redirect to help
+          console.log('User requested support contact');
+        }
+      }
+    });
+  }
+  
+  // For tenant issues, might need to redirect or clear session
+  if (isInactive) {
+    setTimeout(() => {
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant_id');
+      window.location.href = '/login';
+    }, 3000);
+  }
+  
+  return Promise.reject(new Error(errorData.detail));
+}
+
+// 💥 Internal Error Handler
+function handleInternalError(errorData) {
+  const errorId = errorData.error_id || 'N/A';
+  
+  if (window.toast) {
+    window.toast.error('Erro interno do servidor', {
+      description: `Erro ID: ${errorId}. Se persistir, contate o suporte.`,
+      duration: 8000, // Longer duration for server errors
+      action: {
+        label: 'Copiar ID',
+        onClick: () => {
+          navigator.clipboard.writeText(errorId);
+          window.toast.success('ID do erro copiado!');
+        }
+      }
+    });
+  }
+  
+  return Promise.reject(new Error(errorData.detail));
+}
+
+// 🔄 Enhanced Redirect to Login
+function redirectToLogin(message) {
+  // Clear remaining auth-related data (cookies cleared by server)
+  localStorage.removeItem('user');
+  localStorage.removeItem('tenant_id');
+  
+  // Show enhanced toast message
+  if (window.toast) {
+    window.toast.error(message, {
+      action: {
+        label: 'Ir para Login',
+        onClick: () => window.location.href = '/login'
+      }
+    });
+  }
+  
+  // Redirect after a brief delay (avoid infinite loops)
+  if (!window.location.pathname.includes('/login')) {
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 2000);
+  }
+}
 
 // Helper functions for common API operations
 export const apiHelpers = {
