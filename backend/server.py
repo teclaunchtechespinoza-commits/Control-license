@@ -4700,10 +4700,37 @@ async def create_category(
 
 @api_router.get("/categories", response_model=List[Category])
 async def get_categories(current_user: User = Depends(get_current_user)):
-    # Aplicar filtro de tenant
-    query_filter = add_tenant_filter({"is_active": True})
-    categories = await db.categories.find(query_filter).to_list(1000)
-    return [Category(**category) for category in categories]
+    """
+    Get categories
+    🚀 SUB-FASE 2.2 - Enhanced with Redis caching (1 hour TTL)
+    """
+    try:
+        # 🚀 NEW: Try to get from cache first
+        from redis_cache_system import get_cached_categories
+        
+        tenant_id = get_current_tenant_id()
+        cached_categories = await get_cached_categories(tenant_id)
+        
+        if cached_categories:
+            logger.debug("📁 Categories served from Redis cache")
+            return [Category(**category) for category in cached_categories if category.get("is_active", True)]
+        
+        # 🔄 FALLBACK: Get from database if cache miss
+        logger.debug("📁 Categories fetched from database (cache miss)")
+        
+        # Aplicar filtro de tenant
+        query_filter = add_tenant_filter({"is_active": True})
+        categories = await db.categories.find(query_filter).to_list(1000)
+        
+        # Cache the result for future requests (handled by get_cached_categories)
+        return [Category(**category) for category in categories]
+        
+    except Exception as e:
+        logger.error(f"Error fetching categories: {str(e)}")
+        # Fallback to direct database query
+        query_filter = add_tenant_filter({"is_active": True})
+        categories = await db.categories.find(query_filter).to_list(1000)
+        return [Category(**category) for category in categories]
 
 @api_router.get("/categories/{category_id}", response_model=Category)
 async def get_category(category_id: str, current_user: User = Depends(get_current_user)):
