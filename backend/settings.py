@@ -248,6 +248,13 @@ class Settings(BaseSettings):
         return self.environment == "development"
     
     @property
+    def cors_origins_list(self) -> List[str]:
+        """Get CORS origins as a list"""
+        if isinstance(self.cors_origins, str):
+            return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        return self.cors_origins
+    
+    @property
     def database_url(self) -> str:
         """Get complete database URL"""
         return f"{self.mongo_url}/{self.db_name}"
