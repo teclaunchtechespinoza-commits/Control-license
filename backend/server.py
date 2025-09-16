@@ -6159,33 +6159,43 @@ async def initialize_default_tenant():
 async def ensure_critical_indexes():
     """
     Ensure critical database indexes are created for optimal performance
+    🚀 SUB-FASE 2.1 - Enhanced with comprehensive performance optimization
     """
     try:
-        logger.info("Ensuring critical database indexes...")
+        logger.info("🚀 SUB-FASE 2.1 - Starting comprehensive database optimization...")
         
-        # Import and use the minimal optimizer
-        from minimal_optimizer import MinimalOptimizer
-        optimizer = MinimalOptimizer()
-        await optimizer.connect()
+        # 🚀 NEW: Use advanced database optimizer
+        from database_optimization import optimize_database_performance
+        success = await optimize_database_performance(db)
         
-        # Check if optimization is needed (simple check for existing indexes)
-        collections = await optimizer.db.list_collection_names() 
-        if "licenses" in collections:
-            indexes = await optimizer.db.licenses.list_indexes().to_list(None)
-            has_tenant_index = any(idx.get("name") == "tenant_expires_idx" for idx in indexes)
+        if success:
+            logger.info("✅ SUB-FASE 2.1 - Advanced database optimization completed successfully!")
+        else:
+            logger.warning("⚠️ Advanced optimization failed, falling back to minimal optimizer...")
             
-            if not has_tenant_index:
-                logger.info("Creating essential database indexes...")
-                await optimizer.create_essential_indexes()
-                logger.info("✅ Critical database indexes created successfully")
-            else:
-                logger.info("✅ Critical database indexes already exist")
-        
-        await optimizer.close()
+            # Fallback to existing minimal optimizer
+            from minimal_optimizer import MinimalOptimizer
+            optimizer = MinimalOptimizer()
+            await optimizer.connect()
+            
+            # Check if optimization is needed (simple check for existing indexes)
+            collections = await optimizer.db.list_collection_names() 
+            if "licenses" in collections:
+                indexes = await optimizer.db.licenses.list_indexes().to_list(None)
+                has_tenant_index = any(idx.get("name") == "tenant_expires_idx" for idx in indexes)
+                
+                if not has_tenant_index:
+                    logger.info("Creating essential database indexes...")
+                    await optimizer.create_essential_indexes()
+                    logger.info("✅ Critical database indexes created successfully")
+                else:
+                    logger.info("✅ Critical database indexes already exist")
+            
+            await optimizer.close()
         
     except Exception as e:
-        logger.error(f"Failed to ensure critical indexes: {e}")
-        # Don't raise the exception to prevent startup failure
+        logger.error(f"❌ Database optimization failed: {e}")
+        # Don't raise the exception to prevent startup failure 
         # Indexes are important but not critical for basic functionality
 
 async def ensure_indexes():
