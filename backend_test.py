@@ -7496,7 +7496,7 @@ if __name__ == "__main__":
                 exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache")
             exit_code = 1
     else:
         # Default: run critical endpoints test as requested in review
