@@ -2147,13 +2147,61 @@ async def get_cache_performance(current_user: User = Depends(get_current_admin_u
         }
 
 # User Management Routes (keeping existing)
+# 🚀 SUB-FASE 2.3 - Import Dependency Injection system
+from dependencies import get_tenant_database, get_pagination_params, RequestMetrics, get_request_metrics
+
 @api_router.get("/users", response_model=List[User])
-async def list_users(request: Request, current_user: User = Depends(get_current_user)):
-    """Lista usuários no escopo do ator. Admin enxerga apenas seus clientes (admin_vendor_id = admin.id)."""
-    q = build_scope_filter(current_user, {})
-    cursor = db.users.find(q).limit(200)
-    users = await cursor.to_list(length=200)
-    return [User(**user) for user in users]
+async def list_users(
+    request: Request, 
+    current_user: User = Depends(get_current_user),
+    tenant_db = Depends(get_tenant_database),
+    pagination: Dict = Depends(get_pagination_params),
+    metrics: RequestMetrics = Depends(get_request_metrics)
+):
+    """
+    Lista usuários no escopo do ator
+    🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and automatic tenant filtering
+    """
+    try:
+        # 🚀 NEW: Use tenant-aware database with automatic filtering
+        logger.debug(f"📋 Listing users with pagination: page={pagination['page']}, limit={pagination['limit']}")
+        
+        # Build scope filter (existing business logic)
+        base_filter = {}
+        
+        # Apply role-based scope filtering
+        if current_user.role == UserRole.ADMIN:
+            # Admin sees only their clients (admin_vendor_id = admin.id)
+            base_filter["admin_vendor_id"] = current_user.id
+        elif current_user.role == UserRole.USER:
+            # Users can only see themselves
+            base_filter["id"] = current_user.id
+        # SUPER_ADMIN sees all users in the tenant (no additional filter)
+        
+        # 🚀 NEW: Use tenant database with automatic tenant filtering
+        users = await tenant_db.find(
+            "users", 
+            base_filter,
+            skip=pagination["skip"],
+            limit=pagination["limit"]
+        )
+        
+        # Record metrics
+        metrics.record_db_query()
+        
+        logger.debug(f"📋 Found {len(users)} users for {current_user.role} user {current_user.email}")
+        
+        return [User(**user) for user in users]
+        
+    except Exception as e:
+        logger.error(f"Error listing users: {str(e)}")
+        # 🔄 FALLBACK: Use original implementation if dependency injection fails
+        logger.warning("Falling back to original user listing implementation")
+        
+        q = build_scope_filter(current_user, {})
+        cursor = db.users.find(q).limit(200)
+        users = await cursor.to_list(length=200)
+        return [User(**user) for user in users]
 
 class UserCreate(BaseModel):
     email: str
