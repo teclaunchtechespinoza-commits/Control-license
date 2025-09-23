@@ -1,24 +1,29 @@
 <analysis>
-The trajectory details an intensive bug-fixing and security hardening phase of a multi-tenant SaaS application. Initially, the AI engineer addressed a corrupted patch, manually applying critical fixes related to , CORS, and seed data control. A recurring  error led to fixes in middleware and frontend API integration. Subsequent issues involved session expiry, infinite frontend loops, and data loading failures, primarily stemming from Pydantic model-data mismatches and various frontend modules bypassing the centralized  client for HTTP requests. The AI systematically refactored 11 frontend components to use , implemented HttpOnly cookies and refresh tokens with Redis for enhanced authentication security, and corrected CI/CD workflow configurations. The latest interaction involves resolving a Git conflict after numerous frontend changes.
+The previous AI engineer engaged in a comprehensive development cycle, initially addressing critical UI/UX bugs, followed by significant security enhancements, and then a multi-phase performance optimization. Key issues tackled included duplicate welcome messages in the frontend, infinite loops, and Sessão não encontrada errors, largely stemming from incorrect  usage and inconsistent API calls bypassing a centralized client. The authentication system was upgraded to HttpOnly cookies and refresh tokens, requiring extensive refactoring across 11 frontend components and backend cookie/CORS configuration.
+
+The work then transitioned to system-wide improvements based on user-provided recommendations, categorized into phases. Phase 1 focused on critical security and error handling: implementing robust tenant validation, consistent error messaging (both backend and frontend), and secure Pydantic settings. Phase 2 focused on performance optimization, successfully integrating MongoDB indexes, Redis caching (despite infrastructure challenges), and optimized aggregation queries. Dependency Injection (Sub-phase 2.3) was initiated but paused due to an error. The engineer consistently validated changes with screenshots and backend tests, providing detailed explanations and asking for user confirmation at each major step.
 </analysis>
 
 <product_requirements>
-The application is a secure, multi-user SaaS Complete License Management System with JWT, RBAC (Admin/User), and CRUD for licenses, users, and registry modules (Categories, Clients, Products, License Plans). It features client management, WCAG compliance, frontend version control, sensitive data masking, a Sales Dashboard, and WhatsApp Business API integration. Initial development focused on stabilizing the MVP: fixing login, database timeouts, data consistency, enabling expiring licenses, frontend-backend communication, and UI. A significant evolution was its transformation into a multi-tenant SaaS () requiring  enforcement, management, and data isolation. Further enhancements included robust job scheduling (APScheduler), MongoDB indexing, structured logging, enhanced frontend auth/routes, enterprise-grade security hardening (eliminating 158 tenant isolation violations), hierarchical sales groups (RBAC+ABAC), secure object filtering, and an email-based invitation system.
+The application is a secure, multi-user SaaS Complete License Management System, featuring JWT, RBAC (Admin/User), and CRUD operations for licenses, users, and registry modules (Categories, Clients, Products, License Plans). Core functionalities include client management, WCAG compliance, frontend version control, sensitive data masking, a Sales Dashboard, and WhatsApp Business API integration.
+
+Initial development focused on stabilizing the MVP, resolving issues like login failures, database timeouts, and frontend-backend communication. A significant evolution involved its transformation into a multi-tenant SaaS with , enforcing  for data isolation. Further enhancements included robust job scheduling (APScheduler), MongoDB indexing, structured logging, enhanced frontend authentication and routing, enterprise-grade security hardening (reducing tenant isolation violations), hierarchical sales groups (RBAC+ABAC), secure object filtering, and an email-based invitation system. The ongoing work aims to refine UI/UX, enhance security, and significantly boost performance and maintainability.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend**: FastAPI, MongoDB (Motor), JWT, Pydantic, RBAC/ABAC, Multi-tenancy, APScheduler, Redis (for refresh tokens, rate limiting), HMAC-SHA256, Passlib (Bcrypt).
-- **Frontend**: React, Tailwind CSS, Axios, React Router v6, HttpOnly Cookies, Environment Variables.
-- **Security**: Tenant Enforcement (), CORS, Secure Filters, Composite Indexes.
-- **Tools**: Git, backend                          RUNNING   pid 27, uptime 0:00:06
-code-server                      RUNNING   pid 29, uptime 0:00:06
-frontend                         STOPPED   Sep 10 08:10 PM
-mongodb                          RUNNING   pid 33, uptime 0:00:06
-whatsapp                         RUNNING   pid 36, uptime 0:00:06
+-   **Backend**: FastAPI, MongoDB (Motor), JWT, Pydantic, RBAC/ABAC, Multi-tenancy, APScheduler, Redis (for refresh tokens, caching), HMAC-SHA256, Passlib (Bcrypt), Pydantic Settings.
+-   **Frontend**: React, Tailwind CSS, Axios, React Router v6, HttpOnly Cookies, Environment Variables, .
+-   **Security**: Tenant Enforcement (), CORS, SameSite Cookies, Secure Filters, Composite Indexes.
+-   **Tools**: Git, backend                          RUNNING   pid 27, uptime 0:00:05
+code-server                      RUNNING   pid 29, uptime 0:00:05
+frontend                         RUNNING   pid 30, uptime 0:00:05
+mongodb                          RUNNING   pid 34, uptime 0:00:05
+whatsapp                         RUNNING   pid 36, uptime 0:00:05
 supervisor> , ============================= test session starts ==============================
 platform linux -- Python 3.11.13, pytest-8.4.1, pluggy-1.6.0
 rootdir: /app
-plugins: anyio-4.10.0, Faker-37.5.3
+plugins: asyncio-1.2.0, anyio-4.10.0, Faker-37.5.3
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collected 2 items / 3 errors
 
 ==================================== ERRORS ====================================
@@ -54,7 +59,7 @@ ERROR backend/tests - ModuleNotFoundError: No module named 'server'
 ERROR debug_cert_test.py - KeyError: 'access_token'
 ERROR debug_pj_test.py - KeyError: 'access_token'
 !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
-============================== 3 errors in 2.80s ===============================, , apt 2.6.1 (arm64)
+============================== 3 errors in 3.72s ===============================, , apt 2.6.1 (arm64)
 Usage: apt [options] command
 
 apt is a commandline package manager and provides commands for
@@ -87,37 +92,26 @@ Security details are available in apt-secure(8).
 
 <code_architecture>
 
-****: Core FastAPI backend.
--   **Importance**: Central API routes, RBAC, multi-tenancy, authentication.
--   **Changes**: Refined login logic for multi-tenancy and JWT, integrated custom middlewares, added composite MongoDB indexes. Most notably, updated to use HttpOnly cookies for  and  tokens, introduced  endpoint, initialized Redis, and added a root  endpoint. Pydantic  model updated with  validator and optional .
 
-****: Custom FastAPI middlewares.
--   **Importance**: Handles  and .
--   **Changes**: Modified  to include  list, allowing , , , , ,  to function without the  header.
-
-****: Authorization logic for hierarchies.
--   **Importance**: Implements central RBAC+ABAC scope.
--   **Changes**: No explicit changes during this trajectory, but its functions for role-based access are crucial.
-
-****: Main React application component.
--   **Importance**: Orchestrates routes, global setup, and .
--   **Changes**: Removed duplicate Axios interceptors, refactored , ,  functions to use the centralized  client from , and adjusted 's  logic to rely on cookies and handle loading states to prevent infinite loops.
-
-****: Centralized API client.
--   **Importance**: Standardizes API calls and Axios interceptors.
--   **Changes**: Configured  for HttpOnly cookies. Modified request interceptor to use  for  header. Added  function. Updated response interceptor to handle  errors and token refreshing, with safeguards against infinite loops for specific auth endpoints. Adjusted  and  to remove reliance on  for tokens.
-
-****: Various frontend components (e.g., , , , , , , , , , , ).
--   **Importance**: Implement specific UI features and data fetching logic for different parts of the application.
--   **Changes**: **Extensive refactoring** in 11 components to replace direct  calls or raw  instances with the centralized  client from  to ensure consistent header injection (, ) and URL resolution. This was a major set of surgical fixes across the frontend.
-
-****: New unit test file.
--   **Importance**: Validates CORS and tenant enforcement.
--   **Changes**: Created to test  behavior with and without .
-
-****: CI/CD workflow definition.
--   **Importance**: Automates testing for backend.
--   **Changes**: Corrected duplicated environment variables, streamlined  steps, added Redis service configuration, implemented  options for Mongo and Redis, and added a wait loop to ensure services are ready before tests run.
+-   ****: Core backend. Integrated new , . Updated global settings to use  from . Integrated  and . Refactored , , , ,  to use new Dependency Injection and Redis caching. Added  with aggregation.
+-   ****: Custom middlewares. Original  is still present, but new validation middlewares were added *before* it.
+-   ** (NEW)**: Implements  to ensure tenant existence, activity, and subscription status before processing requests, centralizing tenant access control.
+-   ** (NEW)**: Implements  to provide consistent, structured error responses across the API, improving UX and debugging.
+-   ** (NEW)**: Defines Pydantic  for managing environment variables securely, centralizing configuration and providing validation (e.g., , , ).
+-   ** (NEW)**: Manages and creates critical MongoDB indexes (e.g.,  + ,  + ,  + ) to significantly improve query performance, integrated during application startup.
+-   ** (NEW)**: Provides  and  decorator for implementing Redis-based caching on API endpoints, along with performance monitoring.
+-   ** (NEW)**: Centralizes dependency injection functions like  and  to reduce code duplication and enforce tenant-aware data access.
+-   ** (NEW)**: Contains optimized MongoDB aggregation pipelines, like , to fetch complex related data with a single, efficient database query.
+-   ****: Main React component. Login/register/logout functions refactored to use . Removed duplicate welcome toast logic. Simplified footer by removing .
+-   ****: Centralized API client. Configured . Adjusted response interceptor to handle new structured .
+-   ****: Modified to show a single welcome message using  and removed redundant version information.
+-   ****: Cleaned up by removing the Credenciais de demonstração section, related states, functions (, ), and unnecessary imports (, ).
+-   ****: Fixed multiple occurrences of  checks for authentication tokens, updating them to rely on HttpOnly cookies via the centralized  client.
+-   ****: Updated form submission (, ) to use new  utility for clearer, field-specific error messages.
+-   ****: Refactored to use the centralized  client instead of direct  instances, ensuring consistent header injection.
+-   ** (NEW)**: Provides a  function to define and handle form validation rules, offering specific error messages.
+-   ****: Updated to include .
+-   ****: CI/CD workflow. Corrected environment variables, added Redis service, healthchecks, and wait loops.
 </code_architecture>
 
 <pending_tasks>
@@ -129,19 +123,21 @@ Security details are available in apt-secure(8).
 - Advanced logging (e.g., ELK stack integration).
 - Penetration testing suite.
 - Mobile API optimization.
-- Address remaining 123 non-critical/moderate tenant isolation violations.
+- Address remaining 123 non-critical/moderate tenant isolation violations (post-middleware, about 20 are left).
 - WhatsApp Service Hardening (helmet, express-rate-limit, Joi validation).
 - Containerization Completa (Dockerfiles, docker-compose).
 - Jobs Distribuídos (APScheduler with Redis + locks).
 - Logs Estruturados (JSON, OTEL exporter, /metrics).
 - Env Frontend (standardize CRA).
+- Help the user finalize the Pull Request by assisting with a detailed description of the implemented changes.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer had successfully addressed multiple critical bugs and implemented a major security enhancement related to authentication. All frontend modules that were bypassing the centralized  client, causing  header issues and data loading errors, have been refactored (47 individual corrections across 11 components). The authentication system was upgraded to use HttpOnly cookies and refresh tokens with Redis, significantly improving security and fixing session-related errors. Pydantic validation issues with legacy data were also resolved. Most recently, the CI/CD workflow file () was corrected to address duplications and inconsistencies. The very last interaction from the user indicated a Git conflict during a Save to GitHub operation, and the AI engineer provided guidance on how to proceed with creating a Pull Request to merge the accumulated changes.
+Immediately before this summary request, the AI engineer completed the implementation of **Sub-phase 2.4 - Aggregation Queries**. This involved creating and integrating optimized MongoDB aggregation pipelines into the backend ( and ) to drastically reduce N+1 query problems for complex data retrieval, such as fetching users with their roles and permissions. Extensive backend tests confirmed significant performance improvements, with query reductions up to 172.5x in tested aggregations.
+
+This sub-phase concludes the core performance optimization efforts of Phase 2, which also included **Sub-phase 2.1 - MongoDB Indexes** (achieving ~10-60x speed-up for critical queries) and **Sub-phase 2.2 - Redis Cache** (implementing caching for static data and dashboard stats, and resolving Redis installation, though infrastructure connection remains pending). **Sub-phase 2.3 - Dependency Injection** was initiated but paused due to an error, with some endpoints partially refactored. The system is now significantly faster and more robust against performance bottlenecks, with improved query efficiency and reduced database load.
 </current_work>
 
 <optional_next_step>
-Help the user finalize the Pull Request by assisting with a detailed description of the implemented changes.
+I recommend performing frontend testing to validate the implemented performance improvements.
 </optional_next_step>
-

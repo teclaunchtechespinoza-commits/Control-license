@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 class InfiniteLoopFixTester:
-    def __init__(self, base_url="https://tenant-shield-app.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://saasguard.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()  # Use session to maintain cookies
         self.tests_run = 0
