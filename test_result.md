@@ -1188,12 +1188,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "SUB-FASE 2.1 - MongoDB Performance Optimization - COMPLETED SUCCESSFULLY"
-    - "Monitor system performance after optimization implementation"
-  stuck_tasks: []
+    - "SUB-FASE 2.3 - Sistema de Dependency Injection - PARTIALLY COMPLETED"
+    - "Complete migration of remaining endpoints (categories, stats, products) to dependency injection"
+    - "SUB-FASE 2.2 - Redis Cache System - NEEDS REDIS SERVER CONFIGURATION"
+  stuck_tasks: 
+    - "SUB-FASE 2.2 - Sistema de Cache Redis implementado - Redis server not running/accessible"
   test_all: false
-  test_priority: "performance_first"
+  test_priority: "dependency_injection_completion"
   completed_tests:
+    - "SUB-FASE 2.3 - Dependency Injection System - PARTIALLY APPROVED (100.0% success rate, 2/5 endpoints migrated)"
     - "SUB-FASE 2.1 - MongoDB Performance Optimization - APPROVED WITH SUCCESS (96.0/100 performance score)"
     - "Infinite Loop Fix Validation - Frontend Authentication Critical - APPROVED WITH SUCCESS (86.7% success rate)"
     - "License Endpoint Pydantic Validation Fix - RESOLVED SUCCESSFULLY"
