@@ -197,7 +197,7 @@ class RedisCacheManager:
     
     async def _warm_critical_cache(self):
         """Warm cache with critical data on startup"""
-        if not self.db:
+        if self.db is None:
             return
             
         try:
