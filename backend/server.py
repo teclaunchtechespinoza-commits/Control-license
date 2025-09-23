@@ -2057,18 +2057,27 @@ async def get_scheduler_status(current_user: User = Depends(get_current_user)):
 from redis_cache_system import get_cached_dashboard_stats
 
 @api_router.get("/stats", response_model=SystemStats)
-async def get_system_stats(current_user: User = Depends(get_current_user)):
+async def get_system_stats(
+    current_user: User = Depends(get_current_user),
+    tenant_db = Depends(get_tenant_database) if get_tenant_database else None,
+    metrics: RequestMetrics = Depends(get_request_metrics) if get_request_metrics else None
+):
     """
     Get system-wide statistics
-    🚀 SUB-FASE 2.2 - Enhanced with Redis caching for massive performance boost
+    🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and Redis caching for massive performance boost
     """
     try:
         # 🚀 NEW: Try to get from cache first (5-minute TTL)
-        tenant_id = get_current_tenant_id()
+        if tenant_db:
+            tenant_id = tenant_db.tenant_id
+        else:
+            tenant_id = get_current_tenant_id()
         cached_stats = await get_cached_dashboard_stats(tenant_id)
         
         if cached_stats:
             logger.debug("📊 Dashboard stats served from Redis cache")
+            if metrics:
+                metrics.record_cache_hit()
             return SystemStats(
                 total_users=cached_stats["total_users"],
                 total_licenses=cached_stats["total_licenses"],  
@@ -2078,39 +2087,70 @@ async def get_system_stats(current_user: User = Depends(get_current_user)):
                 active_users=cached_stats.get("active_users", cached_stats["total_users"]),
                 expired_licenses=cached_stats.get("expired_licenses", 0),
                 pending_licenses=cached_stats.get("pending_licenses", 0),
-                status="operational"
+                system_status="operational"
             )
         
         # 🔄 FALLBACK: Calculate from database if cache miss
         logger.debug("📊 Dashboard stats calculated from database (cache miss)")
+        if metrics:
+            metrics.record_cache_miss()
         
-        # Apply tenant filter for data isolation
-        tenant_filter = add_tenant_filter({})
-        
-        # Count documents
-        total_users = await db.users.count_documents(tenant_filter)
-        total_licenses = await db.licenses.count_documents(tenant_filter)
-        
-        # Count clients (PF + PJ)
-        pf_clients = await db.clientes_pf.count_documents(tenant_filter)
-        pj_clients = await db.clientes_pj.count_documents(tenant_filter)
-        total_clients = pf_clients + pj_clients
-        
-        total_categories = await db.categories.count_documents({**tenant_filter, "is_active": True})
-        total_products = await db.products.count_documents({**tenant_filter, "is_active": True})
-        
-        # Active users
-        active_users = await db.users.count_documents({**tenant_filter, "is_active": True})
-        
-        # License stats
-        expired_licenses = await db.licenses.count_documents({
-            **tenant_filter, 
-            "status": "expired"
-        })
-        pending_licenses = await db.licenses.count_documents({
-            **tenant_filter, 
-            "status": "pending"
-        })
+        if tenant_db:
+            # 🚀 NEW: Use tenant-aware database for automatic tenant filtering
+            # Count documents with automatic tenant isolation
+            total_users = await tenant_db.count_documents("users", {})
+            total_licenses = await tenant_db.count_documents("licenses", {})
+            
+            # Count clients (PF + PJ) with tenant filtering
+            pf_clients = await tenant_db.count_documents("clientes_pf", {})
+            pj_clients = await tenant_db.count_documents("clientes_pj", {})
+            total_clients = pf_clients + pj_clients
+            
+            total_categories = await tenant_db.count_documents("categories", {"is_active": True})
+            total_products = await tenant_db.count_documents("products", {"is_active": True})
+            
+            # Active users
+            active_users = await tenant_db.count_documents("users", {"is_active": True})
+            
+            # License stats
+            expired_licenses = await tenant_db.count_documents("licenses", {"status": "expired"})
+            pending_licenses = await tenant_db.count_documents("licenses", {"status": "pending"})
+            
+            # Record multiple database queries
+            if metrics:
+                for _ in range(8):  # We made 8 database queries
+                    metrics.record_db_query()
+            
+            logger.debug(f"📊 Dashboard stats calculated: users={total_users}, licenses={total_licenses}, clients={total_clients}")
+        else:
+            # Fallback to original implementation
+            # Apply tenant filter for data isolation
+            tenant_filter = add_tenant_filter({})
+            
+            # Count documents
+            total_users = await db.users.count_documents(tenant_filter)
+            total_licenses = await db.licenses.count_documents(tenant_filter)
+            
+            # Count clients (PF + PJ)
+            pf_clients = await db.clientes_pf.count_documents(tenant_filter)
+            pj_clients = await db.clientes_pj.count_documents(tenant_filter)
+            total_clients = pf_clients + pj_clients
+            
+            total_categories = await db.categories.count_documents({**tenant_filter, "is_active": True})
+            total_products = await db.products.count_documents({**tenant_filter, "is_active": True})
+            
+            # Active users
+            active_users = await db.users.count_documents({**tenant_filter, "is_active": True})
+            
+            # License stats
+            expired_licenses = await db.licenses.count_documents({
+                **tenant_filter, 
+                "status": "expired"
+            })
+            pending_licenses = await db.licenses.count_documents({
+                **tenant_filter, 
+                "status": "pending"
+            })
         
         return SystemStats(
             total_users=total_users,
@@ -2123,9 +2163,55 @@ async def get_system_stats(current_user: User = Depends(get_current_user)):
             pending_licenses=pending_licenses,
             system_status="operational"
         )
+        
     except Exception as e:
-        logger.error(f"Error getting system stats: {e}")
-        raise HTTPException(status_code=500, detail="Error retrieving system statistics")
+        logger.error(f"Error getting system stats with dependency injection: {e}")
+        # 🔄 FALLBACK: Use original implementation if dependency injection fails
+        logger.warning("Falling back to original stats implementation")
+        
+        try:
+            # Apply tenant filter for data isolation
+            tenant_filter = add_tenant_filter({})
+            
+            # Count documents
+            total_users = await db.users.count_documents(tenant_filter)
+            total_licenses = await db.licenses.count_documents(tenant_filter)
+            
+            # Count clients (PF + PJ)
+            pf_clients = await db.clientes_pf.count_documents(tenant_filter)
+            pj_clients = await db.clientes_pj.count_documents(tenant_filter)
+            total_clients = pf_clients + pj_clients
+            
+            total_categories = await db.categories.count_documents({**tenant_filter, "is_active": True})
+            total_products = await db.products.count_documents({**tenant_filter, "is_active": True})
+            
+            # Active users
+            active_users = await db.users.count_documents({**tenant_filter, "is_active": True})
+            
+            # License stats
+            expired_licenses = await db.licenses.count_documents({
+                **tenant_filter, 
+                "status": "expired"
+            })
+            pending_licenses = await db.licenses.count_documents({
+                **tenant_filter, 
+                "status": "pending"
+            })
+            
+            return SystemStats(
+                total_users=total_users,
+                total_licenses=total_licenses,
+                total_clients=total_clients,
+                total_categories=total_categories,
+                total_products=total_products,
+                active_users=active_users,
+                expired_licenses=expired_licenses,
+                pending_licenses=pending_licenses,
+                system_status="operational"
+            )
+        except Exception as fallback_error:
+            logger.error(f"Fallback also failed: {str(fallback_error)}")
+            raise HTTPException(status_code=500, detail="Error retrieving system statistics")
 
 
 # 🚀 SUB-FASE 2.2 - Cache Performance Monitoring Endpoint
