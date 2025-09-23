@@ -5218,32 +5218,65 @@ async def create_product(
         )
 
 @api_router.get("/products", response_model=List[Product])
-async def get_products(current_user: User = Depends(get_current_user)):
+async def get_products(
+    current_user: User = Depends(get_current_user),
+    tenant_db = Depends(get_tenant_database),
+    pagination: Dict = Depends(get_pagination_params),
+    metrics: RequestMetrics = Depends(get_request_metrics)
+):
+    """
+    Get products
+    🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and automatic tenant filtering
+    """
     try:
         maintenance_logger.debug("products", "get_products_start", {
             "user_id": current_user.id,
-            "user_email": current_user.email
+            "user_email": current_user.email,
+            "tenant_id": tenant_db.tenant_id,
+            "pagination": pagination
         })
         
-        # Aplicar filtro de tenant
-        query_filter = add_tenant_filter({"is_active": True})
-        products = await db.products.find(query_filter).to_list(1000)
+        # 🚀 NEW: Use tenant-aware database with automatic filtering and pagination
+        products = await tenant_db.find(
+            "products", 
+            {"is_active": True},
+            skip=pagination["skip"],
+            limit=pagination["limit"]
+        )
+        
+        # Record database query and metrics
+        metrics.record_db_query()
         
         maintenance_logger.info("products", "get_products_success", {
             "count": len(products),
-            "user_id": current_user.id
+            "user_id": current_user.id,
+            "tenant_id": tenant_db.tenant_id,
+            "pagination": pagination
         })
+        
+        logger.debug(f"📦 Found {len(products)} products with pagination (skip={pagination['skip']}, limit={pagination['limit']})")
         
         return [Product(**product) for product in products]
         
     except Exception as e:
         maintenance_logger.error("products", "get_products_exception", {
-            "user_id": current_user.id if current_user else "None"
+            "user_id": current_user.id if current_user else "None",
+            "error": str(e)
         }, str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao buscar produtos: {str(e)}"
-        )
+        
+        # 🔄 FALLBACK: Use original implementation if dependency injection fails
+        logger.warning("Falling back to original products implementation")
+        
+        try:
+            query_filter = add_tenant_filter({"is_active": True})
+            products = await db.products.find(query_filter).to_list(1000)
+            return [Product(**product) for product in products]
+        except Exception as fallback_error:
+            logger.error(f"Fallback also failed: {str(fallback_error)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro ao buscar produtos: {str(e)}"
+            )
 
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str, current_user: User = Depends(get_current_user)):
