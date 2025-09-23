@@ -237,11 +237,14 @@ async def get_cache_manager() -> RedisCacheManager:
     """Get global cache manager instance"""
     global cache_manager
     if cache_manager is None:
+        # Cache manager should be initialized during server startup
+        # If not initialized, create minimal version without db
         from settings import settings
-        from server import db  # Import here to avoid circular imports
         
-        cache_manager = RedisCacheManager(settings.redis_url, db)
+        cache_manager = RedisCacheManager(settings.redis_url, None)
         await cache_manager.connect()
+        
+        logger.warning("🔄 Cache manager initialized without database context")
     
     return cache_manager
 
