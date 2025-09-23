@@ -71,7 +71,7 @@ class AggregationQueryBuilder:
         """Add $unwind stage"""
         unwind_stage = {"$unwind": f"${field}"}
         if preserve_empty:
-            unwind_stage["$unwind"]["preserveNullAndEmptyArrays"] = "true"
+            unwind_stage["$unwind"]["preserveNullAndEmptyArrays"] = True
         
         self.pipeline.append(unwind_stage)
         return self
