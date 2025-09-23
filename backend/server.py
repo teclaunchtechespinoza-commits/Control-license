@@ -1815,6 +1815,26 @@ async def startup_event():
     # 🔐 Initialize Redis for refresh tokens
     await init_redis()
     
+    # 🚀 SUB-FASE 2.2 - Initialize Redis Cache Manager
+    try:
+        from redis_cache_system import cache_manager
+        from settings import settings
+        
+        if cache_manager is None:
+            # Import the class and create instance
+            from redis_cache_system import RedisCacheManager
+            import redis_cache_system
+            
+            # Create and connect cache manager with database
+            redis_cache_system.cache_manager = RedisCacheManager(settings.redis_url, db)
+            await redis_cache_system.cache_manager.connect()
+            
+            logger.info("🚀 Redis Cache Manager initialized successfully")
+        
+    except Exception as e:
+        logger.warning(f"🚀 Redis Cache Manager initialization failed: {str(e)}")
+        logger.warning("🚀 Cache system will use fallback mode")
+    
     await initialize_system()
     
     # Desabilitar seed/demo fora de desenvolvimento
