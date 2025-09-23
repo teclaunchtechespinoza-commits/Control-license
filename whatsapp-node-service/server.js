@@ -161,11 +161,23 @@ app.post('/send-bulk', async (req, res) => {
     try {
         const { messages } = req.body;
 
+        // 🔧 Enhanced validation
         if (!Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ 
                 success: false,
-                error: 'messages array is required' 
+                error: 'messages array is required and must not be empty' 
             });
+        }
+
+        // 🔧 Validate each message structure  
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            if (!msg.phone_number || !msg.message) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Message at index ${i} is missing phone_number or message`
+                });
+            }
         }
 
         if (!whatsappInstance || !whatsappInstance.isConnected()) {
@@ -175,56 +187,82 @@ app.post('/send-bulk', async (req, res) => {
             });
         }
 
-        logger.info(`📤 Sending bulk messages: ${messages.length} messages`);
+        logger.info(`📤 Starting bulk send: ${messages.length} messages`);
 
         const results = [];
+        let successCount = 0;
+        let failCount = 0;
         
-        for (const msg of messages) {
+        // 🔧 Process messages with better error handling
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
             try {
+                logger.debug(`📤 Sending message ${i + 1}/${messages.length} to ${msg.phone_number}`);
+                
                 const result = await whatsappInstance.sendMessage(
                     msg.phone_number, 
                     msg.message,
-                    { message_id: msg.message_id, context: msg.context }
+                    { 
+                        message_id: msg.message_id || `bulk_${Date.now()}_${i}`,
+                        context: msg.context || {}
+                    }
                 );
                 
                 results.push({
+                    index: i,
                     phone_number: msg.phone_number,
                     ...result
                 });
 
-                // Delay between messages to avoid spam detection
-                if (messages.length > 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                if (result.success) {
+                    successCount++;
+                    logger.debug(`✅ Message ${i + 1} sent successfully`);
+                } else {
+                    failCount++;
+                    logger.warn(`❌ Message ${i + 1} failed: ${result.error}`);
+                }
+
+                // 🔧 Adaptive delay to prevent spam detection
+                if (i < messages.length - 1) { // Don't delay after last message
+                    const delay = messages.length > 10 ? 2000 : 1000; // Longer delay for large batches
+                    await new Promise(resolve => setTimeout(resolve, delay));
                 }
 
             } catch (msgError) {
-                logger.error(`Error sending to ${msg.phone_number}:`, msgError);
+                failCount++;
+                logger.error(`❌ Error sending message ${i + 1} to ${msg.phone_number}:`, msgError);
                 results.push({
+                    index: i,
                     phone_number: msg.phone_number,
                     success: false,
-                    error: msgError.message
+                    error: msgError.message || 'Unknown error occurred'
                 });
             }
         }
 
-        const successCount = results.filter(r => r.success).length;
-        const failCount = results.length - successCount;
+        logger.info(`✅ Bulk send completed: ${successCount} sent, ${failCount} failed out of ${messages.length} total`);
 
-        logger.info(`✅ Bulk send completed: ${successCount} sent, ${failCount} failed`);
-
-        res.json({
+        // 🔧 Enhanced response with detailed statistics
+        const response = {
             success: true,
-            total: results.length,
-            sent: successCount,
-            failed: failCount,
-            results
-        });
+            summary: {
+                total: messages.length,
+                sent: successCount,
+                failed: failCount,
+                success_rate: ((successCount / messages.length) * 100).toFixed(1) + '%'
+            },
+            results,
+            timestamp: new Date().toISOString()
+        };
+
+        res.json(response);
 
     } catch (error) {
         logger.error('Error in bulk send:', error);
         res.status(500).json({ 
             success: false,
-            error: error.message 
+            error: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 });
