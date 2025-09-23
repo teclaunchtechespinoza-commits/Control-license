@@ -1191,7 +1191,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "SUB-FASE 2.3 - Sistema de Dependency Injection implementado"
+    - "SUB-FASE 2.3 - Sistema de Dependency Injection COMPLETADO"
   stuck_tasks: 
     - "SUB-FASE 2.2 - Sistema de Cache Redis implementado - Redis server not running/accessible"
   test_all: false
