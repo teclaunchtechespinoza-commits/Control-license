@@ -21,6 +21,7 @@ import asyncio
 import bcrypt
 import sys
 import random
+import time  # 🚀 SUB-FASE 2.4 - Added for performance timing
 from starlette.responses import JSONResponse
 
 # 🚀 PHASE 1 SECURITY IMPROVEMENTS - Import new middlewares
