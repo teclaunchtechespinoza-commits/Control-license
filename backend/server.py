@@ -2158,8 +2158,6 @@ async def get_cache_performance(current_user: User = Depends(get_current_admin_u
         }
 
 # User Management Routes (keeping existing)
-# 🚀 SUB-FASE 2.3 - Import Dependency Injection system
-from dependencies import get_tenant_database, get_pagination_params, RequestMetrics, get_request_metrics
 
 # 🚀 SUB-FASE 2.4 - Import Aggregation Queries system  
 from aggregation_queries import (
