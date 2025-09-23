@@ -2201,9 +2201,15 @@ async def get_users_with_full_data(
         
     except Exception as e:
         logger.error(f"Error getting users with complete data: {str(e)}")
-        # Fallback to basic user listing
-        request = Request({"type": "http", "query_string": b""})  # Mock request
-        return await list_users(request, current_user, None, pagination, metrics)
+        # Fallback to basic user listing - convert to dict format
+        try:
+            request = Request({"type": "http", "query_string": b""})  # Mock request
+            users_list = await list_users(request, current_user, None, pagination, metrics)
+            # Convert Pydantic models to dictionaries
+            return [user.dict() if hasattr(user, 'dict') else user for user in users_list]
+        except Exception as fallback_error:
+            logger.error(f"Fallback also failed: {str(fallback_error)}")
+            return []
 
 
 # 🚀 SUB-FASE 2.4 - Enhanced Licenses Endpoint with Aggregation  
