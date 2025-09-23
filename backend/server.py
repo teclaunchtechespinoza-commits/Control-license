@@ -113,6 +113,16 @@ from whatsapp_integration import (
     whatsapp_service, template_service, send_renewal_whatsapp
 )
 
+# 🚀 SUB-FASE 2.3 - Import Dependency Injection system
+try:
+    from dependencies import get_tenant_database, get_pagination_params, RequestMetrics, get_request_metrics
+except ImportError:
+    # Fallback for development
+    get_tenant_database = None
+    get_pagination_params = None
+    RequestMetrics = None
+    get_request_metrics = None
+
 # Import critical security modules
 try:
     from deps import (
