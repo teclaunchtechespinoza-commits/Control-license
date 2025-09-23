@@ -15,8 +15,21 @@ import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
+
+
+def convert_objectids_to_strings(data: Any) -> Any:
+    """Recursively convert ObjectId instances to strings"""
+    if isinstance(data, ObjectId):
+        return str(data)
+    elif isinstance(data, dict):
+        return {key: convert_objectids_to_strings(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_objectids_to_strings(item) for item in data]
+    else:
+        return data
 
 class AggregationQueryBuilder:
     """
