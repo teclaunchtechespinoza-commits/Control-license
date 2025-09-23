@@ -343,8 +343,8 @@ async def get_dashboard_analytics_aggregated(db: AsyncIOMotorDatabase, tenant_id
         "active_licenses": licenses_stats[0]["active_licenses"] if licenses_stats else 0,
         "expired_licenses": licenses_stats[0]["expired_licenses"] if licenses_stats else 0,
         "expiring_soon": licenses_stats[0]["expiring_soon"] if licenses_stats else 0,
-        "total_revenue": round(licenses_stats[0]["total_revenue"] if licenses_stats else 0, 2),
-        "avg_license_value": round(licenses_stats[0]["avg_license_value"] if licenses_stats else 0, 2),
+        "total_revenue": round(licenses_stats[0]["total_revenue"] if licenses_stats and licenses_stats[0]["total_revenue"] is not None else 0, 2),
+        "avg_license_value": round(licenses_stats[0]["avg_license_value"] if licenses_stats and licenses_stats[0]["avg_license_value"] is not None else 0, 2),
         
         "total_clients": (
             (clients_pf_stats[0]["total_clients_pf"] if clients_pf_stats else 0) +
