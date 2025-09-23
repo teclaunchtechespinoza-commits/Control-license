@@ -243,16 +243,17 @@ class WhatsAppHandler {
         /**
          * Create a Baileys-compatible logger
          * Baileys expects specific methods: trace, debug, info, warn, error, fatal, child
+         * 🔧 FIX: Implement proper child() method and all required logging methods
          */
         return {
             level: 'silent',
-            trace: () => {},
-            debug: () => {},
-            info: () => {},
-            warn: () => {},
-            error: () => {},
-            fatal: () => {},
-            child: () => this.createBaileysLogger()
+            trace: (...args) => logger.debug('BAILEYS-TRACE:', ...args),
+            debug: (...args) => logger.debug('BAILEYS-DEBUG:', ...args), 
+            info: (...args) => logger.info('BAILEYS-INFO:', ...args),
+            warn: (...args) => logger.warn('BAILEYS-WARN:', ...args),
+            error: (...args) => logger.error('BAILEYS-ERROR:', ...args),
+            fatal: (...args) => logger.error('BAILEYS-FATAL:', ...args),
+            child: () => this.createBaileysLogger() // 🔧 FIX: Proper child implementation
         };
     }
 }
