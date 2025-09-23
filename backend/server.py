@@ -5054,35 +5054,57 @@ async def create_category(
     return category
 
 @api_router.get("/categories", response_model=List[Category])
-async def get_categories(current_user: User = Depends(get_current_user)):
+async def get_categories(
+    current_user: User = Depends(get_current_user),
+    tenant_db = Depends(get_tenant_database),
+    pagination: Dict = Depends(get_pagination_params),
+    metrics: RequestMetrics = Depends(get_request_metrics)
+):
     """
     Get categories
-    🚀 SUB-FASE 2.2 - Enhanced with Redis caching (1 hour TTL)
+    🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and Redis caching (1 hour TTL)
     """
     try:
         # 🚀 NEW: Try to get from cache first
         from redis_cache_system import get_cached_categories
         
-        tenant_id = get_current_tenant_id()
+        # Get tenant_id from TenantAwareDB for consistency
+        tenant_id = tenant_db.tenant_id
         cached_categories = await get_cached_categories(tenant_id)
         
         if cached_categories:
             logger.debug("📁 Categories served from Redis cache")
-            return [Category(**category) for category in cached_categories if category.get("is_active", True)]
+            metrics.record_cache_hit()
+            # Apply pagination to cached results
+            start_idx = pagination["skip"]
+            end_idx = start_idx + pagination["limit"]
+            paginated_categories = cached_categories[start_idx:end_idx]
+            return [Category(**category) for category in paginated_categories if category.get("is_active", True)]
         
         # 🔄 FALLBACK: Get from database if cache miss
         logger.debug("📁 Categories fetched from database (cache miss)")
+        metrics.record_cache_miss()
         
-        # Aplicar filtro de tenant
-        query_filter = add_tenant_filter({"is_active": True})
-        categories = await db.categories.find(query_filter).to_list(1000)
+        # 🚀 NEW: Use tenant-aware database with automatic filtering and pagination
+        categories = await tenant_db.find(
+            "categories", 
+            {"is_active": True},
+            skip=pagination["skip"],
+            limit=pagination["limit"]
+        )
         
-        # Cache the result for future requests (handled by get_cached_categories)
+        # Record database query
+        metrics.record_db_query()
+        
+        logger.debug(f"📁 Found {len(categories)} categories with pagination (skip={pagination['skip']}, limit={pagination['limit']})")
+        
         return [Category(**category) for category in categories]
         
     except Exception as e:
-        logger.error(f"Error fetching categories: {str(e)}")
-        # Fallback to direct database query
+        logger.error(f"Error fetching categories with dependency injection: {str(e)}")
+        # 🔄 FALLBACK: Use original implementation if dependency injection fails
+        logger.warning("Falling back to original categories implementation")
+        
         query_filter = add_tenant_filter({"is_active": True})
         categories = await db.categories.find(query_filter).to_list(1000)
         return [Category(**category) for category in categories]
