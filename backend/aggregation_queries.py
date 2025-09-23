@@ -61,9 +61,6 @@ class AggregationQueryBuilder:
             }
         }
         
-        if preserve_null_and_empty:
-            lookup_stage["$lookup"]["preserveNullAndEmptyArrays"] = True
-        
         self.pipeline.append(lookup_stage)
         return self
     
