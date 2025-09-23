@@ -134,6 +134,9 @@ class AggregationQueryBuilder:
             cursor = collection.aggregate(self.pipeline)
             results = await cursor.to_list(length=None)
             
+            # Convert ObjectIds to strings for JSON serialization
+            results = convert_objectids_to_strings(results)
+            
             # Update performance stats
             execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             self.performance_stats['execution_time'] = execution_time
