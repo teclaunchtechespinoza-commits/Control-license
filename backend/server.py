@@ -2253,9 +2253,15 @@ async def get_licenses_with_full_relationships(
         
     except Exception as e:
         logger.error(f"Error getting licenses with relationships: {str(e)}")
-        # Fallback to basic license listing
-        request = Request({"type": "http", "query_string": b""})  # Mock request
-        return await get_licenses(request, current_user, None, pagination, metrics)
+        # Fallback to basic license listing - convert to dict format
+        try:
+            request = Request({"type": "http", "query_string": b""})  # Mock request
+            licenses_list = await get_licenses(request, current_user, None, pagination, metrics)
+            # Convert Pydantic models to dictionaries
+            return [license.dict() if hasattr(license, 'dict') else license for license in licenses_list]
+        except Exception as fallback_error:
+            logger.error(f"Fallback also failed: {str(fallback_error)}")
+            return []
 
 
 # 🚀 SUB-FASE 2.4 - Enhanced Dashboard with Aggregated Analytics
