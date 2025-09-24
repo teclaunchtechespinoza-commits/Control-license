@@ -6180,6 +6180,97 @@ class WhatsAppSendResponse(BaseModel):
     timestamp: datetime
 
 # WhatsApp Service Helper Functions
+# 🔧 FIX: WhatsApp Response Normalization - Critical fix for status field inconsistency
+def normalize_whatsapp_response(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize WhatsApp service response to ensure consistent format.
+    Maps 'success' field to 'status' field expected by consumers.
+    """
+    if data is None:
+        return {"status": "failed", "success": False}
+    
+    # If status already exists, return as-is
+    if 'status' in data:
+        return data
+    
+    # Map success -> status (critical fix for send_renewal_whatsapp_message)
+    if data.get('success') is True:
+        data.setdefault('status', 'sent')
+    elif data.get('success') is False:
+        data.setdefault('status', 'failed')
+    else:
+        data.setdefault('status', 'unknown')
+    
+    # Normalize message_id -> id for compatibility
+    if 'message_id' in data and 'id' not in data:
+        data['id'] = data['message_id']
+    
+    return data
+
+# Safe phone number validation and normalization
+def safe_normalize_phone(phone_raw: str, default_region: str = "BR") -> str:
+    """
+    Normalize phone number to E.164 format using Google's phonenumbers library.
+    Handles Brazilian numbers by default.
+    """
+    if not phone_raw or not isinstance(phone_raw, str):
+        raise ValueError("Phone number is required and must be a string")
+    
+    try:
+        import phonenumbers
+        from phonenumbers import PhoneNumberFormat, NumberParseException
+        
+        # Clean input (remove common formatting)
+        cleaned = phone_raw.strip().replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        
+        pn = phonenumbers.parse(cleaned, default_region)
+        if not phonenumbers.is_valid_number(pn):
+            raise ValueError(f"Invalid phone number: {phone_raw}")
+        return phonenumbers.format_number(pn, PhoneNumberFormat.E164)
+    except ImportError:
+        # Fallback: basic formatting if phonenumbers not available
+        logger.warning("phonenumbers library not available, using basic validation")
+        cleaned = phone_raw.strip().replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        if not cleaned.startswith('+'):
+            if cleaned.startswith('55'):
+                cleaned = '+' + cleaned
+            elif len(cleaned) >= 10:
+                cleaned = '+55' + cleaned
+            else:
+                raise ValueError(f"Invalid phone number format: {phone_raw}")
+        return cleaned
+    except Exception as e:
+        raise ValueError(f"Invalid phone number '{phone_raw}': {str(e)}")
+
+# Robust date parsing utility
+def parse_iso_date(date_str):
+    """
+    Robust date parsing that handles multiple formats including ISO, timestamps, etc.
+    """
+    if not date_str:
+        return None
+    
+    try:
+        # Try standard ISO format first
+        if isinstance(date_str, str):
+            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        return date_str
+    except Exception:
+        try:
+            # Try dateutil parser as fallback
+            from dateutil.parser import parse as dt_parse
+            return dt_parse(date_str)
+        except Exception:
+            try:
+                # Try Unix timestamp
+                if isinstance(date_str, (int, float)):
+                    return datetime.fromtimestamp(date_str, tz=timezone.utc)
+                if date_str.isdigit():
+                    return datetime.fromtimestamp(int(date_str), tz=timezone.utc)
+            except Exception:
+                pass
+            raise ValueError(f"Invalid date format: {date_str}")
+
 async def call_whatsapp_service(endpoint: str, method: str = "GET", data: Dict = None) -> Dict:
     """Helper function to call WhatsApp Node.js service"""
     try:
