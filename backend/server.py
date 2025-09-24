@@ -4407,8 +4407,10 @@ async def send_bulk_whatsapp_messages(
                     "error": str(e)
                 })
                 
-            # Delay entre mensagens para evitar spam
-            await asyncio.sleep(1)
+            # 🔧 FIX: Replace asyncio.sleep with intelligent delay for production
+            # Only add delay if we have more alerts to process and it's a bulk operation
+            if alert_idx < len(alert_ids) - 1 and len(alert_ids) > 5:  # Only for large batches
+                await asyncio.sleep(0.5)  # Reduced from 1s to 0.5s for better performance
         
         # Estatísticas do envio
         sent_count = len([r for r in results if r["status"] == "sent"])
