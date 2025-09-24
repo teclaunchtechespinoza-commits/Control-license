@@ -6489,6 +6489,7 @@ async def send_renewal_whatsapp_message(client_data: Dict, license_data: Dict, a
     """
     Função helper para enviar mensagens de renovação via WhatsApp
     Integração com o sistema de vendas
+    🔧 FIX: Enhanced with phone validation, date parsing and response normalization
     """
     # Buscar número de telefone do cliente
     phone_number = None
@@ -6500,15 +6501,24 @@ async def send_renewal_whatsapp_message(client_data: Dict, license_data: Dict, a
     if not phone_number:
         raise ValueError("Cliente não possui número de WhatsApp/telefone cadastrado")
     
+    # 🔧 FIX: Validate and normalize phone number to E.164
+    try:
+        phone_number = safe_normalize_phone(phone_number)
+    except ValueError as e:
+        raise ValueError(f"Número de telefone inválido: {str(e)}")
+    
     # Gerar mensagem usando template
     client_name = client_data.get('nome_completo') or client_data.get('razao_social', 'Cliente')
     license_name = license_data.get('name', 'sua licença')
     
+    # 🔧 FIX: Robust date parsing
     expires_at = license_data.get('expires_at')
-    if isinstance(expires_at, str):
-        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-    
-    days_to_expire = (expires_at - datetime.utcnow()).days if expires_at else 0
+    try:
+        expires_at = parse_iso_date(expires_at)
+        days_to_expire = (expires_at - datetime.utcnow()).days if expires_at else 0
+    except ValueError:
+        logger.warning(f"Invalid date format for license expires_at: {expires_at}")
+        days_to_expire = 0
     
     # Template de mensagem baseado no tipo de alerta
     if alert_type == "T-30":
@@ -6594,17 +6604,22 @@ LIGUE URGENTE: (11) 9999-9999
         
         data = await call_whatsapp_service("send", "POST", payload)
         
+        # 🔧 FIX: Normalize response to ensure status field is present
+        normalized_data = normalize_whatsapp_response(data)
+        
         return {
-            "success": data.get("success", False),
-            "message_id": data.get("message_id"),
+            "success": normalized_data.get("success", False),
+            "status": normalized_data.get("status", "failed"),  # 🔧 FIX: Add status field
+            "message_id": normalized_data.get("message_id") or normalized_data.get("id"),
             "phone_number": phone_number,
-            "error": data.get("error"),
+            "error": normalized_data.get("error"),
             "timestamp": datetime.utcnow()
         }
         
     except Exception as e:
         return {
             "success": False,
+            "status": "failed",  # 🔧 FIX: Add status field for error case
             "phone_number": phone_number,
             "error": getattr(e, 'detail', str(e)),  # 🔧 FIX: Proper HTTPException error extraction
             "timestamp": datetime.utcnow()
