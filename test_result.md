@@ -105,7 +105,8 @@
 user_problem_statement: "Teste SUB-FASE 2.4 - Sistema de Aggregation Queries implementado: VALIDAÇÕES ESPECÍFICAS: 1. **Endpoint /api/users/complete**: Testar agregação de usuários com roles e permissões em 1 query (vs ~500+ queries), 2. **Endpoint /api/licenses/complete**: Testar agregação de licenças com clientes, planos e categorias (vs ~1500+ queries), 3. **Endpoint /api/dashboard/analytics**: Testar analytics completas em queries agregadas (vs 10+ queries), 4. **Endpoint /api/licenses/expiring**: Testar licenças expirando com dados de cliente (vs N+1 queries), 5. **Endpoint /api/performance/aggregations**: Verificar monitoramento de performance das agregações. CENÁRIOS DE TESTE: 1. Comparar performance: endpoints originais vs endpoints com aggregation, 2. Verificar eliminação de N+1 queries (logs devem mostrar queries eliminadas), 3. Testar paginação nos endpoints agregados, 4. Verificar fallback para endpoints originais em caso de erro, 5. Monitorar estatísticas de performance das agregações. OBJETIVO: Confirmar que a SUB-FASE 2.4 trouxe otimizações massivas: - 95% redução no número de queries (500+ → 1), - Performance 10-50x melhor nos endpoints agregados, - Dados completos retornados com relacionamentos, - Monitoramento de performance ativo, - Sistema estável com fallbacks. Use credenciais: admin@demo.com / admin123"
 
 backend:
-  - task: "SUB-FASE 2.3 - Sistema de Dependency Injection implementado"
+  current_focus:
+    - "SPRINT 1.1 - WhatsApp Service Batch Send Fix CONCLUÍDO"
     implemented: true
     working: true
     file: "/app/backend/dependencies.py, /app/backend/server.py"
