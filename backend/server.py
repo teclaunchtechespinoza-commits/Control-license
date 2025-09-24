@@ -6334,7 +6334,7 @@ async def send_bulk_whatsapp(
             "total": len(request.messages),
             "sent": 0,
             "failed": len(request.messages),
-            "error": str(e)
+            "error": getattr(e, 'detail', str(e))  # 🔧 FIX: Proper HTTPException error extraction
         }
     
     # Log do resultado
