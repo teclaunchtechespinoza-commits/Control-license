@@ -6381,17 +6381,23 @@ async def send_whatsapp_message(
 ):
     """Envia mensagem WhatsApp individual"""
     
+    # 🔧 FIX: Validate phone number before sending
+    try:
+        normalized_phone = safe_normalize_phone(request.phone_number)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid phone number: {str(e)}")
+    
     # Log da tentativa
     maintenance_logger.log("whatsapp_send_attempt", {
         "user_id": current_user.id,
-        "phone_number": request.phone_number,
+        "phone_number": normalized_phone,
         "message_length": len(request.message),
         "has_context": bool(request.context)
     })
     
     try:
         payload = {
-            "phone_number": request.phone_number,
+            "phone_number": normalized_phone,  # 🔧 FIX: Use normalized phone
             "message": request.message,
             "message_id": request.message_id,
             "context": request.context or {}
@@ -6399,26 +6405,29 @@ async def send_whatsapp_message(
         
         data = await call_whatsapp_service("send", "POST", payload)
         
+        # 🔧 FIX: Normalize response to ensure consistent format
+        normalized_data = normalize_whatsapp_response(data)
+        
         result = WhatsAppSendResponse(
-            success=data.get("success", False),
-            message_id=data.get("message_id"),
-            phone_number=request.phone_number,
-            error=data.get("error"),
+            success=normalized_data.get("success", False),
+            message_id=normalized_data.get("message_id") or normalized_data.get("id"),
+            phone_number=normalized_phone,
+            error=normalized_data.get("error"),
             timestamp=datetime.utcnow()
         )
         
     except Exception as e:
         result = WhatsAppSendResponse(
             success=False,
-            phone_number=request.phone_number,
-            error=str(e),
+            phone_number=normalized_phone,
+            error=getattr(e, 'detail', str(e)),  # 🔧 FIX: Proper HTTPException error extraction
             timestamp=datetime.utcnow()
         )
     
     # Log do resultado
     maintenance_logger.log("whatsapp_send_result", {
         "user_id": current_user.id,
-        "phone_number": request.phone_number,
+        "phone_number": normalized_phone,
         "success": result.success,
         "error": result.error,
         "message_id": result.message_id
