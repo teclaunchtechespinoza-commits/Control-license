@@ -119,7 +119,15 @@ backend:
 
 
 
-  - task: "SUB-FASE 2.1 - MongoDB Performance Optimization"
+frontend:
+  current_focus:
+    - "Bug crítico de loop infinito pós-login RESOLVIDO"
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 1
+  run_ui: true
     implemented: true
     working: true
     file: "/app/backend/server.py"
