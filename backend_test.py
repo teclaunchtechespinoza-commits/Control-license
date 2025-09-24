@@ -8737,6 +8737,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ SUB-FASE 2.3 - DEPENDENCY INJECTION SYSTEM TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "whatsapp-corrections":
+            # Run WhatsApp Critical Corrections test as requested in review
+            print("🚀 RUNNING WHATSAPP CRITICAL CORRECTIONS TEST")
+            success = tester.test_whatsapp_critical_corrections()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("WHATSAPP CRITICAL CORRECTIONS TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 90:
+                print(f"🎉 WHATSAPP CRITICAL CORRECTIONS TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ WHATSAPP CRITICAL CORRECTIONS TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection")
