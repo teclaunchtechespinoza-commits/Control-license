@@ -6272,32 +6272,55 @@ def parse_iso_date(date_str):
             raise ValueError(f"Invalid date format: {date_str}")
 
 async def call_whatsapp_service(endpoint: str, method: str = "GET", data: Dict = None) -> Dict:
-    """Helper function to call WhatsApp Node.js service"""
+    """
+    Helper function to call WhatsApp Node.js service
+    🔧 FIX: Accept any 2xx response and improve error handling
+    """
     try:
         async with httpx.AsyncClient(timeout=WHATSAPP_REQUEST_TIMEOUT) as client:
-            url = f"{WHATSAPP_SERVICE_URL}/{endpoint}"
+            url = f"{WHATSAPP_SERVICE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
             
-            if method == "GET":
-                response = await client.get(url)
-            elif method == "POST":
-                response = await client.post(url, json=data)
-            else:
-                raise ValueError(f"Unsupported method: {method}")
+            response = await client.request(method, url, json=data)
             
-            if response.status_code == 200:
-                return response.json()
+            # 🔧 FIX: Accept any 2xx status code (not just 200)
+            if response.is_success:  # This checks for any 2xx status
+                try:
+                    return response.json()
+                except Exception:
+                    # Fallback for non-JSON responses
+                    return {
+                        "raw_text": response.text,
+                        "status_code": response.status_code,
+                        "success": True  # Still consider it successful
+                    }
             else:
-                error_data = response.json() if response.content else {}
-                error_message = error_data.get("error", "WhatsApp service error")
-                # 🔧 FIX: Ensure error is properly serializable string
+                # 🔧 FIX: Improved error extraction with safe JSON parsing
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get("error") or error_data.get("message") or str(error_data)
+                except Exception:
+                    # Fallback to text response if JSON parsing fails
+                    error_message = response.text or f"HTTP {response.status_code}"
+                
+                # Ensure error_message is serializable string
                 if isinstance(error_message, dict):
                     error_message = str(error_message.get("message", error_message))
-                raise HTTPException(status_code=response.status_code, detail=str(error_message))
+                
+                raise HTTPException(
+                    status_code=response.status_code, 
+                    detail=str(error_message)
+                )
                 
     except httpx.TimeoutException:
         raise HTTPException(status_code=503, detail="WhatsApp service timeout")
+    except httpx.RequestError as e:
+        logger.error(f"HTTPX request error to WhatsApp service: {e}")
+        raise HTTPException(status_code=503, detail="WhatsApp service unavailable")
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
     except Exception as e:
-        logger.error(f"Error calling WhatsApp service: {e}")
+        logger.error(f"Unexpected error calling WhatsApp service: {e}")
         raise HTTPException(status_code=503, detail="WhatsApp service unavailable")
 
 # WhatsApp API Endpoints
