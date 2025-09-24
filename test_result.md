@@ -129,8 +129,7 @@ metadata:
   test_sequence: 1
   run_ui: true
 
-
-  - task: "FASE 1 - TenantValidationMiddleware Implementation"
+agent_communication:
     implemented: true
     working: true
     file: "/app/backend/tenant_validation.py, /app/backend/server.py"
