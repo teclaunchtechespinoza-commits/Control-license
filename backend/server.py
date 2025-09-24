@@ -6492,7 +6492,7 @@ LIGUE URGENTE: (11) 9999-9999
         return {
             "success": False,
             "phone_number": phone_number,
-            "error": str(e),
+            "error": getattr(e, 'detail', str(e)),  # 🔧 FIX: Proper HTTPException error extraction
             "timestamp": datetime.utcnow()
         }
 
