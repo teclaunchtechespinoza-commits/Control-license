@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import BaseModel, Field, validator, EmailStr
 from typing import List, Optional, Dict, Any, Literal, Union
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from enum import Enum
