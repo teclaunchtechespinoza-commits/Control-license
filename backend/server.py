@@ -6197,7 +6197,11 @@ async def call_whatsapp_service(endpoint: str, method: str = "GET", data: Dict =
                 return response.json()
             else:
                 error_data = response.json() if response.content else {}
-                raise HTTPException(status_code=response.status_code, detail=error_data.get("error", "WhatsApp service error"))
+                error_message = error_data.get("error", "WhatsApp service error")
+                # 🔧 FIX: Ensure error is properly serializable string
+                if isinstance(error_message, dict):
+                    error_message = str(error_message.get("message", error_message))
+                raise HTTPException(status_code=response.status_code, detail=str(error_message))
                 
     except httpx.TimeoutException:
         raise HTTPException(status_code=503, detail="WhatsApp service timeout")
