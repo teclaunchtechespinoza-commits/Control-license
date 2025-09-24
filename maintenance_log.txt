@@ -159,3 +159,5 @@
 [2025-09-23 20:50:49] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-09-23 21:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 7, "licenses_count": 1, "notification_type": "NotificationType.LICENSE_EXPIRING_7", "target_date": "2025-10-01"}
 [2025-09-23 21:05:49] [INFO] health - system_health_check: {"database_response_ms": 3.639, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-09-23 21:16:13] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 25.404979183333335, "total_executions": 0}
+[2025-09-23 21:16:16] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}

@@ -272,9 +272,35 @@ class MaintenanceLoggerAdapter:
             "clients": EventCategory.CLIENT,
             "rbac": EventCategory.RBAC,
             "security": EventCategory.SECURITY,
-            "cleanup": EventCategory.SYSTEM
+            "cleanup": EventCategory.SYSTEM,
+            "whatsapp": EventCategory.NOTIFICATION,  # 🔧 Added WhatsApp mapping
+            "whatsapp_status_check": EventCategory.NOTIFICATION,
+            "whatsapp_qr_request": EventCategory.NOTIFICATION,
+            "whatsapp_send_attempt": EventCategory.NOTIFICATION,
+            "whatsapp_send_result": EventCategory.NOTIFICATION,
+            "whatsapp_bulk_send_attempt": EventCategory.NOTIFICATION,
+            "whatsapp_bulk_send_result": EventCategory.NOTIFICATION,
+            "whatsapp_restart": EventCategory.NOTIFICATION,
+            "whatsapp_renewal_sent": EventCategory.NOTIFICATION,
+            "bulk_whatsapp_campaign": EventCategory.NOTIFICATION
         }
         return category_map.get(module, EventCategory.SYSTEM)
+    
+    def log(self, action: str, details: dict):
+        """🔧 FIX: Added missing log() method for backward compatibility"""
+        # Extract module from action if it contains underscores
+        if "_" in action:
+            module_parts = action.split("_")
+            module = module_parts[0] if module_parts else "system"
+        else:
+            module = "system"
+        
+        self._logger.info(
+            self._convert_category(action),
+            action,
+            f"{module}: {action}",
+            details=details
+        )
     
     def info(self, module: str, action: str, details: dict):
         """Compatibility method for info logs"""
