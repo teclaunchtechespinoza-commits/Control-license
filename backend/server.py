@@ -4363,7 +4363,7 @@ async def send_bulk_whatsapp_messages(
     try:
         results = []
         
-        for alert_id in alert_ids:
+        for alert_idx, alert_id in enumerate(alert_ids):
             try:
                 # Buscar dados do alerta
                 client_data, license_data = await get_alert_data(alert_id)
