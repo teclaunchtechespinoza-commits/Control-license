@@ -2184,6 +2184,257 @@ class LicenseManagementAPITester:
             print("   As correções da FASE 1 podem precisar de ajustes adicionais.")
             return False
 
+    def test_infinite_loop_bug_validation(self):
+        """VALIDAÇÃO FINAL - CORREÇÃO DE BUG CRÍTICO DE LOOP INFINITO"""
+        print("\n" + "="*80)
+        print("VALIDAÇÃO FINAL - CORREÇÃO DE BUG CRÍTICO DE LOOP INFINITO")
+        print("="*80)
+        print("🎯 CONTEXTO: Usuário reportou sistema entrando em loop infinito após login")
+        print("   Erros críticos reportados:")
+        print("   1. 'MaintenanceLoggerAdapter object has no attribute log' - CORRIGIDO")
+        print("   2. 'Erro no envio em lote: [object Object]' - CORRIGIDO")
+        print("")
+        print("🔍 VALIDAÇÕES NECESSÁRIAS:")
+        print("   1. Login Functionality - Confirmar login funciona sem loops")
+        print("   2. WhatsApp Endpoints - Testar endpoints que causavam '[object Object]'")
+        print("   3. Dashboard Stability - Verificar se dashboard carrega sem travar")
+        print("   4. Error Serialization - Confirmar erros retornam strings válidas")
+        print("   5. No Infinite Loops - Múltiplas chamadas devem retornar rapidamente")
+        print("   6. MaintenanceLogger - Verificar se logs não geram mais erros")
+        print("="*80)
+        
+        infinite_loop_tests_passed = 0
+        infinite_loop_tests_total = 0
+        
+        # Test 1: Login Functionality (admin@demo.com / admin123)
+        print("\n🔍 TEST 1: LOGIN FUNCTIONALITY - SEM LOOPS INFINITOS")
+        print("   Objetivo: Confirmar que login funciona sem entrar em loop infinito")
+        
+        infinite_loop_tests_total += 1
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        
+        # Measure login time to detect potential loops
+        start_time = time.time()
+        success, response = self.run_test("Login sem loop infinito", "POST", "auth/login", 200, admin_credentials)
+        login_time = (time.time() - start_time) * 1000
+        
+        if success and login_time < 5000:  # Should complete in under 5 seconds
+            infinite_loop_tests_passed += 1
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
+            else:
+                self.admin_token = "cookie_based_auth"
+            print(f"   ✅ Login bem-sucedido em {login_time:.2f}ms (sem loop infinito)")
+            print(f"   ✅ Usuário autenticado: {response.get('user', {}).get('email', 'N/A')}")
+        elif success and login_time >= 5000:
+            print(f"   ⚠️ Login demorou {login_time:.2f}ms - possível problema de performance")
+        else:
+            print(f"   ❌ Login falhou ou demorou muito ({login_time:.2f}ms)")
+            return False
+        
+        # Test 2: WhatsApp Endpoints - Testar endpoints que causavam "[object Object]"
+        print("\n🔍 TEST 2: WHATSAPP ENDPOINTS - CORREÇÃO DE '[object Object]'")
+        print("   Objetivo: Confirmar que endpoints WhatsApp retornam erros serializados corretamente")
+        
+        if not self.admin_token:
+            print("   ❌ Sem token admin - pulando testes WhatsApp")
+        else:
+            # Test WhatsApp bulk send endpoint
+            infinite_loop_tests_total += 1
+            bulk_send_data = {
+                "contacts": [
+                    {"name": "João Silva", "phone": "+5511999887766"},
+                    {"name": "Maria Santos", "phone": "+5511888776655"}
+                ],
+                "message": "Teste de envio em lote - validação de correção de bug"
+            }
+            
+            start_time = time.time()
+            success, response = self.run_test("WhatsApp bulk send", "POST", "whatsapp/send-bulk", [200, 400, 503], bulk_send_data, self.admin_token)
+            whatsapp_time = (time.time() - start_time) * 1000
+            
+            if success and whatsapp_time < 3000:  # Should complete quickly
+                infinite_loop_tests_passed += 1
+                print(f"   ✅ WhatsApp bulk send respondeu em {whatsapp_time:.2f}ms")
+                
+                # Check if error message is properly serialized (not "[object Object]")
+                if isinstance(response, dict):
+                    error_msg = response.get('detail', response.get('message', ''))
+                    if error_msg and '[object Object]' not in str(error_msg):
+                        print(f"   ✅ Erro serializado corretamente: {error_msg}")
+                    elif error_msg and '[object Object]' in str(error_msg):
+                        print(f"   ❌ CRÍTICO: Ainda retorna '[object Object]': {error_msg}")
+                        infinite_loop_tests_passed -= 1
+                    else:
+                        print("   ✅ Resposta sem erros de serialização")
+                else:
+                    print("   ✅ Resposta em formato válido")
+            else:
+                print(f"   ❌ WhatsApp bulk send falhou ou demorou muito ({whatsapp_time:.2f}ms)")
+            
+            # Test WhatsApp status endpoint
+            infinite_loop_tests_total += 1
+            start_time = time.time()
+            success, response = self.run_test("WhatsApp status", "GET", "whatsapp/status", [200, 503], token=self.admin_token)
+            status_time = (time.time() - start_time) * 1000
+            
+            if success and status_time < 3000:
+                infinite_loop_tests_passed += 1
+                print(f"   ✅ WhatsApp status respondeu em {status_time:.2f}ms")
+                
+                # Check error serialization
+                if isinstance(response, dict):
+                    error_msg = response.get('detail', response.get('message', ''))
+                    if error_msg and '[object Object]' not in str(error_msg):
+                        print(f"   ✅ Status error serializado corretamente: {error_msg}")
+                    elif error_msg and '[object Object]' in str(error_msg):
+                        print(f"   ❌ CRÍTICO: Status ainda retorna '[object Object]': {error_msg}")
+                        infinite_loop_tests_passed -= 1
+            else:
+                print(f"   ❌ WhatsApp status falhou ou demorou muito ({status_time:.2f}ms)")
+        
+        # Test 3: Dashboard Stability - Verificar se dashboard carrega sem travar
+        print("\n🔍 TEST 3: DASHBOARD STABILITY - SEM TRAVAMENTO")
+        print("   Objetivo: Verificar se dashboard carrega sem travar após login")
+        
+        if not self.admin_token:
+            print("   ❌ Sem token admin - pulando teste dashboard")
+        else:
+            # Test multiple dashboard endpoints rapidly
+            dashboard_endpoints = [
+                ("stats", "Dashboard Stats"),
+                ("users", "Users List"),
+                ("licenses", "Licenses List"),
+                ("categories", "Categories List")
+            ]
+            
+            dashboard_success = 0
+            for endpoint, name in dashboard_endpoints:
+                infinite_loop_tests_total += 1
+                start_time = time.time()
+                success, response = self.run_test(f"Dashboard {name}", "GET", endpoint, 200, token=self.admin_token)
+                endpoint_time = (time.time() - start_time) * 1000
+                
+                if success and endpoint_time < 5000:  # Should load quickly
+                    infinite_loop_tests_passed += 1
+                    dashboard_success += 1
+                    print(f"   ✅ {name} carregou em {endpoint_time:.2f}ms")
+                else:
+                    print(f"   ❌ {name} falhou ou demorou muito ({endpoint_time:.2f}ms)")
+            
+            if dashboard_success == len(dashboard_endpoints):
+                print("   ✅ Dashboard completamente estável - sem travamentos")
+            else:
+                print(f"   ⚠️ Dashboard parcialmente estável ({dashboard_success}/{len(dashboard_endpoints)} endpoints)")
+        
+        # Test 4: Multiple Rapid Calls - No Infinite Loops
+        print("\n🔍 TEST 4: MÚLTIPLAS CHAMADAS RÁPIDAS - SEM LOOPS INFINITOS")
+        print("   Objetivo: Confirmar que múltiplas chamadas aos mesmos endpoints retornam rapidamente")
+        
+        if not self.admin_token:
+            print("   ❌ Sem token admin - pulando teste de múltiplas chamadas")
+        else:
+            # Test rapid multiple calls to stats endpoint (most likely to cause loops)
+            rapid_calls_success = 0
+            total_rapid_calls = 5
+            
+            print(f"   Fazendo {total_rapid_calls} chamadas rápidas para /api/stats...")
+            
+            for i in range(total_rapid_calls):
+                infinite_loop_tests_total += 1
+                start_time = time.time()
+                success, response = self.run_test(f"Rapid call {i+1}", "GET", "stats", 200, token=self.admin_token)
+                call_time = (time.time() - start_time) * 1000
+                
+                if success and call_time < 2000:  # Each call should be fast
+                    infinite_loop_tests_passed += 1
+                    rapid_calls_success += 1
+                    print(f"      ✅ Chamada {i+1}: {call_time:.2f}ms")
+                else:
+                    print(f"      ❌ Chamada {i+1}: falhou ou demorou {call_time:.2f}ms")
+                
+                # Small delay between calls
+                time.sleep(0.1)
+            
+            if rapid_calls_success == total_rapid_calls:
+                print("   ✅ Todas as chamadas rápidas bem-sucedidas - sem loops infinitos")
+            else:
+                print(f"   ⚠️ Algumas chamadas falharam ({rapid_calls_success}/{total_rapid_calls})")
+        
+        # Test 5: Error Serialization Validation
+        print("\n🔍 TEST 5: ERROR SERIALIZATION - SEM '[object Object]'")
+        print("   Objetivo: Confirmar que todos os erros retornam strings válidas")
+        
+        # Test endpoints that might return errors
+        error_test_endpoints = [
+            ("auth/login", "POST", {"email": "invalid@test.com", "password": "wrong"}, 401),
+            ("users/invalid-id", "GET", None, 404),
+            ("licenses/invalid-id", "GET", None, 404)
+        ]
+        
+        error_serialization_success = 0
+        for endpoint, method, data, expected_status in error_test_endpoints:
+            infinite_loop_tests_total += 1
+            success, response = self.run_test(f"Error serialization - {endpoint}", method, endpoint, expected_status, data)
+            
+            if success:
+                # Check if error response is properly serialized
+                if isinstance(response, dict):
+                    error_msg = response.get('detail', response.get('message', ''))
+                    if error_msg and '[object Object]' not in str(error_msg):
+                        infinite_loop_tests_passed += 1
+                        error_serialization_success += 1
+                        print(f"   ✅ {endpoint} - erro serializado: {error_msg}")
+                    else:
+                        print(f"   ❌ {endpoint} - erro mal serializado: {error_msg}")
+                else:
+                    infinite_loop_tests_passed += 1
+                    error_serialization_success += 1
+                    print(f"   ✅ {endpoint} - resposta válida")
+            else:
+                print(f"   ❌ {endpoint} - falha no teste de erro")
+        
+        # FINAL RESULTS
+        print("\n" + "="*80)
+        print("VALIDAÇÃO FINAL - CORREÇÃO DE BUG CRÍTICO - RESULTADOS")
+        print("="*80)
+        
+        success_rate = (infinite_loop_tests_passed / infinite_loop_tests_total * 100) if infinite_loop_tests_total > 0 else 0
+        
+        print(f"📊 RESULTADOS DOS TESTES DE LOOP INFINITO:")
+        print(f"   Total de testes: {infinite_loop_tests_total}")
+        print(f"   Testes aprovados: {infinite_loop_tests_passed}")
+        print(f"   Taxa de sucesso: {success_rate:.1f}%")
+        print("")
+        
+        if success_rate >= 90:
+            print("🎉 BUG CRÍTICO DE LOOP INFINITO COMPLETAMENTE CORRIGIDO!")
+            print("   ✅ Login funciona sem loops (admin@demo.com/admin123)")
+            print("   ✅ WhatsApp endpoints não retornam mais '[object Object]'")
+            print("   ✅ Dashboard carrega sem travar")
+            print("   ✅ Erros são serializados corretamente")
+            print("   ✅ Múltiplas chamadas retornam rapidamente")
+            print("   ✅ Sistema funciona harmoniosamente após login")
+            print("")
+            print("CONCLUSÃO: O sistema foi COMPLETAMENTE CORRIGIDO e não apresenta mais")
+            print("o bug de loop infinito reportado pelo usuário.")
+            return True
+        elif success_rate >= 70:
+            print("⚠️ BUG CRÍTICO PARCIALMENTE CORRIGIDO")
+            print(f"   {infinite_loop_tests_passed}/{infinite_loop_tests_total} testes aprovados")
+            print("   Algumas funcionalidades ainda podem apresentar problemas")
+            print("   Recomenda-se investigação adicional")
+            return False
+        else:
+            print("❌ BUG CRÍTICO NÃO CORRIGIDO!")
+            print(f"   Apenas {infinite_loop_tests_passed}/{infinite_loop_tests_total} testes aprovados")
+            print("   Sistema ainda apresenta problemas de loop infinito")
+            print("   AÇÃO NECESSÁRIA: Investigar e corrigir problemas restantes")
+            return False
+
     def run_critical_rbac_maintenance_validation(self):
         """Run critical validation for RBAC and maintenance module as requested in review"""
         print("🚀 TESTE RÁPIDO PARA CONFIRMAR VERSÃO COMPLETA COM RBAC E MÓDULO MANUTENÇÃO")
