@@ -567,8 +567,23 @@ class LicenseManagementAPITester:
         print("   6. WhatsApp endpoints individuais - Phone validation + response normalization")
         print("="*80)
         
-        if not self.admin_token:
-            print("❌ No admin token available, skipping WhatsApp tests")
+        # First authenticate with admin credentials
+        print("\n🔐 AUTHENTICATION SETUP")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login for WhatsApp tests", "POST", "auth/login", 200, admin_credentials)
+        if success:
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
+            print(f"   ✅ Admin authentication successful")
+        else:
+            print("   ❌ CRITICAL: Admin authentication failed!")
             return False
 
         # Test 1: WhatsApp Status Endpoint
