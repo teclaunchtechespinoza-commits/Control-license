@@ -106,6 +106,12 @@ const AuthProvider = ({ children }) => {
       if (error.response?.status === 401 && user !== null) {
         toast.error('Session expired. Please login again.');
       }
+      
+      // 🚨 CRITICAL: If Redis is down or server error, stop trying to refresh
+      if (error.response?.status >= 500 || !error.response) {
+        console.warn('🚨 Server error detected - stopping auth attempts');
+        // Don't show repeated error messages for server issues
+      }
     } finally {
       // 🚫 CRITICAL: Always set loading to false to prevent infinite loading
       setLoading(false);
