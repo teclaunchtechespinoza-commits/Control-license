@@ -301,7 +301,7 @@ const SalesDashboard = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {expiringLicenses.slice(0, 20).map((license) => (
+                            {expiringLicenses.map((license) => (
                                 <div key={license.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                                     <div className="flex items-center gap-4">
                                         <input
