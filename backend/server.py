@@ -579,6 +579,12 @@ db = client[os.environ['DB_NAME']]
 # Create the main app
 app = FastAPI(title="License Management System", version="1.0.0")
 
+# 🚀 SPRINT 1.2 - Add Rate Limiting Middleware (HIGHEST PRIORITY)
+app.add_middleware(
+    RateLimitingMiddleware,
+    redis_url=settings.redis_url  # Use existing Redis configuration
+)
+
 # Tenant Isolation Middleware
 class TenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
