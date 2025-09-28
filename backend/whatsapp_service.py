@@ -410,40 +410,7 @@ def create_whatsapp_endpoints():
     
     return whatsapp_router
 
-@whatsapp_router.post("/restart")
-async def restart_whatsapp_connection(current_user: User = Depends(get_current_user)):
-    """Reinicia conexão WhatsApp"""
-    if current_user.role != 'admin':
-        raise HTTPException(status_code=403, detail="Only admin can restart WhatsApp connection")
-    
-    success = await whatsapp_service.restart_connection()
-    
-    # Log da operação
-    maintenance_logger.log("whatsapp_restart", {
-        "user_id": current_user.id,
-        "success": success
-    })
-    
-    if success:
-        return {"message": "WhatsApp connection restart initiated"}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to restart WhatsApp connection")
-
-@whatsapp_router.post("/webhook")
-async def whatsapp_webhook(webhook_data: WhatsAppWebhookData):
-    """Webhook para receber eventos do serviço Node.js"""
-    
-    # Log do evento
-    maintenance_logger.log(f"whatsapp_webhook_{webhook_data.event}", {
-        "event": webhook_data.event,
-        "data": webhook_data.data,
-        "timestamp": webhook_data.timestamp
-    })
-    
-    # Aqui podemos processar diferentes tipos de eventos
-    # Por exemplo: message_sent, message_delivered, message_failed, etc.
-    
-    return {"status": "received"}
+# Endpoints restart e webhook também removidos - serão recriados na função create_whatsapp_endpoints
 
 # Integration helpers - para usar nos outros módulos
 async def send_renewal_whatsapp_message(client_data: Dict, license_data: Dict, alert_type: str, salesperson: str = None):
