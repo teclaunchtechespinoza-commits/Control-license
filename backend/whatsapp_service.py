@@ -282,6 +282,70 @@ class WhatsAppService:
                 })
 
         return results
+
+    async def _check_license_validity(self, client_id: str, tenant_id: str) -> bool:
+        """Verifica se cliente tem licença válida (não expirada)"""
+        try:
+            # Verificar licenças para cliente PF
+            query_filter_pf = add_tenant_filter({
+                "client_pf_id": client_id,
+                "expires_at": {"$gte": datetime.now(timezone.utc)}
+            }, tenant_id)
+            
+            license_pf = await db.licenses.find_one(query_filter_pf)
+            if license_pf:
+                return True
+            
+            # Verificar licenças para cliente PJ
+            query_filter_pj = add_tenant_filter({
+                "client_pj_id": client_id,
+                "expires_at": {"$gte": datetime.now(timezone.utc)}
+            }, tenant_id)
+            
+            license_pj = await db.licenses.find_one(query_filter_pj)
+            return license_pj is not None
+            
+        except Exception as e:
+            logger.error(f"Erro ao verificar validade da licença para cliente {client_id}: {e}")
+            return False
+    
+    async def _check_idempotency(self, message_id: str) -> bool:
+        """Verifica se mensagem já foi processada (idempotência)"""
+        try:
+            key = f"whatsapp:sent:{message_id}"
+            exists = await redis_client.exists(key)
+            return not exists  # True se não existe (pode processar)
+        except Exception as e:
+            logger.error(f"Erro ao verificar idempotência para {message_id}: {e}")
+            return True  # Em caso de erro, permite o envio
+    
+    async def _mark_as_sent(self, message_id: str) -> None:
+        """Marca mensagem como enviada para idempotência"""
+        try:
+            key = f"whatsapp:sent:{message_id}"
+            await redis_client.setex(key, 3600, "1")  # TTL de 1 hora
+        except Exception as e:
+            logger.error(f"Erro ao marcar mensagem {message_id} como enviada: {e}")
+    
+    async def _check_rate_limit(self, tenant_id: str) -> bool:
+        """Verifica rate limit por tenant (30 mensagens/minuto)"""
+        try:
+            key = f"whatsapp:rate_limit:{tenant_id}"
+            current = await redis_client.get(key)
+            
+            if current is None:
+                # Primeira mensagem no minuto
+                await redis_client.setex(key, 60, "1")  # TTL de 1 minuto
+                return True
+            elif int(current) < 30:  # Limite de 30 msgs/minuto
+                await redis_client.incr(key)
+                return True
+            else:
+                return False  # Rate limit excedido
+                
+        except Exception as e:
+            logger.error(f"Erro ao verificar rate limit para tenant {tenant_id}: {e}")
+            return True  # Em caso de erro, permite o envio
     
     async def restart_connection(self) -> bool:
         """Reinicia conexão WhatsApp"""
