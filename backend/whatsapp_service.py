@@ -13,8 +13,11 @@ from datetime import datetime, timezone
 import logging
 import os
 
-# Import from server.py instead of separate modules
-from server import get_current_user, User, maintenance_logger, db, add_tenant_filter
+# Import dependencies to avoid circular imports
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from server import User
 
 # Redis para idempotência e rate limiting
 try:
