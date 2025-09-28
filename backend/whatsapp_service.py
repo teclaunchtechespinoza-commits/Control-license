@@ -443,7 +443,7 @@ async def send_whatsapp_message(
 @whatsapp_router.post("/send-bulk")
 async def send_bulk_whatsapp(
     request: WhatsAppBulkSendRequest,
-    current_user: "User" = Depends(lambda: __import__('server').get_current_user)
+    current_user = Depends(lambda: None)  # Será resolvido dinamicamente
 ):
     """Envia mensagens WhatsApp em lote com idempotência, rate limiting e validação de licenças"""
     
