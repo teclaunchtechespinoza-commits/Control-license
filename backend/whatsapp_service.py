@@ -440,41 +440,49 @@ async def send_whatsapp_message(
     
     return result
 
-@whatsapp_router.post("/send-bulk")
-async def send_bulk_whatsapp(
-    request: WhatsAppBulkSendRequest,
-    current_user = Depends(lambda: None)  # Será resolvido dinamicamente
-):
-    """Envia mensagens WhatsApp em lote com idempotência, rate limiting e validação de licenças"""
+def create_whatsapp_endpoints():
+    """Cria endpoints do WhatsApp para evitar import circular"""
     
     # Import dentro da função para evitar circular import
-    from server import maintenance_logger
+    from server import get_current_user, User, maintenance_logger
     
-    # Log da tentativa
-    maintenance_logger.log("whatsapp_bulk_send_attempt", {
-        "user_id": current_user.id,
-        "tenant_id": current_user.tenant_id,
-        "message_count": len(request.messages),
-        "phone_numbers": [msg.get("phone_number") for msg in request.messages]
-    })
+    @whatsapp_router.post("/send-bulk")
+    async def send_bulk_whatsapp(
+        request: WhatsAppBulkSendRequest,
+        current_user: User = Depends(get_current_user)
+    ):
+        """Envia mensagens WhatsApp em lote com idempotência, rate limiting e validação de licenças"""
+        
+        # Log da tentativa
+        maintenance_logger.log("whatsapp_bulk_send_attempt", {
+            "user_id": current_user.id,
+            "tenant_id": current_user.tenant_id,
+            "message_count": len(request.messages),
+            "phone_numbers": [msg.get("phone_number") for msg in request.messages]
+        })
+        
+        # Usar tenant_id do usuário atual
+        result = await whatsapp_service.send_bulk_messages(
+            request.messages,
+            tenant_id=current_user.tenant_id
+        )
+        
+        # Log do resultado detalhado
+        maintenance_logger.log("whatsapp_bulk_send_result", {
+            "user_id": current_user.id,
+            "tenant_id": current_user.tenant_id,
+            "total": result.get("total", 0),
+            "sent": result.get("sent", 0),
+            "failed": result.get("failed", 0),
+            "error_types": [error.get("error_type") for error in result.get("errors", [])]
+        })
+        
+        return result
     
-    # Usar tenant_id do usuário atual
-    result = await whatsapp_service.send_bulk_messages(
-        request.messages,
-        tenant_id=current_user.tenant_id
-    )
-    
-    # Log do resultado detalhado
-    maintenance_logger.log("whatsapp_bulk_send_result", {
-        "user_id": current_user.id,
-        "tenant_id": current_user.tenant_id,
-        "total": result.get("total", 0),
-        "sent": result.get("sent", 0),
-        "failed": result.get("failed", 0),
-        "error_types": [error.get("error_type") for error in result.get("errors", [])]
-    })
-    
-    return result
+    return whatsapp_router
+
+# Chamar a função para criar os endpoints
+create_whatsapp_endpoints()
 
 @whatsapp_router.post("/restart")
 async def restart_whatsapp_connection(current_user: User = Depends(get_current_user)):
