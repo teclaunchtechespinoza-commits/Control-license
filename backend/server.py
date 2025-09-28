@@ -3748,7 +3748,11 @@ async def create_expiration_alert(license_doc):
             client_pj = await db.clientes_pj.find_one(query_filter_pj)
             if client_pj:
                 client_name = client_pj.get('razao_social', client_name)
-                client_phone = client_pj.get('telefone_principal') or client_pj.get('whatsapp')
+                # Priorizar WhatsApp, depois telefone_principal, depois celular, depois telefone
+                client_phone = (client_pj.get('whatsapp') or 
+                              client_pj.get('telefone_principal') or 
+                              client_pj.get('celular') or 
+                              client_pj.get('telefone'))
                 client_id = client_pj.get('id')
                 client_type = "pj"
         
