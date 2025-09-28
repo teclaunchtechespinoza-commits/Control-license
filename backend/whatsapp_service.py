@@ -289,6 +289,9 @@ class WhatsAppService:
     async def _check_license_validity(self, client_id: str, tenant_id: str) -> bool:
         """Verifica se cliente tem licença válida (não expirada)"""
         try:
+            # Import dentro do método para evitar circular import
+            from server import db, add_tenant_filter
+            
             # Verificar licenças para cliente PF
             query_filter_pf = add_tenant_filter({
                 "client_pf_id": client_id,
