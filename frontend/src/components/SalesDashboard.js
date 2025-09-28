@@ -152,7 +152,39 @@ const SalesDashboard = () => {
 
         } catch (error) {
             console.error('Erro no envio em lote:', error);
-            alert('Erro no envio em lote: ' + (error.response?.data?.detail || error.message));
+            
+            // Tratar diferentes tipos de erro do novo sistema WhatsApp
+            let errorMessage = 'Erro desconhecido';
+            
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                
+                // Se há lista de erros detalhados
+                if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+                    const firstError = errorData.errors[0];
+                    errorMessage = firstError.error || firstError.message || JSON.stringify(firstError);
+                }
+                // Se há mensagem de erro geral
+                else if (errorData.detail) {
+                    errorMessage = errorData.detail;
+                }
+                // Se há mensagem de erro simples
+                else if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+                // Se há mensagem de erro diferente
+                else if (errorData.message) {
+                    errorMessage = errorData.message;
+                }
+                // Fallback para mostrar dados estruturados
+                else {
+                    errorMessage = JSON.stringify(errorData);
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            alert('Erro no envio em lote: ' + errorMessage);
         } finally {
             setSendingWhatsApp(prev => {
                 const newSet = new Set(prev);
