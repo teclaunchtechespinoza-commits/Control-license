@@ -6454,6 +6454,10 @@ async def send_bulk_whatsapp(
     try:
         payload = {"messages": request.messages}
         result = await call_whatsapp_service("send-bulk", "POST", payload)
+        
+        # 🔧 FIX: Normalize bulk response to ensure consistent format
+        result = normalize_whatsapp_response(result)
+        
     except Exception as e:
         result = {
             "total": len(request.messages),
