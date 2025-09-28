@@ -6454,6 +6454,7 @@ async def send_whatsapp_message(
     return result
 
 @api_router.post("/whatsapp/send-bulk")
+@rate_limit("whatsapp_bulk")  # 🚀 SPRINT 1.2 - 10 bulk operations per 5min per user
 async def send_bulk_whatsapp(
     request: WhatsAppBulkSendRequest,
     current_user: User = Depends(get_current_user)
