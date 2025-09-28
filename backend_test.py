@@ -9390,7 +9390,23 @@ if __name__ == "__main__":
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection, whatsapp-corrections")
             exit_code = 1
     else:
-        # Default: run critical endpoints test as requested in review
-        exit_code = tester.run_critical_endpoints_test()
+        # Default: run critical login loop and error serialization test
+        print("🚀 RUNNING CRITICAL LOGIN LOOP AND ERROR SERIALIZATION TEST")
+        success = tester.test_critical_login_loop_and_error_serialization()
+        
+        # Print final results
+        print("\n" + "="*50)
+        print("CRITICAL LOGIN LOOP AND ERROR SERIALIZATION TEST RESULTS")
+        print("="*50)
+        print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+        
+        success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+        
+        if success and success_rate >= 85:
+            print(f"🎉 CRITICAL LOGIN LOOP AND ERROR SERIALIZATION TESTS PASSED! {success_rate:.1f}% success rate")
+            exit_code = 0
+        else:
+            print(f"❌ CRITICAL LOGIN LOOP AND ERROR SERIALIZATION TESTS FAILED! {success_rate:.1f}% success rate")
+            exit_code = 1
     
     sys.exit(exit_code)
