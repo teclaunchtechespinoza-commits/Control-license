@@ -171,9 +171,9 @@ agent_communication:
 backend:
   - task: "WHATSAPP BULK SEND - Melhorias com Idempotência e Rate Limiting"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/whatsapp_service.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -183,3 +183,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "🔍 ANÁLISE TÉCNICA DETALHADA - MELHORIAS IMPLEMENTADAS MAS NÃO ATIVAS: ✅ CÓDIGO IMPLEMENTADO: Todas as melhorias foram implementadas em /app/backend/whatsapp_service.py com funcionalidades completas: (1) Validação de licenças via _check_license_validity() - verifica licenças PF/PJ não expiradas, (2) Idempotência via Redis com _check_idempotency() e _mark_as_sent() - TTL de 1 hora, (3) Rate limiting por tenant via _check_rate_limit() - 30 msgs/minuto, (4) Categorização de erros detalhada - ERROR_TYPES com LICENSE_EXPIRED, RATE_LIMIT, DUPLICATE, PHONE_INVALID, SERVICE_ERROR, TIMEOUT, (5) Estrutura de resposta padronizada - {total, sent, failed, errors[]}. ❌ PROBLEMA CRÍTICO: Router não está ativo! Linha 6697 em server.py: '# app.include_router(whatsapp_router) # Real WhatsApp integration - Commented out to avoid circular import'. Sistema usa implementação antiga em server.py (linhas 6464-6529) sem as melhorias. ⚠️ LIMITAÇÕES AMBIENTAIS: Redis não disponível (esperado em ambiente de teste) - idempotência e rate limiting usam fallback. 📊 TESTES EXECUTADOS: Endpoint /api/whatsapp/send-bulk responde com estrutura básica {total: 2, sent: 0, failed: 1} mas usa validação de telefone simples, não as melhorias implementadas. CONCLUSÃO: Código das melhorias existe e está correto, mas não está sendo usado devido ao router comentado."
+        - working: true
+          agent: "main"
+          comment: "🎉 PROBLEMA CRÍTICO RESOLVIDO - ROUTER WHATSAPP ATIVADO COM SUCESSO! CORREÇÃO APLICADA: Comentei os endpoints antigos do WhatsApp em server.py (linhas 6464-6530) para evitar conflito com a nova implementação melhorada. O whatsapp_router já estava sendo incluído na linha 6700, mas os endpoints antigos tinham precedência. RESULTADO: Sistema agora usa a implementação melhorada de whatsapp_service.py com todas as funcionalidades solicitadas."
+        - working: true
+          agent: "testing"
+          comment: "🎉 WHATSAPP BULK SEND MELHORIAS VALIDADAS COM SUCESSO! TESTES PRIORITÁRIOS EXECUTADOS: ✅ TESTE 1 - Router Ativo: Endpoint /api/whatsapp/send-bulk responde com nova estrutura {total: 1, sent: 0, failed: 1, errors: [{phone_number, message_id, error, error_type}]} - FUNCIONANDO! ✅ TESTE 2 - Validação de Licenças: Cliente João da Silva Teste (client_id: 3b9c1a56-f7d1-46da-b59e-5aeca3daf8c2) retorna error_type: 'LICENSE_EXPIRED' com mensagem 'Licença expirada - renovação necessária' - FUNCIONANDO! ✅ TESTE 3 - Validação Básica: Mensagens sem client_id processam normalmente com estrutura correta - FUNCIONANDO! ✅ TESTE 4 - Estrutura de Erros: errors[] contém todos os campos obrigatórios (phone_number, message_id, error, error_type) com constantes ERROR_TYPES ativas - FUNCIONANDO! ✅ TESTE 5 - Status dos Logs: maintenance_logger registra whatsapp_bulk_send_attempt e whatsapp_bulk_send_result com tenant_id - FUNCIONANDO! TAXA DE SUCESSO: 100% (5/5 testes prioritários). CONCLUSÃO: Router whatsapp_router está ATIVO e funcionando. Validação de licenças implementada. Estrutura de resposta melhorada. Categorização de erros ativa. Logs detalhados funcionando. As melhorias do WhatsApp bulk send estão REALMENTE ATIVAS!"
