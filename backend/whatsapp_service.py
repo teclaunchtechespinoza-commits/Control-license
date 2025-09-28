@@ -38,7 +38,7 @@ class WhatsAppSendRequest(BaseModel):
     context: Optional[Dict[str, Any]] = None
 
 class WhatsAppBulkSendRequest(BaseModel):
-    messages: List[Dict[str, str]]
+    messages: List[Dict[str, Any]]  # Permitir client_id e outros campos
 
 class WhatsAppStatus(BaseModel):
     connected: bool
