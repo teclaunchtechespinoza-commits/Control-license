@@ -137,18 +137,35 @@ async function handleAuthenticationError(error, config) {
     return Promise.reject(error);
   }
   
+  // 🚫 CRITICAL: Prevent multiple concurrent refresh attempts
+  if (isRefreshing) {
+    console.warn('❌ Already refreshing token, rejecting request...');
+    redirectToLogin('Múltiplas tentativas de refresh detectadas. Faça login novamente.');
+    return Promise.reject(error);
+  }
+  
   console.warn('🔄 Attempting token refresh...');
+  isRefreshing = true;
   
   try {
     // Try to refresh the token
     const refreshResponse = await api.post('/auth/refresh');
     if (refreshResponse.status === 200) {
       console.log('✅ Token refreshed successfully, retrying original request');
+      isRefreshing = false;
       // Retry the original request
       return api.request(config);
     }
   } catch (refreshError) {
     console.warn('❌ Token refresh failed:', refreshError.response?.status);
+    
+    // Se é erro 500 ou problema de conexão, pode ser Redis
+    if (refreshError.response?.status >= 500 || !refreshError.response) {
+      console.warn('🚨 Server error detected - may be Redis connection issue');
+      console.warn('Clearing auth state and redirecting to login...');
+    }
+  } finally {
+    isRefreshing = false;
   }
   
   // If refresh failed, show enhanced message and redirect
