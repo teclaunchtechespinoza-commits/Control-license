@@ -247,6 +247,7 @@ from structured_logger import (
     log_user_login, log_data_access, log_data_export, 
     log_permission_change, log_system_error, EventCategory
 )
+from rate_limiting import RateLimitingMiddleware, rate_limit, check_rate_limit  # 🚀 SPRINT 1.2
 from logging_middleware import (
     StructuredLoggingMiddleware, PerformanceMonitoringMiddleware, 
     ErrorLoggingMiddleware
