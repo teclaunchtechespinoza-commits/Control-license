@@ -34,8 +34,8 @@ const SalesDashboard = () => {
             const summaryResponse = await api.get('/sales-dashboard/summary');
             setSummary(summaryResponse.data);
 
-            // Buscar licenças expirando
-            const licensesResponse = await api.get('/sales-dashboard/expiring-licenses', { params: { days_ahead: 30 } });
+            // Buscar licenças expirando (expandido para 90 dias para incluir mais licenças)
+            const licensesResponse = await api.get('/sales-dashboard/expiring-licenses', { params: { days_ahead: 90 } });
             setExpiringLicenses(licensesResponse.data);
 
             // Buscar analytics
