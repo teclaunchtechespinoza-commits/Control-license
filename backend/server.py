@@ -1509,7 +1509,14 @@ async def get_current_user(request: Request):
         user["tenant_id"] = "default"
         logger.info(f"User {email} migrated to default tenant")
     
-    return User(**user)
+    user_obj = User(**user)
+    
+    # 🚀 SPRINT 1.2 - Add user info to request state for rate limiting
+    request.state.user_id = user_obj.id
+    request.state.user_role = user_obj.role
+    request.state.user_email = user_obj.email
+    
+    return user_obj
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
     # Allow both admin and super_admin roles
