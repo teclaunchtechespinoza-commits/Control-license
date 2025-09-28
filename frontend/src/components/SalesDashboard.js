@@ -3,7 +3,7 @@ import { api } from '../api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { SemanticBadge } from './ui/semantic-badge';
-import { AlertTriangle, MessageCircle, Phone, Mail, TrendingUp, TrendingDown, Users, DollarSign, Calendar, Send, Loader2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, MessageCircle, Phone, Mail, TrendingUp, TrendingDown, Users, DollarSign, Calendar, Send, Loader2, RefreshCw, Search } from 'lucide-react';
 
 const SalesDashboard = () => {
     // Estados principais
