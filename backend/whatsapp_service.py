@@ -484,9 +484,6 @@ def create_whatsapp_endpoints():
     
     return whatsapp_router
 
-# Chamar a função para criar os endpoints
-create_whatsapp_endpoints()
-
 @whatsapp_router.post("/restart")
 async def restart_whatsapp_connection(current_user: User = Depends(get_current_user)):
     """Reinicia conexão WhatsApp"""
