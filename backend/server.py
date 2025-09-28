@@ -6451,8 +6451,35 @@ async def send_bulk_whatsapp(
         "phone_numbers": [msg.get("phone_number") for msg in request.messages]
     })
     
+    # 🔧 FIX: Validate and normalize phone numbers before bulk send
+    normalized_messages = []
+    validation_errors = []
+    
+    for i, msg in enumerate(request.messages):
+        try:
+            normalized_phone = safe_normalize_phone(msg.get("phone_number", ""))
+            normalized_msg = dict(msg)
+            normalized_msg["phone_number"] = normalized_phone
+            normalized_messages.append(normalized_msg)
+        except ValueError as e:
+            validation_errors.append({
+                "index": i,
+                "phone_number": msg.get("phone_number"),
+                "error": str(e)
+            })
+    
+    # If there are validation errors, return them
+    if validation_errors:
+        return {
+            "total": len(request.messages),
+            "sent": 0, 
+            "failed": len(validation_errors),
+            "validation_errors": validation_errors,
+            "error": f"{len(validation_errors)} invalid phone numbers"
+        }
+    
     try:
-        payload = {"messages": request.messages}
+        payload = {"messages": normalized_messages}  # 🔧 FIX: Use normalized messages
         result = await call_whatsapp_service("send-bulk", "POST", payload)
         
         # 🔧 FIX: Normalize bulk response to ensure consistent format
