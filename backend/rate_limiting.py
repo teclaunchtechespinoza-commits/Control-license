@@ -177,8 +177,16 @@ class AdvancedRateLimiter:
                     "rate_limit_redis_fallback",
                     f"Redis rate limiting failed, allowing request: {str(e)}"
                 )
-                # Allow request if Redis fails (fail-open for availability)
-                current_count = 0
+                # Allow request if Redis fails (fail-open for availability) 
+                return True, {
+                    "limit": rule["limit"],
+                    "remaining": rule["limit"],
+                    "reset": current_time + rule["window"],
+                    "window": rule["window"],
+                    "rule": rule_name,
+                    "client_id": client_id,
+                    "current_count": 0
+                }
         else:
             # In-memory fallback (not recommended for production)
             current_count = 0
