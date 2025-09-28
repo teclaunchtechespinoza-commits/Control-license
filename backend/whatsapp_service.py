@@ -5,15 +5,24 @@ Conecta com o serviço Node.js para funcionalidades WhatsApp
 
 import httpx
 import asyncio
+import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import os
 
 # Import from server.py instead of separate modules
-from server import get_current_user, User, maintenance_logger
+from server import get_current_user, User, maintenance_logger, db, add_tenant_filter
+
+# Redis para idempotência e rate limiting
+try:
+    import redis.asyncio as redis
+    redis_client = redis.Redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True)
+except ImportError:
+    redis_client = None
+    logger.warning("Redis não disponível - idempotência e rate limiting desabilitados")
 
 logger = logging.getLogger(__name__)
 
