@@ -6518,16 +6518,16 @@ async def send_whatsapp_message(
 #             "failed": len(request.messages),
 #             "error": getattr(e, 'detail', str(e))  # 🔧 FIX: Proper HTTPException error extraction
 #         }
-    
-    # Log do resultado
-    maintenance_logger.log("whatsapp_bulk_send_result", {
-        "user_id": current_user.id,
-        "total": result.get("total", 0),
-        "sent": result.get("sent", 0),
-        "failed": result.get("failed", 0)
-    })
-    
-    return result
+#     
+#     # Log do resultado
+#     maintenance_logger.log("whatsapp_bulk_send_result", {
+#         "user_id": current_user.id,
+#         "total": result.get("total", 0),
+#         "sent": result.get("sent", 0),
+#         "failed": result.get("failed", 0)
+#     })
+#     
+#     return result
 
 @api_router.post("/whatsapp/restart")
 async def restart_whatsapp_connection(current_user: User = Depends(get_current_admin_user)):
