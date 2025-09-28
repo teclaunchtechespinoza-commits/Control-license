@@ -442,23 +442,30 @@ async def send_bulk_whatsapp(
     request: WhatsAppBulkSendRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """Envia mensagens WhatsApp em lote"""
+    """Envia mensagens WhatsApp em lote com idempotência, rate limiting e validação de licenças"""
     
     # Log da tentativa
     maintenance_logger.log("whatsapp_bulk_send_attempt", {
         "user_id": current_user.id,
+        "tenant_id": current_user.tenant_id,
         "message_count": len(request.messages),
         "phone_numbers": [msg.get("phone_number") for msg in request.messages]
     })
     
-    result = await whatsapp_service.send_bulk_messages(request.messages)
+    # Usar tenant_id do usuário atual
+    result = await whatsapp_service.send_bulk_messages(
+        request.messages,
+        tenant_id=current_user.tenant_id
+    )
     
-    # Log do resultado
+    # Log do resultado detalhado
     maintenance_logger.log("whatsapp_bulk_send_result", {
         "user_id": current_user.id,
+        "tenant_id": current_user.tenant_id,
         "total": result.get("total", 0),
         "sent": result.get("sent", 0),
-        "failed": result.get("failed", 0)
+        "failed": result.get("failed", 0),
+        "error_types": [error.get("error_type") for error in result.get("errors", [])]
     })
     
     return result
