@@ -410,7 +410,8 @@ def create_whatsapp_endpoints():
     
     return whatsapp_router
 
-# Endpoints restart e webhook também removidos - serão recriados na função create_whatsapp_endpoints
+# Chamar a função para criar os endpoints
+create_whatsapp_endpoints()
 
 # Integration helpers - para usar nos outros módulos
 async def send_renewal_whatsapp_message(client_data: Dict, license_data: Dict, alert_type: str, salesperson: str = None):
