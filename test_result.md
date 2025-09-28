@@ -160,7 +160,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "WHATSAPP BULK SEND - Melhorias com Idempotência e Rate Limiting"
+    - "NOVA FUNCIONALIDADE DE PESQUISA - Sales Dashboard COMPLETAMENTE VALIDADA"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
