@@ -363,9 +363,20 @@ const SalesDashboard = () => {
                             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>Nenhuma licença expirando encontrada</p>
                         </div>
+                    ) : filteredLicenses.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <p>Nenhuma licença encontrada para "{searchTerm}"</p>
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="mt-2 text-blue-600 hover:text-blue-800 underline"
+                            >
+                                Limpar pesquisa
+                            </button>
+                        </div>
                     ) : (
                         <div className="space-y-4">
-                            {expiringLicenses.map((license) => (
+                            {filteredLicenses.map((license) => (
                                 <div key={license.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                                     <div className="flex items-center gap-4">
                                         <input
