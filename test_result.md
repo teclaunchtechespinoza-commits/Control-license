@@ -168,13 +168,16 @@ agent_communication:
 
 backend:
   - task: "WHATSAPP BULK SEND - Melhorias com Idempotência e Rate Limiting"
-    implemented: false
+    implemented: true
     working: false
     file: "/app/backend/whatsapp_service.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "NOVA FEATURE PROPOSTA: Sistema de envio em lote melhorado com (1) Idempotência via Redis para evitar duplicatas, (2) Rate limiting por tenant (30 msgs/minuto), (3) Validação de licenças antes do envio, (4) Relatórios detalhados com categorização de erros, (5) Estrutura robusta de testes. PROBLEMA IDENTIFICADO NA IMAGEM: Sistema atual mostra mensagem contraditória 'WhatsApp enviado com sucesso!' mas Status: failed e Tipo: EXPIRED para licenças vencidas. IMPLEMENTAÇÃO NECESSÁRIA: Validação prévia de licenças, melhoria na estrutura de erros, implementação de métodos auxiliares (_check_license_validity, _check_idempotency, _check_rate_limit)."
+        - working: false
+          agent: "testing"
+          comment: "🔍 ANÁLISE TÉCNICA DETALHADA - MELHORIAS IMPLEMENTADAS MAS NÃO ATIVAS: ✅ CÓDIGO IMPLEMENTADO: Todas as melhorias foram implementadas em /app/backend/whatsapp_service.py com funcionalidades completas: (1) Validação de licenças via _check_license_validity() - verifica licenças PF/PJ não expiradas, (2) Idempotência via Redis com _check_idempotency() e _mark_as_sent() - TTL de 1 hora, (3) Rate limiting por tenant via _check_rate_limit() - 30 msgs/minuto, (4) Categorização de erros detalhada - ERROR_TYPES com LICENSE_EXPIRED, RATE_LIMIT, DUPLICATE, PHONE_INVALID, SERVICE_ERROR, TIMEOUT, (5) Estrutura de resposta padronizada - {total, sent, failed, errors[]}. ❌ PROBLEMA CRÍTICO: Router não está ativo! Linha 6697 em server.py: '# app.include_router(whatsapp_router) # Real WhatsApp integration - Commented out to avoid circular import'. Sistema usa implementação antiga em server.py (linhas 6464-6529) sem as melhorias. ⚠️ LIMITAÇÕES AMBIENTAIS: Redis não disponível (esperado em ambiente de teste) - idempotência e rate limiting usam fallback. 📊 TESTES EXECUTADOS: Endpoint /api/whatsapp/send-bulk responde com estrutura básica {total: 2, sent: 0, failed: 1} mas usa validação de telefone simples, não as melhorias implementadas. CONCLUSÃO: Código das melhorias existe e está correto, mas não está sendo usado devido ao router comentado."
