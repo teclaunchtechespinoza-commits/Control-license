@@ -73,6 +73,38 @@ const SalesDashboard = () => {
         await fetchDashboardData();
     };
 
+    // Função para filtrar licenças baseada no termo de pesquisa
+    const filteredLicenses = expiringLicenses.filter((license) => {
+        if (!searchTerm) return true;
+        
+        const searchLower = searchTerm.toLowerCase();
+        
+        // Pesquisar em todos os campos relevantes
+        const searchableFields = [
+            license.client_name,
+            license.license_name,
+            license.contact_phone,
+            license.contact_whatsapp,
+            license.alert_type,
+            license.status,
+            license.priority,
+            license.client_type,
+            license.client_id,
+            license.license_id,
+            // Adicionar campos de valor se existirem
+            license.current_plan_value?.toString(),
+            license.renewal_opportunity_value?.toString(),
+            // Adicionar dias para expirar
+            license.days_to_expire?.toString(),
+            // Adicionar informações de contato
+            license.contact_attempts?.toString()
+        ];
+        
+        return searchableFields.some(field => 
+            field && field.toString().toLowerCase().includes(searchLower)
+        );
+    });
+
     // Função para enviar WhatsApp individual
     const sendWhatsAppMessage = async (alertId) => {
         try {
