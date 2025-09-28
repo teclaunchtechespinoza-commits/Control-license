@@ -165,3 +165,16 @@ agent_communication:
       message: "🔍 TESTE SALES DASHBOARD COM FILTRO 90 DIAS - JOÃO DA SILVA TESTE: ✅ Login admin@demo.com/admin123 funcionando perfeitamente, ✅ Sales Dashboard carregado com sucesso (446 licenças expirando), ✅ Filtro de 90 dias CONFIRMADO ATIVO - todas as 20 licenças visíveis são expiradas (100% expired), ✅ Busca detalhada por múltiplas variações do nome executada (joão/joao da silva teste, joão silva teste, etc.), ✅ Busca pelo telefone 11940016997 executada. ❌ RESULTADO: JOÃO DA SILVA TESTE NÃO ENCONTRADO mesmo com filtro de 90 dias. ANÁLISE: 1) Filtro expandido funcionando corretamente (20/20 licenças são 'Venceu há X dias'), 2) Sistema processa 446 licenças no total mas mostra apenas 20 na interface, 3) Nenhuma variação do nome 'João da Silva Teste' encontrada, 4) Telefone 11940016997 não encontrado na página. CONCLUSÃO: Expansão do filtro para 90 dias funcionando, mas cliente João da Silva Teste não possui licenças no sistema ou suas licenças não estão sendo retornadas pela API de sales-dashboard."
     - agent: "testing"
       message: "🎉 TESTE SALES DASHBOARD - LIMITAÇÃO DE 20 LICENÇAS REMOVIDA COM SUCESSO! ✅ Login admin@demo.com/admin123 funcionando perfeitamente, ✅ Sales Dashboard carregando 440 licenças (anteriormente limitado a 20), ✅ JOÃO DA SILVA TESTE ENCONTRADO: 14 licenças identificadas no sistema, ✅ API backend confirmando 14 licenças do João da Silva Teste na resposta, ✅ WhatsApp Status: 5 botões habilitados (com telefone 11940016997), 9 botões desabilitados (sem telefone cadastrado), ✅ Screenshot capturado mostrando licenças do João da Silva Teste. DETALHES TÉCNICOS: 1) Sistema agora exibe 440 licenças vs 20 anteriormente, 2) Todas as 14 licenças do João da Silva Teste são visíveis na interface, 3) Licenças variam de 9 a 44 dias vencidas, 4) Telefone 11940016997 presente em 5 das 14 licenças, 5) Botões WhatsApp habilitados apenas para licenças com telefone cadastrado. CONCLUSÃO: Remoção da limitação .slice(0, 20) foi COMPLETAMENTE EFETIVA. Todas as licenças do João da Silva Teste agora são exibidas corretamente no Sales Dashboard."
+
+backend:
+  - task: "WHATSAPP BULK SEND - Melhorias com Idempotência e Rate Limiting"
+    implemented: false
+    working: false
+    file: "/app/backend/whatsapp_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "NOVA FEATURE PROPOSTA: Sistema de envio em lote melhorado com (1) Idempotência via Redis para evitar duplicatas, (2) Rate limiting por tenant (30 msgs/minuto), (3) Validação de licenças antes do envio, (4) Relatórios detalhados com categorização de erros, (5) Estrutura robusta de testes. PROBLEMA IDENTIFICADO NA IMAGEM: Sistema atual mostra mensagem contraditória 'WhatsApp enviado com sucesso!' mas Status: failed e Tipo: EXPIRED para licenças vencidas. IMPLEMENTAÇÃO NECESSÁRIA: Validação prévia de licenças, melhoria na estrutura de erros, implementação de métodos auxiliares (_check_license_validity, _check_idempotency, _check_rate_limit)."
