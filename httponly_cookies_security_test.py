@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
 class HttpOnlyCookiesSecurityTester:
-    def __init__(self, base_url="https://saasguard.preview.emergentagent.com"):
+    def __init__(self, base_url="https://whatsapp-saas-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.session = requests.Session()  # Use session to maintain cookies
@@ -678,7 +678,7 @@ def main():
     if len(sys.argv) > 1:
         base_url = sys.argv[1]
     else:
-        base_url = "https://saasguard.preview.emergentagent.com"
+        base_url = "https://whatsapp-saas-1.preview.emergentagent.com"
     
     tester = HttpOnlyCookiesSecurityTester(base_url)
     success = tester.run_complete_security_test()

@@ -8,7 +8,7 @@ import sys
 import json
 
 class RBACDebugger:
-    def __init__(self, base_url="https://saasguard.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://whatsapp-saas-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
 
