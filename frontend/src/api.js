@@ -61,6 +61,9 @@ api.interceptors.request.use(
   }
 );
 
+// Flag para evitar loops infinitos de refresh
+let isRefreshing = false;
+
 // Response interceptor para tratamento de erros avançado
 api.interceptors.response.use(
   (response) => response,
