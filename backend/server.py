@@ -6698,9 +6698,9 @@ app.include_router(api_router)
 try:
     from whatsapp_service import whatsapp_router
     app.include_router(whatsapp_router)
-    logger.info("WhatsApp router incluído com sucesso")
+    print("WhatsApp router incluído com sucesso")
 except ImportError as e:
-    logger.warning(f"WhatsApp router não pôde ser incluído: {e}")
+    print(f"WhatsApp router não pôde ser incluído: {e}")
 
 # Add structured logging middlewares (simplified integration)
 @app.middleware("http")
