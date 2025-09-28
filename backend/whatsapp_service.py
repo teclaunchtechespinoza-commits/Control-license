@@ -181,25 +181,107 @@ class WhatsAppService:
                 timestamp=datetime.utcnow()
             )
     
-    async def send_bulk_messages(self, messages: List[Dict]) -> Dict[str, Any]:
-        """Envia mensagens em lote"""
-        try:
-            client = await self.get_client()
-            payload = {"messages": messages}
-            
-            response = await client.post(f"{self.service_url}/send-bulk", json=payload)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                error_data = response.json() if response.content else {}
-                raise HTTPException(status_code=response.status_code, detail=error_data.get("error", "Bulk send failed"))
+    async def send_bulk_messages(self, messages: List[Dict], tenant_id: str = "default") -> Dict[str, Any]:
+        """Envia mensagens em lote com idempotência, rate limiting e validação de licenças"""
+        results = {"total": len(messages), "sent": 0, "failed": 0, "errors": []}
+
+        for msg in messages:
+            phone_number = msg.get("phone_number")
+            message_text = msg.get("message")
+            message_id = msg.get("message_id") or f"bulk_{uuid.uuid4()}"
+            client_id = msg.get("client_id")
+
+            try:
+                # 1. Validar se cliente existe e tem licença válida
+                if client_id:
+                    license_valid = await self._check_license_validity(client_id, tenant_id)
+                    if not license_valid:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "phone_number": phone_number,
+                            "message_id": message_id,
+                            "error": ERROR_TYPES["LICENSE_EXPIRED"],
+                            "error_type": "LICENSE_EXPIRED"
+                        })
+                        continue
+
+                # 2. Verificar idempotência
+                if redis_client and not await self._check_idempotency(message_id):
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "phone_number": phone_number,
+                        "message_id": message_id,
+                        "error": ERROR_TYPES["DUPLICATE"],
+                        "error_type": "DUPLICATE"
+                    })
+                    continue
+
+                # 3. Verificar rate limit por tenant
+                if redis_client and not await self._check_rate_limit(tenant_id):
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "phone_number": phone_number,
+                        "message_id": message_id,
+                        "error": ERROR_TYPES["RATE_LIMIT"],
+                        "error_type": "RATE_LIMIT"
+                    })
+                    continue
+
+                # 4. Tentar enviar mensagem
+                client = await self.get_client()
+                payload = {
+                    "phone_number": phone_number,
+                    "message": message_text,
+                    "message_id": message_id,
+                    "context": msg.get("context", {}),
+                    "tenant_id": tenant_id
+                }
                 
-        except httpx.TimeoutException:
-            raise HTTPException(status_code=503, detail="WhatsApp service timeout")
-        except Exception as e:
-            logger.error(f"Error in bulk WhatsApp send: {e}")
-            raise HTTPException(status_code=503, detail=str(e))
+                response = await client.post(f"{self.service_url}/send", json=payload)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("success", False):
+                        results["sent"] += 1
+                        # Marcar como enviada no Redis para idempotência
+                        if redis_client:
+                            await self._mark_as_sent(message_id)
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "phone_number": phone_number,
+                            "message_id": message_id,
+                            "error": data.get("error", "Falha desconhecida"),
+                            "error_type": "SERVICE_ERROR"
+                        })
+                else:
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "phone_number": phone_number,
+                        "message_id": message_id,
+                        "error": f"HTTP {response.status_code}: {response.text}",
+                        "error_type": "SERVICE_ERROR"
+                    })
+
+            except httpx.TimeoutException:
+                results["failed"] += 1
+                results["errors"].append({
+                    "phone_number": phone_number,
+                    "message_id": message_id,
+                    "error": ERROR_TYPES["TIMEOUT"],
+                    "error_type": "TIMEOUT"
+                })
+            except Exception as e:
+                logger.error(f"Erro no envio em lote para {phone_number}: {e}")
+                results["failed"] += 1
+                results["errors"].append({
+                    "phone_number": phone_number,
+                    "message_id": message_id,
+                    "error": str(e),
+                    "error_type": "SERVICE_ERROR"
+                })
+
+        return results
     
     async def restart_connection(self) -> bool:
         """Reinicia conexão WhatsApp"""
