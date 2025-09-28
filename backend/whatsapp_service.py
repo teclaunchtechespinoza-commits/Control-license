@@ -66,6 +66,17 @@ class WhatsAppWebhookData(BaseModel):
 # Router
 whatsapp_router = APIRouter(prefix="/api/whatsapp", tags=["whatsapp"])
 
+# Constantes para categorização de erros
+ERROR_TYPES = {
+    "LICENSE_EXPIRED": "Licença expirada - renovação necessária",
+    "RATE_LIMIT": "Limite de envio excedido - tente novamente mais tarde", 
+    "DUPLICATE": "Mensagem duplicada ignorada",
+    "PHONE_INVALID": "Número de telefone inválido",
+    "SERVICE_ERROR": "Erro no serviço WhatsApp",
+    "CLIENT_NOT_FOUND": "Cliente não encontrado",
+    "TIMEOUT": "Timeout na comunicação com WhatsApp"
+}
+
 class WhatsAppService:
     """Service class para integração com Node.js WhatsApp service"""
     
