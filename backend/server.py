@@ -1799,7 +1799,7 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
         "tenant_id": user_tenant_id,
         "serial_number": credentials.serial_number
     }
-    refresh_token = await create_refresh_token(refresh_token_data, user_tenant_id)
+    refresh_token = create_refresh_token(user_doc["email"] if user_doc.get("email") else identification, user_tenant_id)
     
     # Definir cookies HttpOnly
     response.set_cookie(
