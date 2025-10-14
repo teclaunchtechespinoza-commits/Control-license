@@ -1825,9 +1825,13 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
     # Log login bem-sucedido
     log_user_login(
         user_email=user_doc.get("email", identification),
-        ip_address="unknown",
-        user_agent="unknown", 
-        success=True
+        tenant_id=user_doc.get("tenant_id", "default"),
+        success=True,
+        details={
+            "ip_address": "unknown",
+            "user_agent": "unknown",
+            "login_method": "serial"
+        }
     )
     
     user = User(**user_doc)
