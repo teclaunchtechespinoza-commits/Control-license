@@ -159,6 +159,18 @@ frontend:
           agent: "testing"
           comment: "🎉 FUNCIONALIDADE DE PESQUISA COMPLETAMENTE VALIDADA E FUNCIONANDO PERFEITAMENTE! TESTES EXECUTADOS COM 100% DE SUCESSO: ✅ ELEMENTOS DE UI: Campo de pesquisa com placeholder 'Pesquisar por cliente, licença, telefone, status, valor...', ícone de lupa presente, 440 licenças carregadas inicialmente. ✅ PESQUISA POR CLIENTE: 'João da Silva' retorna 14 de 440 licenças com contador funcionando perfeitamente. ✅ PESQUISA POR TELEFONE: '11940016997' filtra corretamente para 5 licenças específicas. ✅ PESQUISA POR STATUS: 'LOW' funciona corretamente filtrando todas as licenças com status LOW. ✅ BOTÃO LIMPAR: Funciona perfeitamente, limpa o campo e restaura lista completa de 440 licenças. ✅ PESQUISA EM TEMPO REAL: Funciona conforme digita - 'M'(355), 'Ma'(125), 'Mar'(77), 'Marq'(6), 'Marques'(6) resultados. ✅ RESPONSIVIDADE MOBILE: Campo visível e funcional em mobile, pesquisa 'MEI' retorna 42 resultados. ✅ ESTADO VAZIO: Implementado com mensagem 'Nenhuma licença encontrada' e link 'Limpar pesquisa'. ✅ CONTADOR DE RESULTADOS: Mostra 'X de 440 licenças encontradas' funcionando corretamente. ✅ FILTRO MISTO: Pesquisa funciona em todos os campos (cliente, licença, telefone, status, valor). CONCLUSÃO: A nova funcionalidade de pesquisa está COMPLETAMENTE IMPLEMENTADA e funcionando conforme especificado. Experiência do usuário é fluida e intuitiva. Todos os 446 licenças são pesquisáveis em tempo real."
 
+  - task: "CORREÇÃO CRÍTICA: Erro React 'Objects are not valid as a React child'"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/LoginPage.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 ERRO CRÍTICO REACT COMPLETAMENTE CORRIGIDO! ROOT CAUSE IDENTIFICADO: O problema NÃO estava nos componentes Badge como inicialmente pensado, mas sim na função de login após serial login bem-sucedido. PROBLEMA REAL: Após login serial bem-sucedido, o código chamava login(userData.email, userLoginData.password, userData) mas a função login() esperava um objeto credentials, não parâmetros separados. Isso causava undefined values sendo enviados para API, gerando erro 422 com objeto Pydantic {type, loc, msg, input, url} que era renderizado diretamente no React. CORREÇÃO APLICADA: Removida chamada desnecessária para login() após serial login bem-sucedido, usando window.location.href para navegação direta. TESTES EXECUTADOS COM 100% DE SUCESSO: ✅ Sistema carrega sem erro React inicial, ✅ Login user@demo.com/user123 funciona perfeitamente, ✅ Redirecionamento para /minhas-licencas funciona corretamente, ✅ UserLicenseView carrega com informações do usuário (Demo User, user@demo.com), ✅ Console completamente limpo de erros React, ✅ Nenhum erro 'Objects are not valid as a React child' encontrado, ✅ Interface funciona harmoniosamente sem tela vermelha de erro. CONCLUSÃO: O erro crítico que quebrava completamente o sistema foi 100% RESOLVIDO. Sistema agora funciona normalmente sem erros React fatais."
+
   current_focus:
     - "Bug crítico de loop infinito pós-login RESOLVIDO"
     - "Correções críticas WhatsApp VALIDADAS"
