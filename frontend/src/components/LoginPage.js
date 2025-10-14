@@ -22,6 +22,12 @@ const LoginPage = () => {
     password: ''
   });
 
+  // User login form state (serial + password)
+  const [userLoginData, setUserLoginData] = useState({
+    serial_number: '',
+    password: ''
+  });
+
   // Register form state
   const [registerData, setRegisterData] = useState({
     email: '',
