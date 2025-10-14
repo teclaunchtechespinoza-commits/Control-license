@@ -245,6 +245,14 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/minhas-licencas" 
+                  element={
+                    <ProtectedRoute>
+                      <UserLicenseView />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/admin" 
                   element={
                     <ProtectedRoute adminOnly>
