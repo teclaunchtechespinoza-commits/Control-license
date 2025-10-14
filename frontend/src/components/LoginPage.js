@@ -160,27 +160,29 @@ const LoginPage = () => {
         </div>
 
         <Card className="shadow-lg">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
+          <Tabs defaultValue="admin" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="admin">Admin</TabsTrigger>
+              <TabsTrigger value="user">Usuário</TabsTrigger>
               <TabsTrigger value="register">Registrar</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="login">
+            {/* Aba de Login Admin */}
+            <TabsContent value="admin">
               <form onSubmit={handleLogin}>
                 <CardHeader>
-                  <CardTitle>Fazer Login</CardTitle>
+                  <CardTitle>Login - Administrador</CardTitle>
                   <CardDescription>
-                    Digite suas credenciais para acessar o sistema
+                    Use seu email e senha para acessar o painel admin
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="admin-email">Email</Label>
                     <Input
-                      id="email"
+                      id="admin-email"
                       type="email"
-                      placeholder="seu@email.com"
+                      placeholder="admin@exemplo.com"
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                       required
@@ -189,10 +191,10 @@ const LoginPage = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
+                    <Label htmlFor="admin-password">Senha</Label>
                     <div className="relative">
                       <Input
-                        id="password"
+                        id="admin-password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Sua senha"
                         value={loginData.password}
@@ -212,9 +214,84 @@ const LoginPage = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Entrar
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fazendo login...
+                      </>
+                    ) : (
+                      'Entrar como Admin'
+                    )}
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+
+            {/* Aba de Login Usuário */}
+            <TabsContent value="user">
+              <form onSubmit={handleUserLogin}>
+                <CardHeader>
+                  <CardTitle>Login - Usuário</CardTitle>
+                  <CardDescription>
+                    Use seu número de série e senha para ver suas licenças
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="user-serial">Número de Série</Label>
+                    <Input
+                      id="user-serial"
+                      type="text"
+                      placeholder="Ex: XXXX-XXXX-XXXX"
+                      value={userLoginData.serial_number}
+                      onChange={(e) => setUserLoginData({...userLoginData, serial_number: e.target.value})}
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="user-password">Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="user-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Sua senha"
+                        value={userLoginData.password}
+                        onChange={(e) => setUserLoginData({...userLoginData, password: e.target.value})}
+                        required
+                        disabled={isLoading}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    type="submit"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fazendo login...
+                      </>
+                    ) : (
+                      'Ver Minhas Licenças'
+                    )}
                   </Button>
                 </CardFooter>
               </form>
