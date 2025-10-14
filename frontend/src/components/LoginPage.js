@@ -182,14 +182,17 @@ const LoginPage = () => {
                       id="user-code"
                       type="text"
                       placeholder="Ex: ABC123, 0x1A2B, 456789, SERIAL-001"
-                      value={userLoginData.serial_number}
-                      onChange={(e) => setUserLoginData({...userLoginData, serial_number: e.target.value.toUpperCase()})}
+                      value={userLoginData.serial_number || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        setUserLoginData({...userLoginData, serial_number: value});
+                      }}
                       required
                       disabled={isLoading}
                       className="font-mono"
                     />
                     <div className="text-xs text-gray-500">
-                      Aceita: Texto, Hexadecimal (0x...), Decimal, ou Alfanumérico
+                      📋 Aceita: Texto, Hexadecimal (0x...), Decimal, ou Alfanumérico
                     </div>
                   </div>
                   
