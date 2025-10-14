@@ -1741,7 +1741,7 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
     # Verificar senha
     if not verify_password(credentials.password, user_doc["password_hash"]):
         log_user_login(
-            user_email=credentials.serial_number,
+            user_email=user_doc.get("email", identification),
             ip_address="unknown", 
             user_agent="unknown",
             success=False,
