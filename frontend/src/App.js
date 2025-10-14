@@ -279,7 +279,7 @@ function App() {
                 <Route 
                   path="/vendas" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute adminOnly>
                       <SalesDashboard />
                     </ProtectedRoute>
                   } 
