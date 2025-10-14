@@ -9599,6 +9599,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ WHATSAPP CRITICAL CORRECTIONS TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "permissions-serial":
+            # Run Permissions and Serial Login System test as requested in review
+            print("🚀 RUNNING PERMISSIONS AND SERIAL LOGIN SYSTEM TEST")
+            success = tester.test_permissions_and_serial_login_system()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("PERMISSIONS AND SERIAL LOGIN SYSTEM TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 75:
+                print(f"🎉 PERMISSIONS AND SERIAL LOGIN SYSTEM TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ PERMISSIONS AND SERIAL LOGIN SYSTEM TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection, whatsapp-corrections")
