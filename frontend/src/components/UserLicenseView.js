@@ -169,11 +169,11 @@ const UserLicenseView = () => {
                               Venceu há {Math.abs(daysRemaining)} dias
                             </Badge>
                           ) : isExpiringSoon ? (
-                            <Badge variant="warning">
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-700">
                               Vence em {daysRemaining} dias
                             </Badge>
                           ) : (
-                            <Badge variant="success">
+                            <Badge variant="outline" className="border-green-500 text-green-700">
                               {daysRemaining} dias restantes
                             </Badge>
                           )}
