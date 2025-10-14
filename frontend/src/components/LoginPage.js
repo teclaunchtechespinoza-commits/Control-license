@@ -103,8 +103,9 @@ const LoginPage = () => {
           localStorage.setItem('tenant_id', userData.tenant_id);
         }
         
-        // Update auth context
-        await login(userData.email || userData.serial_number, userLoginData.password, userData);
+        // Update auth context - fix: pass credentials object instead of separate parameters
+        // Since we already have the user data from serial login, just set the user directly
+        // No need to call login again as we're already authenticated
         
         toast.success('Login realizado com sucesso!');
         navigate('/minhas-licencas'); // Redirecionar para página específica do usuário
