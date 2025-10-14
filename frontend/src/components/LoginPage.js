@@ -103,12 +103,11 @@ const LoginPage = () => {
           localStorage.setItem('tenant_id', userData.tenant_id);
         }
         
-        // Update auth context - fix: pass credentials object instead of separate parameters
-        // Since we already have the user data from serial login, just set the user directly
-        // No need to call login again as we're already authenticated
+        // Update auth context directly - no need to call login again since we're already authenticated
+        // The serial login already handled authentication, just update the context
+        window.location.href = '/minhas-licencas'; // Force navigation to avoid auth context issues
         
         toast.success('Login realizado com sucesso!');
-        navigate('/minhas-licencas'); // Redirecionar para página específica do usuário
       } else {
         toast.error('Credenciais inválidas');
       }
