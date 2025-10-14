@@ -1998,6 +1998,98 @@ async def startup_event():
     # Sinaliza header padronizado no app (para debug/observabilidade)
     app.state.TENANT_HEADER = TENANT_HEADER
 
+@api_router.get("/user/licenses")
+async def get_user_licenses(current_user: User = Depends(get_current_user)):
+    """Busca licenças do usuário atual (apenas para role 'user')"""
+    
+    # Verificar se é usuário comum
+    if current_user.role not in ["user"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a usuários finais"
+        )
+    
+    try:
+        # Buscar licenças associadas ao usuário
+        # Pode ser por serial_number, email ou client_id dependendo de como está estruturado
+        licenses_query = {}
+        
+        # Se usuário tem serial_number, buscar licenças por esse serial
+        if hasattr(current_user, 'serial_number') and current_user.serial_number:
+            # Buscar licenças que tenham o mesmo serial do usuário
+            licenses_query = add_tenant_filter({
+                "$or": [
+                    {"serial_number": current_user.serial_number},
+                    {"user_serial": current_user.serial_number},
+                    {"owner_serial": current_user.serial_number}
+                ]
+            }, current_user.tenant_id)
+        else:
+            # Fallback: buscar por email se disponível
+            if current_user.email:
+                licenses_query = add_tenant_filter({
+                    "$or": [
+                        {"user_email": current_user.email},
+                        {"owner_email": current_user.email}
+                    ]
+                }, current_user.tenant_id)
+            else:
+                # Se não tem serial nem email, retornar vazio
+                return []
+        
+        # Buscar licenças
+        licenses_cursor = db.licenses.find(licenses_query)
+        licenses = await licenses_cursor.to_list(length=None)
+        
+        # Enriquecer dados das licenças com informações de produto e categoria
+        enriched_licenses = []
+        for license in licenses:
+            # Buscar produto
+            if license.get("product_id"):
+                product_filter = add_tenant_filter({"id": license["product_id"]}, current_user.tenant_id)
+                product = await db.products.find_one(product_filter)
+                license["product_name"] = product.get("name") if product else "Produto não encontrado"
+            
+            # Buscar categoria
+            if license.get("category_id"):
+                category_filter = add_tenant_filter({"id": license["category_id"]}, current_user.tenant_id)
+                category = await db.categories.find_one(category_filter)
+                license["category_name"] = category.get("name") if category else "Categoria não encontrada"
+            
+            # Determinar status da licença
+            if license.get("expires_at"):
+                try:
+                    expires_at = license["expires_at"]
+                    if isinstance(expires_at, str):
+                        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                    
+                    now = datetime.now(timezone.utc)
+                    
+                    if expires_at < now:
+                        license["status"] = "expired"
+                    elif (expires_at - now).days <= 30:
+                        license["status"] = "expiring_soon"
+                    else:
+                        license["status"] = "active"
+                except:
+                    license["status"] = "unknown"
+            else:
+                license["status"] = "no_expiration"
+            
+            # Remover campos sensíveis se necessário
+            license.pop("_id", None)
+            
+            enriched_licenses.append(license)
+        
+        return enriched_licenses
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar licenças do usuário {current_user.email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao buscar suas licenças"
+        )
+
 @api_router.get("/auth/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
