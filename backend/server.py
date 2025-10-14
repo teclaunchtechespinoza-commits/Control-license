@@ -1236,6 +1236,7 @@ class User(UserBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
     last_login: Optional[datetime] = None
+    serial_number: Optional[str] = None  # Para usuários que fazem login por serial
 
 class Token(BaseModel):
     access_token: str
