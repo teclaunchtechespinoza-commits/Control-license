@@ -172,6 +172,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "SISTEMA DE PERMISSÕES E LOGIN POR SERIAL COMPLETAMENTE VALIDADO"
     - "NOVA FUNCIONALIDADE DE PESQUISA - Sales Dashboard COMPLETAMENTE VALIDADA"
   stuck_tasks: []
   test_all: false
