@@ -1742,10 +1742,13 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
     if not verify_password(credentials.password, user_doc["password_hash"]):
         log_user_login(
             user_email=user_doc.get("email", identification),
-            ip_address="unknown", 
-            user_agent="unknown",
+            tenant_id=user_doc.get("tenant_id", "default"),
             success=False,
-            failure_reason="Senha incorreta"
+            details={
+                "ip_address": "unknown", 
+                "user_agent": "unknown",
+                "failure_reason": "Senha incorreta"
+            }
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
