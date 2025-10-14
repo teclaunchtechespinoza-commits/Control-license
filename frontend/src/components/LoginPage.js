@@ -54,30 +54,70 @@ const LoginPage = () => {
       // Validação básica
       if (!loginData.email || !loginData.password) {
         toast.error('Por favor, preencha email e senha');
-        setIsLoading(false);
         return;
       }
-      
-      // Usar o login via AuthProvider (que usa API central)
-      const result = await login(loginData);
+
+      console.log('Tentando login admin com:', loginData.email);
+      const result = await login(loginData.email, loginData.password);
       
       if (result.success) {
-        // Success message will be shown by Dashboard component to avoid duplication
-        
-        // Aguardar um pouco e redirecionar
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 500);
+        toast.success('Login realizado com sucesso!');
+        navigate('/dashboard');
       } else {
-        toast.error(result.error || 'Falha no login');
+        toast.error(result.error || 'Erro no login');
       }
-      
     } catch (error) {
-      console.error('Erro de login:', error);
-      toast.error('Erro de conexão. Tente novamente.');
+      console.error('Erro no login:', error);
+      toast.error('Erro no login. Tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleUserLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
     
-    setIsLoading(false);
+    try {
+      // Validação básica
+      if (!userLoginData.serial_number || !userLoginData.password) {
+        toast.error('Por favor, preencha número de série e senha');
+        return;
+      }
+
+      console.log('Tentando login usuário com serial:', userLoginData.serial_number);
+      
+      // Fazer login usando endpoint específico para usuários por serial
+      const response = await api.post('/auth/login-serial', {
+        serial_number: userLoginData.serial_number,
+        password: userLoginData.password
+      });
+      
+      if (response.data && response.data.user) {
+        // Atualizar contexto de autenticação
+        const userData = response.data.user;
+        
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(userData));
+        if (userData.tenant_id) {  
+          localStorage.setItem('tenant_id', userData.tenant_id);
+        }
+        
+        // Update auth context
+        await login(userData.email || userData.serial_number, userLoginData.password, userData);
+        
+        toast.success('Login realizado com sucesso!');
+        navigate('/minhas-licencas'); // Redirecionar para página específica do usuário
+      } else {
+        toast.error('Credenciais inválidas');
+      }
+    } catch (error) {
+      console.error('Erro no login por serial:', error);
+      const errorMessage = error.response?.data?.detail || 'Erro no login. Verifique suas credenciais.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = async (e) => {
