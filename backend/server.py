@@ -1688,6 +1688,114 @@ async def login(user_credentials: UserLogin, response: Response):
         "token_expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
+class UserSerialLogin(BaseModel):
+    serial_number: str
+    password: str
+
+@api_router.post("/auth/login-serial")
+@rate_limit("auth_login")  # Same rate limit as normal login
+async def login_by_serial(credentials: UserSerialLogin, response: Response):
+    """Login usando número de série ao invés de email"""
+    
+    # Buscar usuário pelo serial_number
+    user_doc = await db.users.find_one({"serial_number": credentials.serial_number})
+    if not user_doc:
+        # Para segurança, não revelar se serial existe ou não
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas"
+        )
+    
+    # Verificar senha
+    if not verify_password(credentials.password, user_doc["password_hash"]):
+        log_user_login(
+            user_email=credentials.serial_number,
+            ip_address="unknown", 
+            user_agent="unknown",
+            success=False,
+            failure_reason="Senha incorreta"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas"
+        )
+    
+    # Verificar se usuário está ativo
+    if not user_doc.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Conta desativada"
+        )
+    
+    # IMPORTANTE: Usuários com serial só podem ter role 'user'
+    if user_doc.get("role") not in ["user", None]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado para este tipo de conta"
+        )
+    
+    # Atualizar último login
+    user_tenant_id = user_doc.get("tenant_id", "default")
+    login_filter = add_tenant_filter({"serial_number": credentials.serial_number}, user_tenant_id)
+    await db.users.update_one(
+        login_filter,
+        {"$set": {"last_login": datetime.utcnow()}}
+    )
+    
+    # Criar tokens JWT
+    access_token_data = {
+        "sub": user_doc["email"] if user_doc.get("email") else credentials.serial_number,
+        "name": user_doc.get("name", ""),
+        "role": user_doc.get("role", "user"),
+        "tenant_id": user_tenant_id,
+        "serial_number": credentials.serial_number
+    }
+    
+    access_token = create_access_token(access_token_data)
+    refresh_token_data = {
+        "sub": user_doc["email"] if user_doc.get("email") else credentials.serial_number,
+        "tenant_id": user_tenant_id,
+        "serial_number": credentials.serial_number
+    }
+    refresh_token = await create_refresh_token(refresh_token_data)
+    
+    # Definir cookies HttpOnly
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        httponly=True,
+        secure=True,
+        samesite='lax',
+        path="/api"
+    )
+    
+    response.set_cookie(
+        key="refresh_token", 
+        value=refresh_token,
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        httponly=True,
+        secure=True,
+        samesite='lax',
+        path="/api/auth"
+    )
+    
+    # Log login bem-sucedido
+    log_user_login(
+        user_email=credentials.serial_number,
+        ip_address="unknown",
+        user_agent="unknown", 
+        success=True
+    )
+    
+    user = User(**user_doc)
+    return {
+        "success": True,
+        "message": "Login por serial bem-sucedido",
+        "user": user,
+        "token_expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    }
+
 @api_router.post("/auth/refresh")
 async def refresh_token(request: Request, response: Response):
     """🔄 Refresh access token using HttpOnly refresh token"""
