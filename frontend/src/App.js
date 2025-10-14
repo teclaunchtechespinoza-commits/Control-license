@@ -189,6 +189,23 @@ const AuthProvider = ({ children }) => {
   );
 };
 
+// Redirecionamento baseado no role do usuário
+const RoleBasedRedirect = () => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  // Usuários normais vão para suas licenças
+  if (user.role === 'user') {
+    return <Navigate to="/minhas-licencas" />;
+  }
+  
+  // Admins e super_admins vão para dashboard
+  return <Navigate to="/dashboard" />;
+};
+
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false }) => {
   const { user, loading } = useAuth();
