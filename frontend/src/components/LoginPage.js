@@ -160,56 +160,65 @@ const LoginPage = () => {
         </div>
 
         <Card className="shadow-lg">
-          <Tabs defaultValue="admin" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="admin">Admin</TabsTrigger>
+          <Tabs defaultValue="user" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="user">Usuário</TabsTrigger>
               <TabsTrigger value="register">Registrar</TabsTrigger>
             </TabsList>
             
-            {/* Aba de Login Admin */}
-            <TabsContent value="admin">
-              <form onSubmit={handleLogin}>
+            {/* Aba de Login Usuário */}
+            <TabsContent value="user">
+              <form onSubmit={handleUserLogin}>
                 <CardHeader>
-                  <CardTitle>Login - Administrador</CardTitle>
+                  <CardTitle>Acesso do Usuário</CardTitle>
                   <CardDescription>
-                    Use seu email e senha para acessar o painel admin
+                    Digite seu código de identificação e senha
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="admin-email">Email</Label>
+                    <Label htmlFor="user-code">Código de Identificação</Label>
                     <Input
-                      id="admin-email"
-                      type="email"
-                      placeholder="admin@exemplo.com"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({...loginData, email: e.target.value})}
+                      id="user-code"
+                      type="text"
+                      placeholder="Ex: ABC123, 0x1A2B, 456789, SERIAL-001"
+                      value={userLoginData.serial_number}
+                      onChange={(e) => setUserLoginData({...userLoginData, serial_number: e.target.value.toUpperCase()})}
                       required
                       disabled={isLoading}
+                      className="font-mono"
                     />
+                    <div className="text-xs text-gray-500">
+                      Aceita: Texto, Hexadecimal (0x...), Decimal, ou Alfanumérico
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="admin-password">Senha</Label>
+                    <Label htmlFor="user-password">Senha</Label>
                     <div className="relative">
                       <Input
-                        id="admin-password"
+                        id="user-password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Sua senha"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                        value={userLoginData.password}
+                        onChange={(e) => setUserLoginData({...userLoginData, password: e.target.value})}
                         required
                         disabled={isLoading}
-                        className="pr-10"
                       />
-                      <button
+                      <Button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -225,72 +234,7 @@ const LoginPage = () => {
                         Fazendo login...
                       </>
                     ) : (
-                      'Entrar como Admin'
-                    )}
-                  </Button>
-                </CardFooter>
-              </form>
-            </TabsContent>
-
-            {/* Aba de Login Usuário */}
-            <TabsContent value="user">
-              <form onSubmit={handleUserLogin}>
-                <CardHeader>
-                  <CardTitle>Login - Usuário</CardTitle>
-                  <CardDescription>
-                    Use seu número de série e senha para ver suas licenças
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="user-serial">Número de Série</Label>
-                    <Input
-                      id="user-serial"
-                      type="text"
-                      placeholder="Ex: XXXX-XXXX-XXXX"
-                      value={userLoginData.serial_number}
-                      onChange={(e) => setUserLoginData({...userLoginData, serial_number: e.target.value})}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="user-password">Senha</Label>
-                    <div className="relative">
-                      <Input
-                        id="user-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Sua senha"
-                        value={userLoginData.password}
-                        onChange={(e) => setUserLoginData({...userLoginData, password: e.target.value})}
-                        required
-                        disabled={isLoading}
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Fazendo login...
-                      </>
-                    ) : (
-                      'Ver Minhas Licenças'
+                      'Acessar Minhas Licenças'
                     )}
                   </Button>
                 </CardFooter>
