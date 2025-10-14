@@ -1814,7 +1814,7 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
     
     # Log login bem-sucedido
     log_user_login(
-        user_email=credentials.serial_number,
+        user_email=user_doc.get("email", identification),
         ip_address="unknown",
         user_agent="unknown", 
         success=True
