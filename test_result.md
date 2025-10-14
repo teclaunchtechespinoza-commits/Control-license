@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "VALIDAÇÃO FINAL - CORREÇÕES CRÍTICAS DO WHATSAPP IMPLEMENTADAS: Implementei todas as correções críticas identificadas pelo usuário baseadas na análise técnica detalhada do fluxo WhatsApp. As correções abordam os problemas raiz que impediam funcionamento correto."
+user_problem_statement: "TESTE COMPLETO DO SISTEMA DE PERMISSÕES E LOGIN POR SERIAL: Implementei um sistema completo de restrições de permissões para usuários 'user' e login por número de série. Preciso validar: 1) Proteção de Rotas (/vendas adminOnly, /minhas-licencas para users), 2) Login por Serial (POST /auth/login-serial), 3) Endpoint de Licenças do Usuário (GET /user/licenses), 4) Redirecionamento Inteligente, 5) Estrutura dos Dados (usuários com serial_number, licenças associadas), 6) Interface com abas Admin/Usuário/Registrar."
 
 backend:
   - task: "CORREÇÃO CRÍTICA: Loop Infinito Pós-Login - Bug de Serialização de Erros"
