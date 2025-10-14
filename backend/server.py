@@ -1696,12 +1696,43 @@ class UserSerialLogin(BaseModel):
 @api_router.post("/auth/login-serial")
 @rate_limit("auth_login")  # Same rate limit as normal login
 async def login_by_serial(credentials: UserSerialLogin, response: Response):
-    """Login usando número de série ao invés de email"""
+    """Login usando múltiplos tipos de identificação (serial, email, hex, decimal)"""
     
-    # Buscar usuário pelo serial_number
-    user_doc = await db.users.find_one({"serial_number": credentials.serial_number})
+    identification = credentials.serial_number.strip()
+    
+    # Buscar usuário por múltiplos campos de identificação
+    user_doc = None
+    
+    # 1. Tentar buscar por serial_number
+    user_doc = await db.users.find_one({"serial_number": identification})
+    
+    # 2. Se não encontrou, tentar por email (para compatibilidade)
     if not user_doc:
-        # Para segurança, não revelar se serial existe ou não
+        user_doc = await db.users.find_one({"email": identification})
+    
+    # 3. Se não encontrou, tentar buscar por serial em formato hexadecimal (se começar com 0x)
+    if not user_doc and identification.lower().startswith('0x'):
+        try:
+            # Converter hex para decimal e buscar
+            decimal_value = str(int(identification, 16))
+            user_doc = await db.users.find_one({"serial_number": decimal_value})
+        except ValueError:
+            pass
+    
+    # 4. Se não encontrou, tentar buscar por outros campos alfanuméricos
+    if not user_doc:
+        # Buscar por outros possíveis campos de identificação
+        user_doc = await db.users.find_one({
+            "$or": [
+                {"serial_number": identification},
+                {"email": identification},
+                {"username": identification},
+                {"identifier": identification}
+            ]
+        })
+    
+    if not user_doc:
+        # Para segurança, não revelar se identificação existe ou não
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas"
