@@ -103,11 +103,11 @@ const LoginPage = () => {
           localStorage.setItem('tenant_id', userData.tenant_id);
         }
         
-        // Update auth context directly - no need to call login again since we're already authenticated
-        // The serial login already handled authentication, just update the context
-        window.location.href = '/minhas-licencas'; // Force navigation to avoid auth context issues
+        // Redirecionamento inteligente baseado no role
+        const targetPage = userData.role === 'admin' ? '/dashboard' : '/minhas-licencas';
+        window.location.href = targetPage;
         
-        toast.success('Login realizado com sucesso!');
+        toast.success(`Login realizado com sucesso! Redirecionando para ${userData.role === 'admin' ? 'painel admin' : 'suas licenças'}...`);
       } else {
         toast.error('Credenciais inválidas');
       }
