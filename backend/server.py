@@ -1769,12 +1769,8 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
             detail="Conta desativada"
         )
     
-    # IMPORTANTE: Usuários com serial só podem ter role 'user'
-    if user_doc.get("role") not in ["user", None]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso negado para este tipo de conta"
-        )
+    # Permitir todos os tipos de usuários (admin, user, etc.)
+    # Removida a restrição anterior que bloqueava admins
     
     # Atualizar último login
     user_tenant_id = user_doc.get("tenant_id", "default")
