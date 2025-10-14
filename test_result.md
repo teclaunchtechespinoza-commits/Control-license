@@ -199,6 +199,7 @@ test_plan:
     - "SISTEMA DE PERMISSÕES E LOGIN POR SERIAL COMPLETAMENTE VALIDADO"
     - "NOVA FUNCIONALIDADE DE PESQUISA - Sales Dashboard COMPLETAMENTE VALIDADA"
     - "CORREÇÕES CRÍTICAS DO SISTEMA DE LOGIN COMPLETAMENTE VALIDADAS"
+    - "ERRO CRÍTICO REACT 'Objects are not valid as a React child' COMPLETAMENTE CORRIGIDO"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
