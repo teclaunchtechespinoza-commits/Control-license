@@ -10276,9 +10276,28 @@ if __name__ == "__main__":
             else:
                 print(f"❌ MULTIPLE CREDENTIALS SYSTEM TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "tenant-validation":
+            # Run the tenant validation fixes test as requested in the review
+            print("🚀 RUNNING TENANT VALIDATION FIXES TEST")
+            success = tester.test_tenant_validation_fixes()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("TENANT VALIDATION FIXES TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 85:
+                print(f"🎉 TENANT VALIDATION FIXES TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ TENANT VALIDATION FIXES TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
-            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection, whatsapp-corrections, permissions-serial, multiple-credentials")
+            print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection, whatsapp-corrections, permissions-serial, multiple-credentials, tenant-validation")
             exit_code = 1
     else:
         # Default: run critical login loop and error serialization test
