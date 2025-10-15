@@ -9934,7 +9934,10 @@ class LicenseManagementAPITester:
         valid_tenant_data = {
             "name": "Empresa Teste Validação",
             "subdomain": f"teste-validacao-{int(time.time())}",
-            "contact_email": "admin@testevalidacao.com"
+            "contact_email": "admin@testevalidacao.com",
+            "admin_name": "Admin Teste",
+            "admin_email": "admin@testevalidacao.com",
+            "admin_password": "senha123"
         }
         
         success, response = self.run_test("Tenant creation - dados válidos", "POST", "tenants", [200, 201], 
