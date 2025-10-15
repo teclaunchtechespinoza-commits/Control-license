@@ -127,12 +127,32 @@ const TenantAdmin = () => {
           // Pydantic validation errors
           const errors = err.response.data.detail.map(error => {
             if (error.loc && error.msg) {
-              const field = error.loc[error.loc.length - 1];
-              return `${field}: ${error.msg}`;
+              const fieldPath = Array.isArray(error.loc) ? error.loc : [error.loc];
+              const field = fieldPath[fieldPath.length - 1];
+              
+              // Traduzir nomes de campos para português
+              const fieldTranslations = {
+                'name': 'Nome da Empresa',
+                'subdomain': 'Subdomínio', 
+                'contact_email': 'Email de Contato',
+                'admin_name': 'Nome do Admin',
+                'admin_email': 'Email do Admin',
+                'admin_password': 'Senha do Admin'
+              };
+              
+              const translatedField = fieldTranslations[field] || field;
+              return `${translatedField}: ${error.msg}`;
             }
             return error.msg || 'Erro de validação';
           });
-          errorMessage += errors.join(', ');
+          
+          if (errors.length > 1) {
+            errorMessage = `Erro de validação\n${errors.length} campos precisam de correção:\n${errors.join('\n')}`;
+          } else if (errors.length === 1) {
+            errorMessage = `Erro de validação\n1 campo precisa de correção:\n${errors[0]}`;
+          } else {
+            errorMessage += 'Erro de validação desconhecido';
+          }
         } else {
           errorMessage += err.response.data.detail;
         }
