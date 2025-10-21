@@ -6240,12 +6240,17 @@ async def get_stats(
         # Global stats for super admin
         total_licenses = await db.licenses.count_documents({})
         # Licenças ativas: não expiradas OU sem data de expiração
-        active_licenses = await db.licenses.count_documents({
-            "$or": [
-                {"expires_at": {"$gte": now}},
-                {"expires_at": None}
-            ]
-        })
+        try:
+            active_licenses = await db.licenses.count_documents({
+                "$or": [
+                    {"expires_at": {"$gte": now}},
+                    {"expires_at": None},
+                    {"expires_at": {"$exists": False}}
+                ]
+            })
+        except Exception as e:
+            logger.error(f"Erro ao contar licenças ativas: {e}")
+            active_licenses = 0
         total_users = await db.users.count_documents({})
         # Licenças expiradas: com data de expiração no passado
         expired_licenses = await db.licenses.count_documents({
