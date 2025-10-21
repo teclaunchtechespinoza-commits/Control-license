@@ -11139,6 +11139,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ TENANT VALIDATION FIXES TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "ownership-correction":
+            # Run the ownership correction test as requested in the review
+            print("🚀 RUNNING OWNERSHIP CORRECTION TEST")
+            success = tester.test_ownership_correction_critical()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("OWNERSHIP CORRECTION TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 85:
+                print(f"🎉 OWNERSHIP CORRECTION TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ OWNERSHIP CORRECTION TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         elif test_type == "security-isolation":
             # Run the critical security isolation test as requested in the review
             print("🚀 RUNNING CRITICAL SECURITY ISOLATION TEST")
