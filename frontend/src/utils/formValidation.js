@@ -101,7 +101,7 @@ export const validationRules = {
 // Field definitions with Portuguese names
 export const fieldNames = {
   // User fields
-  name: 'Nome',
+  name: 'Nome da Empresa',  // Contexto de empresa
   email: 'Email',
   password: 'Senha',
   confirmPassword: 'Confirmação de Senha',
