@@ -285,7 +285,8 @@ export const schemas = {
   
   // Company form
   company: {
-    companyName: [validationRules.required, validationRules.minLength(2)],
+    name: [validationRules.required, validationRules.minLength(2)],  // Campo correto do formulário
+    companyName: [validationRules.required, validationRules.minLength(2)],  // Mantido para compatibilidade
     cnpj: [validationRules.cnpj],
     city: [validationRules.required],
     state: [validationRules.required],
