@@ -303,11 +303,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 1
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ PROBLEMA CRÍTICO IDENTIFICADO - INCONSISTÊNCIA ENTRE ENDPOINTS DE LICENÇAS! CONTEXTO: Dashboard mostra 'Total de Licenças: 672' e 'NaN%', AdminPanel mostra 'Nenhuma licença encontrada (0)', Banco de dados tem 682 licenças reais. TESTES EXECUTADOS: ✅ TEST 1 - Dashboard Stats (/api/stats): Funciona corretamente, retorna 672 licenças totais, 0 ativas, 0 expiradas, cálculo de percentual funcionando (0.0% sem NaN), números próximos do esperado (~682). ❌ TEST 2 - AdminPanel Licenses (/api/licenses): FALHA CRÍTICA - retorna array vazio [] (0 licenças) mesmo com 672 licenças no stats. EVIDÊNCIAS DOS LOGS: /api/stats response_size: 189 bytes (contém dados), /api/licenses response_size: 2 bytes (array vazio []). CAUSA RAIZ PROVÁVEL: Problema nos filtros de role no endpoint /api/licenses, Filtro de tenant_id muito restritivo, Problema na dependency injection get_tenant_database, Escopo de admin_vendor_id incorreto. IMPACTO: AdminPanel não consegue listar licenças enquanto Dashboard mostra estatísticas corretas. RECOMENDAÇÕES: 1) Verificar filtros de role no endpoint /api/licenses, 2) Validar se tenant_id está sendo aplicado corretamente, 3) Verificar se admin_vendor_id está configurado para o usuário admin, 4) Testar com usuário super_admin para ver todas as licenças, 5) Verificar se dependency injection get_tenant_database está funcionando, 6) Validar se paginação não está limitando resultados excessivamente."
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 CORREÇÕES CRÍTICAS APLICADAS: 1) ENDPOINT PUT /licenses/{id} corrigido - mudado de ObjectId para UUID lookup ('id' field), agora atualiza TODOS os campos do LicenseUpdate (name, description, status, max_users, expires_at, assigned_user_id, features, category_id, client_pf_id, client_pj_id, product_id, plan_id), adicionado tenant_id validation. 2) ENDPOINT DELETE /licenses/{id} corrigido - mudado de ObjectId para UUID lookup. 3) Dashboard stats endpoint já estava correto com cálculo de active_licenses. PRECISA TESTE URGENTE: Usuário reportou 3 problemas críticos - Dashboard mostrando 'Licenças Ativas: NaN%', Modal 'Editar Licença' mostrando 'Erro ao atualizar licença', e botão 'Nova Licença' não funcionando. Correções aplicadas devem resolver problema de atualização de licenças."
 
   - task: "CORREÇÃO CRÍTICA: Problema 'Acesso Negado' no Sistema de Múltiplas Credenciais"
     implemented: true
