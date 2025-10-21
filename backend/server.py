@@ -6229,26 +6229,48 @@ async def get_stats(
 ):
     """Get statistics with proper tenant isolation"""
     # Super admin can see global stats, regular admin sees tenant stats
+    # Usar data atual para calcular licenças ativas/expiradas
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    
     if current_user.role == "super_admin":
         # Global stats for super admin
         total_licenses = await db.licenses.count_documents({})
-        active_licenses = await db.licenses.count_documents({"status": LicenseStatus.ACTIVE})
+        # Licenças ativas: não expiradas OU sem data de expiração
+        active_licenses = await db.licenses.count_documents({
+            "$or": [
+                {"expires_at": {"$gte": now}},
+                {"expires_at": None}
+            ]
+        })
         total_users = await db.users.count_documents({})
-        expired_licenses = await db.licenses.count_documents({"status": LicenseStatus.EXPIRED})
+        # Licenças expiradas: com data de expiração no passado
+        expired_licenses = await db.licenses.count_documents({
+            "expires_at": {"$lt": now}
+        })
         total_categories = await db.categories.count_documents({"is_active": True})
         total_products = await db.products.count_documents({"is_active": True})
-        total_clientes_pf = await db.clientes_pf.count_documents({"status": {"$ne": ClientStatus.INACTIVE}})
-        total_clientes_pj = await db.clientes_pj.count_documents({"status": {"$ne": ClientStatus.INACTIVE}})
+        total_clientes_pf = await db.clientes_pf.count_documents({})
+        total_clientes_pj = await db.clientes_pj.count_documents({})
     else:
         # Tenant-specific stats for regular admin
         total_licenses = await db.licenses.count_documents(add_tenant_filter({}, tenant_id))
-        active_licenses = await db.licenses.count_documents(add_tenant_filter({"status": LicenseStatus.ACTIVE}, tenant_id))
+        # Licenças ativas: não expiradas OU sem data de expiração
+        active_licenses = await db.licenses.count_documents(add_tenant_filter({
+            "$or": [
+                {"expires_at": {"$gte": now}},
+                {"expires_at": None}
+            ]
+        }, tenant_id))
         total_users = await db.users.count_documents(add_tenant_filter({}, tenant_id))
-        expired_licenses = await db.licenses.count_documents(add_tenant_filter({"status": LicenseStatus.EXPIRED}, tenant_id))
+        # Licenças expiradas: com data de expiração no passado
+        expired_licenses = await db.licenses.count_documents(add_tenant_filter({
+            "expires_at": {"$lt": now}
+        }, tenant_id))
         total_categories = await db.categories.count_documents(add_tenant_filter({"is_active": True}, tenant_id))
         total_products = await db.products.count_documents(add_tenant_filter({"is_active": True}, tenant_id))
-        total_clientes_pf = await db.clientes_pf.count_documents(add_tenant_filter({"status": {"$ne": ClientStatus.INACTIVE}}, tenant_id))
-        total_clientes_pj = await db.clientes_pj.count_documents(add_tenant_filter({"status": {"$ne": ClientStatus.INACTIVE}}, tenant_id))
+        total_clientes_pf = await db.clientes_pf.count_documents(add_tenant_filter({}, tenant_id))
+        total_clientes_pj = await db.clientes_pj.count_documents(add_tenant_filter({}, tenant_id))
     
     return {
         "total_licenses": total_licenses,
