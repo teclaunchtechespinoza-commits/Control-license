@@ -6266,14 +6266,16 @@ async def get_stats(
         # Tenant-specific stats for regular admin
         total_licenses = await db.licenses.count_documents(add_tenant_filter({}, tenant_id))
         # Licenças ativas: não expiradas OU sem data de expiração
+        active_licenses = 0
         try:
-            active_licenses = await db.licenses.count_documents(add_tenant_filter({
-                "$or": [
-                    {"expires_at": {"$gte": now}},
-                    {"expires_at": None},
-                    {"expires_at": {"$exists": False}}
-                ]
-            }, tenant_id))
+            # Contar licenças não expiradas
+            future_licenses = await db.licenses.count_documents(add_tenant_filter({"expires_at": {"$gte": now}}, tenant_id))
+            # Contar licenças sem data (consideradas ativas)
+            no_date_licenses = await db.licenses.count_documents(add_tenant_filter({"expires_at": None}, tenant_id))
+            # Contar licenças sem campo (consideradas ativas)
+            no_field_licenses = await db.licenses.count_documents(add_tenant_filter({"expires_at": {"$exists": False}}, tenant_id))
+            
+            active_licenses = future_licenses + no_date_licenses + no_field_licenses
         except Exception as e:
             logger.error(f"Erro ao contar licenças ativas (tenant): {e}")
             active_licenses = 0
