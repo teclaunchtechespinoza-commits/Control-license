@@ -169,10 +169,13 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold text-success">{stats.active_licenses}</div>
                 <div className="text-xs text-muted-foreground flex items-center mt-1">
                   <Progress 
-                    value={(stats.active_licenses / stats.total_licenses) * 100} 
+                    value={stats.total_licenses > 0 ? (stats.active_licenses / stats.total_licenses) * 100 : 0} 
                     className="w-20 h-2 mr-2"
                   />
-                  {Math.round((stats.active_licenses / stats.total_licenses) * 100)}%
+                  {stats.total_licenses > 0 ? 
+                    Math.round((stats.active_licenses / stats.total_licenses) * 100) : 
+                    0
+                  }%
                 </div>
               </CardContent>
             </Card>
