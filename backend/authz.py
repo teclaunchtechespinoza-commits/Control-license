@@ -42,6 +42,8 @@ def enforce_object_scope(obj: Dict[str, Any], current_user) -> bool:
     """
     Checagem rápida de escopo para objetos individuais (além do filtro de consulta).
     Retorna True se o objeto está no escopo do usuário.
+    
+    CORRIGIDO: Admin pode acessar qualquer objeto do seu tenant (não verificar seller_admin_id)
     """
     role = getattr(current_user, "role", None)
     if role == Role.SUPER_ADMIN:
@@ -51,8 +53,11 @@ def enforce_object_scope(obj: Dict[str, Any], current_user) -> bool:
     if not tenant_id or obj.get("tenant_id") != tenant_id:
         return False
 
+    # CORRIGIDO: Admin pode acessar qualquer objeto do seu tenant
     if role == Role.ADMIN:
-        return obj.get("seller_admin_id") == getattr(current_user, "id", None)
+        return True  # Admin tem acesso completo ao tenant
+    
+    # USER só vê objetos atribuídos a ele
     if role == Role.USER:
         return obj.get("assigned_user_id") == getattr(current_user, "id", None)
 
