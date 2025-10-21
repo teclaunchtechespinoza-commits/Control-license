@@ -5828,9 +5828,10 @@ async def get_licenses(
         
         # Apply role-based scope filtering  
         if current_user.role == UserRole.ADMIN:
-            # 🔒 SEGURANÇA CRÍTICA: Cada admin vê apenas suas licenças
-            # Para clientes concorrentes, isolamento OBRIGATÓRIO
-            base_filter["admin_owner_id"] = current_user.id
+            # 🔒 FUNCIONALIDADE RESTAURADA: Admin vê todas as licenças do seu tenant
+            # Para isolamento entre tenants diferentes, usar apenas tenant_id
+            # O isolamento será por tenant, não por admin individual
+            pass  # Admin vê todas as licenças do tenant (via tenant_id já aplicado)
             
         elif current_user.role == UserRole.USER:
             # Users see only their own licenses
