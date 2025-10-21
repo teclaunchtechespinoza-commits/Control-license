@@ -373,3 +373,15 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ PROBLEMA DASHBOARD NaN% RESOLVIDO! TESTE URGENTE EXECUTADO: Dashboard Stats endpoint retorna valores numéricos válidos - total_licenses: 672 (int), active_licenses: 0 (int). Percentual calculado corretamente: 0.0%. Backend não retorna null/undefined que causaria NaN% no frontend. VALORES VALIDADOS: Sistema retorna números válidos, não há campos null/undefined, cálculo matemático funciona (0/672 = 0.0%). CONCLUSÃO: Backend está correto, problema NaN% deve estar resolvido no frontend. Dashboard deve mostrar '0%' ao invés de 'NaN%'."
+
+  - task: "CORREÇÃO CRÍTICA: Modal 'Editar Licença' - Problema de Ownership"
+    implemented: true
+    working: false
+    file: "/app/backend/authz.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLEMA CRÍTICO IDENTIFICADO NO MODAL EDITAR LICENÇA! TESTE URGENTE EXECUTADO: PUT /licenses/{id} retorna 403 'Fora do escopo' devido a mismatch de campos de ownership. CAUSA RAIZ: authz.py procura campo 'seller_admin_id' mas licenças usam 'created_by'. EVIDÊNCIAS: UUID lookup funcionando (não retorna 404), licença encontrada corretamente, mas enforce_object_scope() bloqueia acesso. CORREÇÃO UUID CONFIRMADA: Endpoint encontra licenças por UUID, problema não é ObjectId vs UUID. PROBLEMA REAL: Campo de ownership - sistema de segurança multi-tenancy usa 'seller_admin_id' mas licenças têm 'created_by'. AÇÃO NECESSÁRIA: Alinhar campos de ownership entre authz.py e estrutura de dados das licenças."
