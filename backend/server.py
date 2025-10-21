@@ -5828,9 +5828,20 @@ async def get_licenses(
         
         # Apply role-based scope filtering
         if current_user.role == UserRole.ADMIN:
-            # ✅ CORREÇÃO: Admin vê todas as licenças do tenant (como super_admin para compatibilidade)
-            # Remover filtro restritivo admin_vendor_id que estava causando array vazio
-            pass  # Admin vê todas as licenças do tenant
+            # 🔒 SEGURANÇA CRÍTICA: Admin deve ver apenas licenças que ele gerencia
+            # Para multi-tenancy seguro, cada admin tem seu próprio escopo
+            
+            # Opção 1: Por vendor_id específico do admin
+            if hasattr(current_user, 'vendor_id') and current_user.vendor_id:
+                base_filter["admin_vendor_id"] = current_user.vendor_id
+            # Opção 2: Por ID do próprio admin 
+            elif hasattr(current_user, 'admin_scope') and current_user.admin_scope:
+                base_filter["admin_scope"] = current_user.admin_scope
+            # Opção 3: Usar ID do usuário como escopo
+            else:
+                # ⚠️ TEMPORÁRIO: Cada admin vê apenas suas próprias licenças
+                base_filter["created_by"] = current_user.id
+                
         elif current_user.role == UserRole.USER:
             # Users see only their own licenses
             base_filter["user_id"] = current_user.id
