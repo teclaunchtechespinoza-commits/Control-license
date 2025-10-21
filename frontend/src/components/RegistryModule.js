@@ -272,10 +272,20 @@ const RegistryModule = () => {
     e.preventDefault();
     
     try {
-      // 🚀 FASE 1 - Enhanced form validation before API call
+      // 🚀 FASE 1 - Enhanced form validation before API call (COM DEBUG)
       const validationSchema = getValidationSchema(activeTab);
       if (validationSchema) {
+        // 🔍 DEBUG: Log para edição também
+        console.log('🔍 DEBUG VALIDAÇÃO (EDIT):', {
+          activeTab,
+          formData: JSON.stringify(formData, null, 2),
+          nameField: formData.name
+        });
+        
         const { isValid, errors } = validateForm(formData, validationSchema);
+        
+        console.log('🔍 DEBUG RESULTADO (EDIT):', { isValid, errors });
+        
         if (!isValid) {
           showValidationErrors(errors);
           return;
