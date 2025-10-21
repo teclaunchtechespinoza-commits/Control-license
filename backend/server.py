@@ -5826,22 +5826,12 @@ async def get_licenses(
         # Build scope filter (existing business logic)
         base_filter = {}
         
-        # Apply role-based scope filtering
+        # Apply role-based scope filtering  
         if current_user.role == UserRole.ADMIN:
-            # 🔒 SEGURANÇA CRÍTICA: Admin deve ver apenas licenças que ele gerencia
-            # Para multi-tenancy seguro, cada admin tem seu próprio escopo
+            # 🔒 SEGURANÇA CRÍTICA: Cada admin vê apenas suas licenças
+            # Para clientes concorrentes, isolamento OBRIGATÓRIO
+            base_filter["admin_owner_id"] = current_user.id
             
-            # Opção 1: Por vendor_id específico do admin
-            if hasattr(current_user, 'vendor_id') and current_user.vendor_id:
-                base_filter["admin_vendor_id"] = current_user.vendor_id
-            # Opção 2: Por ID do próprio admin 
-            elif hasattr(current_user, 'admin_scope') and current_user.admin_scope:
-                base_filter["admin_scope"] = current_user.admin_scope
-            # Opção 3: Usar ID do usuário como escopo
-            else:
-                # ⚠️ TEMPORÁRIO: Cada admin vê apenas suas próprias licenças
-                base_filter["created_by"] = current_user.id
-                
         elif current_user.role == UserRole.USER:
             # Users see only their own licenses
             base_filter["user_id"] = current_user.id
