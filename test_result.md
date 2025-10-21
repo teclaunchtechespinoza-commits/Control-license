@@ -290,6 +290,18 @@ backend:
           agent: "testing"
           comment: "🎉 WHATSAPP BULK SEND MELHORIAS VALIDADAS COM SUCESSO! TESTES PRIORITÁRIOS EXECUTADOS: ✅ TESTE 1 - Router Ativo: Endpoint /api/whatsapp/send-bulk responde com nova estrutura {total: 1, sent: 0, failed: 1, errors: [{phone_number, message_id, error, error_type}]} - FUNCIONANDO! ✅ TESTE 2 - Validação de Licenças: Cliente João da Silva Teste (client_id: 3b9c1a56-f7d1-46da-b59e-5aeca3daf8c2) retorna error_type: 'LICENSE_EXPIRED' com mensagem 'Licença expirada - renovação necessária' - FUNCIONANDO! ✅ TESTE 3 - Validação Básica: Mensagens sem client_id processam normalmente com estrutura correta - FUNCIONANDO! ✅ TESTE 4 - Estrutura de Erros: errors[] contém todos os campos obrigatórios (phone_number, message_id, error, error_type) com constantes ERROR_TYPES ativas - FUNCIONANDO! ✅ TESTE 5 - Status dos Logs: maintenance_logger registra whatsapp_bulk_send_attempt e whatsapp_bulk_send_result com tenant_id - FUNCIONANDO! TAXA DE SUCESSO: 100% (5/5 testes prioritários). CONCLUSÃO: Router whatsapp_router está ATIVO e funcionando. Validação de licenças implementada. Estrutura de resposta melhorada. Categorização de erros ativa. Logs detalhados funcionando. As melhorias do WhatsApp bulk send estão REALMENTE ATIVAS!"
 
+  - task: "INCONSISTÊNCIAS CRÍTICAS DE LICENÇAS - Dashboard vs AdminPanel"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLEMA CRÍTICO IDENTIFICADO - INCONSISTÊNCIA ENTRE ENDPOINTS DE LICENÇAS! CONTEXTO: Dashboard mostra 'Total de Licenças: 672' e 'NaN%', AdminPanel mostra 'Nenhuma licença encontrada (0)', Banco de dados tem 682 licenças reais. TESTES EXECUTADOS: ✅ TEST 1 - Dashboard Stats (/api/stats): Funciona corretamente, retorna 672 licenças totais, 0 ativas, 0 expiradas, cálculo de percentual funcionando (0.0% sem NaN), números próximos do esperado (~682). ❌ TEST 2 - AdminPanel Licenses (/api/licenses): FALHA CRÍTICA - retorna array vazio [] (0 licenças) mesmo com 672 licenças no stats. EVIDÊNCIAS DOS LOGS: /api/stats response_size: 189 bytes (contém dados), /api/licenses response_size: 2 bytes (array vazio []). CAUSA RAIZ PROVÁVEL: Problema nos filtros de role no endpoint /api/licenses, Filtro de tenant_id muito restritivo, Problema na dependency injection get_tenant_database, Escopo de admin_vendor_id incorreto. IMPACTO: AdminPanel não consegue listar licenças enquanto Dashboard mostra estatísticas corretas. RECOMENDAÇÕES: 1) Verificar filtros de role no endpoint /api/licenses, 2) Validar se tenant_id está sendo aplicado corretamente, 3) Verificar se admin_vendor_id está configurado para o usuário admin, 4) Testar com usuário super_admin para ver todas as licenças, 5) Verificar se dependency injection get_tenant_database está funcionando, 6) Validar se paginação não está limitando resultados excessivamente."
+
   - task: "CORREÇÃO CRÍTICA: Problema 'Acesso Negado' no Sistema de Múltiplas Credenciais"
     implemented: true
     working: true
