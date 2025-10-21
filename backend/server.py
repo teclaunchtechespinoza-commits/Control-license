@@ -5954,31 +5954,66 @@ class LicenseUpdate(BaseModel):
     assigned_user_id: str | None = None
 
 @api_router.put("/licenses/{license_id}", response_model=License)
-async def update_license_by_id(license_id: str, body: LicenseUpdate, current_user: User = Depends(get_current_user)):
-    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+async def update_license_by_id(
+    license_id: str, 
+    body: LicenseUpdate, 
+    current_user: User = Depends(get_current_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Update license - Using UUID instead of ObjectId"""
+    # Find by UUID id field (not _id)
+    doc = await db.licenses.find_one({"id": license_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Licença não encontrada")
+    
+    # Apply tenant filter for security
     if not enforce_object_scope(doc, current_user):
         raise HTTPException(status_code=403, detail="Fora do escopo")
 
+    # Build updates from body (all optional fields from LicenseUpdate)
     updates = {}
-    if body.serial is not None:
-        updates["serial"] = body.serial.strip()
+    if body.name is not None:
+        updates["name"] = body.name.strip()
+    if body.description is not None:
+        updates["description"] = body.description
+    if body.status is not None:
+        updates["status"] = body.status
+    if body.max_users is not None:
+        updates["max_users"] = body.max_users
+    if body.expires_at is not None:
+        updates["expires_at"] = body.expires_at
     if body.assigned_user_id is not None:
         updates["assigned_user_id"] = body.assigned_user_id
+    if body.features is not None:
+        updates["features"] = body.features
+    if body.category_id is not None:
+        updates["category_id"] = body.category_id
+    if body.client_pf_id is not None:
+        updates["client_pf_id"] = body.client_pf_id
+    if body.client_pj_id is not None:
+        updates["client_pj_id"] = body.client_pj_id
+    if body.product_id is not None:
+        updates["product_id"] = body.product_id
+    if body.plan_id is not None:
+        updates["plan_id"] = body.plan_id
+    
+    # Update timestamp
+    updates["updated_at"] = datetime.now(timezone.utc)
+    
     if not updates:
+        # No updates, return existing doc
         doc.pop("_id", None)
-        doc["id"] = doc.get("id", str(ObjectId()))
         return License(**doc)
 
-    await db.licenses.update_one({"_id": doc["_id"]}, {"$set": updates})
-    updated = await db.licenses.find_one({"_id": doc["_id"]})
-    updated.pop("_id", None)
-    updated["id"] = updated.get("id", str(ObjectId()))
+    # Perform update
+    await db.licenses.update_one({"id": license_id}, {"$set": updates})
     
-    # Ensure required fields exist
-    if "name" not in updated or not updated["name"]:
-        updated["name"] = f"License {updated.get('id', 'Unknown')}"
+    # Fetch updated document
+    updated = await db.licenses.find_one({"id": license_id})
+    if not updated:
+        raise HTTPException(status_code=404, detail="Licença não encontrada após atualização")
+    
+    updated.pop("_id", None)
     
     return License(**updated)
 
