@@ -12,7 +12,7 @@ def build_scope_filter(current_user, base: Dict[str, Any] | None = None) -> Dict
 
     Regras:
       - SUPER_ADMIN: acesso amplo (sem restrição de tenant) — ajuste se desejar limitar por tenant.
-      - ADMIN: restringe por tenant_id e seller_admin_id = current_user.id
+      - ADMIN: restringe por tenant_id (CORRIGIDO: removido filtro seller_admin_id para permitir admin ver todas as licenças do tenant)
       - USER: restringe por tenant_id e assigned_user_id = current_user.id
     """
     q: Dict[str, Any] = dict(base or {})
@@ -31,9 +31,9 @@ def build_scope_filter(current_user, base: Dict[str, Any] | None = None) -> Dict
         return q
 
     q["tenant_id"] = tenant_id
-    if getattr(current_user, "role", None) == Role.ADMIN:
-        q["seller_admin_id"] = getattr(current_user, "id", None)
-    elif getattr(current_user, "role", None) == Role.USER:
+    # CORRIGIDO: Admin vê todas as licenças do tenant (não filtrar por created_by/seller_admin_id)
+    # Isolamento é feito por tenant_id, não por admin individual
+    if getattr(current_user, "role", None) == Role.USER:
         q["assigned_user_id"] = getattr(current_user, "id", None)
 
     return q
