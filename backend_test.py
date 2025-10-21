@@ -10587,6 +10587,25 @@ if __name__ == "__main__":
             else:
                 print(f"❌ TENANT VALIDATION FIXES TESTS FAILED! {success_rate:.1f}% success rate")
                 exit_code = 1
+        elif test_type == "security-isolation":
+            # Run the critical security isolation test as requested in the review
+            print("🚀 RUNNING CRITICAL SECURITY ISOLATION TEST")
+            success = tester.test_critical_security_isolation()
+            
+            # Print final results
+            print("\n" + "="*50)
+            print("CRITICAL SECURITY ISOLATION TEST RESULTS")
+            print("="*50)
+            print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+            
+            success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
+            
+            if success and success_rate >= 90:
+                print(f"🎉 CRITICAL SECURITY ISOLATION TESTS PASSED! {success_rate:.1f}% success rate")
+                exit_code = 0
+            else:
+                print(f"❌ CRITICAL SECURITY ISOLATION TESTS FAILED! {success_rate:.1f}% success rate")
+                exit_code = 1
         else:
             print(f"Unknown test type: {test_type}")
             print("Available test types: superadmin, all, rbac, whatsapp, sales, notifications, corrections, critical-security, hotfix, session-fix, critical-endpoints, critical-x-tenant-id, superadmin-infinite-loading, rbac-specific, redis-cache, dependency-injection, whatsapp-corrections, permissions-serial, multiple-credentials, tenant-validation")
