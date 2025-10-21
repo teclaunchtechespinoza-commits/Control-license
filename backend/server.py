@@ -6019,12 +6019,13 @@ async def update_license_by_id(
 
 @api_router.delete("/licenses/{license_id}", status_code=204)
 async def delete_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
-    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+    """Delete license - Using UUID instead of ObjectId"""
+    doc = await db.licenses.find_one({"id": license_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Licença não encontrada")
     if not enforce_object_scope(doc, current_user):
         raise HTTPException(status_code=403, detail="Fora do escopo")
-    await db.licenses.delete_one({"_id": doc["_id"]})
+    await db.licenses.delete_one({"id": license_id})
     return Response(status_code=204)
 
 # ------------------------ SEARCH endpoints with safe filters ------------------------
