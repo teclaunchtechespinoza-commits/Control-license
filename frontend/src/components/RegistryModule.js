@@ -210,10 +210,30 @@ const RegistryModule = () => {
     try {
       const config = getTabConfig();
       
-      // 🚀 FASE 1 - Enhanced form validation before API call
+      // 🚀 FASE 1 - Enhanced form validation before API call (COM DEBUG)
       const validationSchema = getValidationSchema(activeTab);
       if (validationSchema) {
+        // 🔍 DEBUG: Log completo para investigar o problema
+        console.log('🔍 DEBUG VALIDAÇÃO:', {
+          activeTab,
+          formData: JSON.stringify(formData, null, 2),
+          validationSchema: Object.keys(validationSchema),
+          nameField: {
+            value: formData.name,
+            type: typeof formData.name,
+            length: formData.name?.length,
+            trimmed: formData.name?.trim(),
+            isEmpty: !formData.name || formData.name.trim() === ''
+          }
+        });
+        
         const { isValid, errors } = validateForm(formData, validationSchema);
+        
+        console.log('🔍 DEBUG RESULTADO:', {
+          isValid,
+          errors: JSON.stringify(errors, null, 2)
+        });
+        
         if (!isValid) {
           showValidationErrors(errors);
           return;
