@@ -5950,8 +5950,19 @@ async def get_license_by_id(license_id: str, current_user: User = Depends(get_cu
     return License(**doc)
 
 class LicenseUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[LicenseStatus] = None
+    max_users: Optional[int] = None
+    expires_at: Optional[datetime] = None
+    assigned_user_id: Optional[str] = None
+    features: Optional[List[str]] = None
+    category_id: Optional[str] = None
+    client_pf_id: Optional[str] = None
+    client_pj_id: Optional[str] = None
+    product_id: Optional[str] = None
+    plan_id: Optional[str] = None
     serial: str | None = None
-    assigned_user_id: str | None = None
 
 @api_router.put("/licenses/{license_id}", response_model=License)
 async def update_license_by_id(
