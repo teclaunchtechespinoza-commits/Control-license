@@ -304,12 +304,15 @@ backend:
 
   - task: "CORREÇÃO DE VALIDAÇÃO - Formulário Criar Empresa"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
+    stuck_count: 1
+    priority: "critical"
     needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "🎉 CORREÇÃO DE VALIDAÇÃO FORMULÁRIO CRIAR EMPRESA COMPLETAMENTE VALIDADA! CONTEXTO: Usuário reportou erro 'Nome da Empresa é obrigatório' mesmo com campo preenchido. CORREÇÕES TESTADAS: 1) Formatação de erros Pydantic melhorada, 2) Tradução de campos (name → Nome da Empresa), 3) Formatação de mensagens com quebras de linha, 4) Tratamento correto de error.loc como array vs string. TESTES EXECUTADOS COM 87.5% DE SUCESSO: ✅ TEST 1 - Validação Básica: Campos vazios retornam erros estruturados sem '[object Object]' ✅, ✅ TEST 2 - Subdomain Vazio: Erro específico 'Subdomain is required' funcionando ✅, ✅ TEST 3 - Nome Ausente: Campo 'name' identificado corretamente nos erros ✅, ✅ TEST 4 - Email Inválido: Validação de email funcionando com formatação correta ✅, ✅ TEST 5 - Estrutura de Resposta: Erros em array com loc, msg, type completos ✅, ✅ TEST 6 - CENÁRIO CRÍTICO VALIDADO: Nome preenchido NÃO gera erro de obrigatório - PROBLEMA REPORTADO RESOLVIDO ✅, ✅ TEST 7 - Erro correto sobre subdomain vazio quando nome preenchido ✅. CORREÇÕES VALIDADAS: (1) Serialização de erros sem '[object Object]' funcionando, (2) Estrutura Pydantic correta com loc, msg, type, (3) Problema principal resolvido - nome preenchido não mostra como obrigatório, (4) Validação de campos funcionando corretamente, (5) Mensagens de erro estruturadas e legíveis. CONCLUSÃO: A correção do erro de validação no formulário 'Criar Empresa' foi COMPLETAMENTE implementada. O problema onde 'Nome da Empresa é obrigatório' aparecia mesmo com campo preenchido foi RESOLVIDO."
+        - working: false
+          agent: "testing"
+          comment: "❌ FALHA CRÍTICA CONFIRMADA: CORREÇÃO NÃO FUNCIONOU! TESTE URGENTE EXECUTADO CONFORME SOLICITADO PELO USUÁRIO: ✅ ACESSO: Login admin@demo.com/admin123 funcionando, navegação para RegistryModule/Empresas realizada com sucesso. ❌ TESTE CRÍTICO FALHOU: Campo 'Nome da Empresa' preenchido com 'DEALER TARGET BRASIL' + outros campos opcionais preenchidos (email, telefone, website, endereço, cidade, estado) MAS AINDA MOSTRA ERRO 'Nome da Empresa é obrigatório'. ❌ VALIDAÇÃO INCONSISTENTE: Quando campo está vazio, nenhum erro de validação aparece (comportamento incorreto). 🔍 EVIDÊNCIAS: Toast message exata: 'Erro de validação 1 campo precisa de correção: • Nome da Empresa: Nome da Empresa é obrigatório' mesmo com campo preenchido. 📸 SCREENSHOTS: Capturadas evidências do formulário preenchido mostrando o erro persistente. CONCLUSÃO CRÍTICA: A correção reportada pelo main agent NÃO RESOLVEU o problema. O erro 'Nome da Empresa é obrigatório' continua aparecendo mesmo com campo preenchido. O problema original persiste e requer investigação mais profunda da validação frontend/backend."
