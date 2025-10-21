@@ -4071,6 +4071,295 @@ class LicenseManagementAPITester:
             print("   Alguns módulos ainda podem mostrar 'Erro ao carregar...'")
             return False
 
+    def test_license_endpoints_critical_inconsistencies(self):
+        """Test critical license endpoints causing inconsistencies between Dashboard and AdminPanel"""
+        print("\n" + "="*80)
+        print("TESTE CRÍTICO - INCONSISTÊNCIAS DE LICENÇAS")
+        print("="*80)
+        print("🎯 CONTEXTO: Inconsistências críticas identificadas:")
+        print("   - Dashboard mostra 'Total de Licenças: 672' e 'NaN%'")
+        print("   - AdminPanel mostra 'Nenhuma licença encontrada (0)'")
+        print("   - Banco de dados tem 682 licenças reais")
+        print("")
+        print("🔍 TESTES CRÍTICOS NECESSÁRIOS:")
+        print("   1. GET /api/stats - Dashboard stats endpoint")
+        print("   2. GET /api/licenses - AdminPanel licenses endpoint")
+        print("   3. Teste paginação: /api/licenses?page=1&size=10")
+        print("   4. Teste filtros de role (admin vs super_admin)")
+        print("   5. Verificar tenant isolation")
+        print("="*80)
+        
+        # First authenticate with admin credentials
+        print("\n🔐 AUTHENTICATION SETUP")
+        admin_credentials = {
+            "email": "admin@demo.com",
+            "password": "admin123"
+        }
+        success, response = self.run_test("Admin login for license tests", "POST", "auth/login", 200, admin_credentials)
+        if success:
+            if "access_token" in response:
+                self.admin_token = response["access_token"]
+            else:
+                # Using HttpOnly cookies - set flag to use cookie-based auth
+                self.admin_token = "cookie_based_auth"
+                print("   ✅ Admin authentication successful with HttpOnly cookies")
+            print(f"   ✅ Admin authentication successful")
+        else:
+            print("   ❌ CRITICAL: Admin authentication failed!")
+            return False
+
+        # Test 1: Dashboard Stats Endpoint
+        print("\n🔍 TEST 1: DASHBOARD STATS ENDPOINT (/api/stats)")
+        print("   Objetivo: Verificar se retorna números corretos de licenças")
+        
+        success, response = self.run_test("Dashboard Stats", "GET", "stats", 200, token=self.admin_token)
+        if success:
+            print("   ✅ Dashboard stats endpoint funcionando")
+            
+            total_licenses = response.get("total_licenses", 0)
+            active_licenses = response.get("active_licenses", 0)
+            expired_licenses = response.get("expired_licenses", 0)
+            
+            print(f"      📊 Estatísticas Dashboard:")
+            print(f"         - Total de Licenças: {total_licenses}")
+            print(f"         - Licenças Ativas: {active_licenses}")
+            print(f"         - Licenças Expiradas: {expired_licenses}")
+            
+            # Check for NaN calculation issue
+            if total_licenses > 0:
+                active_percentage = (active_licenses / total_licenses) * 100
+                print(f"         - Percentual Ativo: {active_percentage:.1f}%")
+                
+                if str(active_percentage) == "nan":
+                    print("      ❌ CRITICAL: NaN% detectado no cálculo de percentual!")
+                    return False
+                else:
+                    print("      ✅ Cálculo de percentual funcionando corretamente")
+            else:
+                print("      ⚠️ Total de licenças é 0 - pode causar divisão por zero")
+                
+            # Verify numbers are reasonable (should be around 682 according to user)
+            if total_licenses >= 600:
+                print(f"      ✅ Total de licenças ({total_licenses}) está próximo do esperado (~682)")
+            else:
+                print(f"      ⚠️ Total de licenças ({total_licenses}) parece baixo comparado ao esperado (~682)")
+                
+        else:
+            print("   ❌ Dashboard stats endpoint falhou")
+            return False
+
+        # Test 2: AdminPanel Licenses Endpoint
+        print("\n🔍 TEST 2: ADMINPANEL LICENSES ENDPOINT (/api/licenses)")
+        print("   Objetivo: Verificar se retorna licenças (não vazio)")
+        
+        success, response = self.run_test("AdminPanel Licenses", "GET", "licenses", 200, token=self.admin_token)
+        if success:
+            print("   ✅ AdminPanel licenses endpoint funcionando")
+            
+            if isinstance(response, list):
+                licenses_count = len(response)
+                print(f"      📊 Licenças retornadas: {licenses_count}")
+                
+                if licenses_count == 0:
+                    print("      ❌ CRITICAL: AdminPanel retorna 0 licenças - problema identificado!")
+                    print("         Este é exatamente o problema reportado pelo usuário")
+                    return False
+                else:
+                    print(f"      ✅ AdminPanel retorna {licenses_count} licenças")
+                    
+                    # Show sample license structure
+                    if licenses_count > 0:
+                        sample_license = response[0]
+                        print(f"      📋 Estrutura da primeira licença:")
+                        print(f"         - ID: {sample_license.get('id', 'N/A')}")
+                        print(f"         - Name: {sample_license.get('name', 'N/A')}")
+                        print(f"         - Status: {sample_license.get('status', 'N/A')}")
+                        print(f"         - Expires At: {sample_license.get('expires_at', 'N/A')}")
+                        print(f"         - Tenant ID: {sample_license.get('tenant_id', 'N/A')}")
+            else:
+                print(f"      ❌ Resposta não é uma lista: {type(response)}")
+                return False
+        else:
+            print("   ❌ AdminPanel licenses endpoint falhou")
+            return False
+
+        # Test 3: Pagination Test
+        print("\n🔍 TEST 3: TESTE DE PAGINAÇÃO (/api/licenses?page=1&size=10)")
+        print("   Objetivo: Verificar se paginação funciona corretamente")
+        
+        pagination_params = {"page": 1, "size": 10}
+        success, response = self.run_test("Licenses Pagination", "GET", "licenses", 200, 
+                                        token=self.admin_token, params=pagination_params)
+        if success:
+            print("   ✅ Paginação funcionando")
+            
+            if isinstance(response, list):
+                paginated_count = len(response)
+                print(f"      📊 Licenças na página 1 (size=10): {paginated_count}")
+                
+                if paginated_count <= 10:
+                    print("      ✅ Paginação respeitando limite de tamanho")
+                else:
+                    print(f"      ⚠️ Paginação retornou mais que o limite: {paginated_count} > 10")
+                    
+                # Test page 2
+                pagination_params_p2 = {"page": 2, "size": 10}
+                success2, response2 = self.run_test("Licenses Pagination Page 2", "GET", "licenses", 200, 
+                                                  token=self.admin_token, params=pagination_params_p2)
+                if success2:
+                    page2_count = len(response2) if isinstance(response2, list) else 0
+                    print(f"      📊 Licenças na página 2: {page2_count}")
+                    print("      ✅ Paginação multi-página funcionando")
+            else:
+                print(f"      ❌ Resposta de paginação não é uma lista: {type(response)}")
+        else:
+            print("   ❌ Teste de paginação falhou")
+
+        # Test 4: Role Filters Test
+        print("\n🔍 TEST 4: TESTE DE FILTROS DE ROLE")
+        print("   Objetivo: Verificar se admin vê licenças corretas")
+        
+        # Test with current admin user
+        success, response = self.run_test("Admin Role Filter", "GET", "licenses", 200, token=self.admin_token)
+        if success:
+            admin_licenses_count = len(response) if isinstance(response, list) else 0
+            print(f"      📊 Licenças visíveis para admin: {admin_licenses_count}")
+            
+            # Check if admin sees appropriate licenses
+            if admin_licenses_count > 0:
+                print("      ✅ Admin consegue ver licenças")
+                
+                # Analyze license ownership/scope
+                admin_scoped_licenses = 0
+                for license_data in response[:5]:  # Check first 5 licenses
+                    if license_data.get("admin_vendor_id") or license_data.get("user_id"):
+                        admin_scoped_licenses += 1
+                        
+                print(f"      📊 Licenças com escopo definido: {admin_scoped_licenses}/{min(5, admin_licenses_count)}")
+            else:
+                print("      ❌ CRITICAL: Admin não vê nenhuma licença - problema de filtro de role!")
+                return False
+        else:
+            print("   ❌ Teste de filtro de role falhou")
+
+        # Test 5: Tenant Isolation Test
+        print("\n🔍 TEST 5: VERIFICAÇÃO DE TENANT ISOLATION")
+        print("   Objetivo: Confirmar se tenant_id está sendo aplicado corretamente")
+        
+        # Check if licenses have tenant_id
+        success, response = self.run_test("Tenant Isolation Check", "GET", "licenses", 200, token=self.admin_token)
+        if success and isinstance(response, list) and len(response) > 0:
+            licenses_with_tenant = 0
+            tenant_ids_found = set()
+            
+            for license_data in response[:10]:  # Check first 10 licenses
+                tenant_id = license_data.get("tenant_id")
+                if tenant_id:
+                    licenses_with_tenant += 1
+                    tenant_ids_found.add(tenant_id)
+                    
+            print(f"      📊 Licenças com tenant_id: {licenses_with_tenant}/{min(10, len(response))}")
+            print(f"      📊 Tenant IDs encontrados: {list(tenant_ids_found)}")
+            
+            if licenses_with_tenant > 0:
+                print("      ✅ Tenant isolation implementado")
+            else:
+                print("      ⚠️ Licenças sem tenant_id - pode causar problemas de isolamento")
+        else:
+            print("      ⚠️ Não foi possível verificar tenant isolation (sem licenças)")
+
+        # Test 6: Direct Database Count Comparison
+        print("\n🔍 TEST 6: COMPARAÇÃO COM CONTAGEM DIRETA")
+        print("   Objetivo: Identificar discrepância entre endpoints")
+        
+        # Get stats again for comparison
+        success_stats, stats_response = self.run_test("Stats for Comparison", "GET", "stats", 200, token=self.admin_token)
+        success_licenses, licenses_response = self.run_test("Licenses for Comparison", "GET", "licenses", 200, token=self.admin_token)
+        
+        if success_stats and success_licenses:
+            stats_total = stats_response.get("total_licenses", 0)
+            licenses_returned = len(licenses_response) if isinstance(licenses_response, list) else 0
+            
+            print(f"      📊 Comparação de Contagens:")
+            print(f"         - Stats endpoint: {stats_total} licenças")
+            print(f"         - Licenses endpoint: {licenses_returned} licenças retornadas")
+            print(f"         - Esperado pelo usuário: ~682 licenças")
+            
+            # Calculate discrepancy
+            if stats_total > 0 and licenses_returned > 0:
+                discrepancy = abs(stats_total - licenses_returned)
+                discrepancy_percent = (discrepancy / max(stats_total, licenses_returned)) * 100
+                
+                print(f"         - Discrepância: {discrepancy} licenças ({discrepancy_percent:.1f}%)")
+                
+                if discrepancy_percent > 10:
+                    print("      ❌ CRITICAL: Grande discrepância entre endpoints!")
+                    print("         Isso explica a inconsistência reportada pelo usuário")
+                    return False
+                else:
+                    print("      ✅ Discrepância aceitável entre endpoints")
+            elif stats_total > 0 and licenses_returned == 0:
+                print("      ❌ CRITICAL: Stats mostra licenças mas licenses endpoint retorna 0!")
+                print("         Este é exatamente o problema: AdminPanel não consegue listar licenças")
+                return False
+            elif stats_total == 0 and licenses_returned == 0:
+                print("      ⚠️ Ambos endpoints retornam 0 - pode ser problema de tenant ou dados")
+            else:
+                print(f"      ⚠️ Situação inconsistente: stats={stats_total}, licenses={licenses_returned}")
+
+        # FINAL RESULTS
+        print("\n" + "="*80)
+        print("TESTE DE INCONSISTÊNCIAS DE LICENÇAS - RESULTADOS FINAIS")
+        print("="*80)
+        
+        print(f"📊 DIAGNÓSTICO DAS INCONSISTÊNCIAS:")
+        
+        # Determine the root cause based on test results
+        if success_stats and success_licenses:
+            stats_total = stats_response.get("total_licenses", 0)
+            licenses_returned = len(licenses_response) if isinstance(licenses_response, list) else 0
+            
+            if stats_total > 0 and licenses_returned == 0:
+                print("   ❌ PROBLEMA IDENTIFICADO: AdminPanel (/api/licenses) retorna 0 licenças")
+                print("   ❌ Dashboard (/api/stats) mostra licenças existentes")
+                print("   🔍 CAUSA RAIZ PROVÁVEL:")
+                print("      - Problema nos filtros de role no endpoint /api/licenses")
+                print("      - Filtro de tenant_id muito restritivo")
+                print("      - Problema na dependency injection get_tenant_database")
+                print("      - Escopo de admin_vendor_id incorreto")
+                
+            elif stats_total == 0:
+                print("   ❌ PROBLEMA: Ambos endpoints retornam 0 licenças")
+                print("   🔍 CAUSA RAIZ PROVÁVEL:")
+                print("      - Problema de tenant isolation")
+                print("      - Dados não migrados corretamente")
+                print("      - Filtros de tenant muito restritivos")
+                
+            elif abs(stats_total - licenses_returned) > stats_total * 0.1:
+                print(f"   ❌ PROBLEMA: Grande discrepância ({stats_total} vs {licenses_returned})")
+                print("   🔍 CAUSA RAIZ PROVÁVEL:")
+                print("      - Diferentes filtros aplicados nos endpoints")
+                print("      - Paginação limitando resultados no /api/licenses")
+                print("      - Problemas de escopo de role")
+                
+            else:
+                print("   ✅ ENDPOINTS CONSISTENTES: Números similares entre stats e licenses")
+                
+        print(f"")
+        print(f"📋 RECOMENDAÇÕES PARA CORREÇÃO:")
+        print(f"   1. Verificar filtros de role no endpoint /api/licenses")
+        print(f"   2. Validar se tenant_id está sendo aplicado corretamente")
+        print(f"   3. Verificar se admin_vendor_id está configurado para o usuário admin")
+        print(f"   4. Testar com usuário super_admin para ver todas as licenças")
+        print(f"   5. Verificar se dependency injection get_tenant_database está funcionando")
+        print(f"   6. Validar se paginação não está limitando resultados excessivamente")
+        
+        # Return success if we identified the issue clearly
+        if success_stats and success_licenses:
+            return True
+        else:
+            print("   ❌ Não foi possível completar o diagnóstico - endpoints falharam")
+            return False
     def test_session_expired_fix(self):
         """Test the specific 'Session expired' message fix mentioned in review request"""
         print("\n" + "="*80)
