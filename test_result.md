@@ -385,3 +385,15 @@ backend:
         - working: false
           agent: "testing"
           comment: "❌ PROBLEMA CRÍTICO IDENTIFICADO NO MODAL EDITAR LICENÇA! TESTE URGENTE EXECUTADO: PUT /licenses/{id} retorna 403 'Fora do escopo' devido a mismatch de campos de ownership. CAUSA RAIZ: authz.py procura campo 'seller_admin_id' mas licenças usam 'created_by'. EVIDÊNCIAS: UUID lookup funcionando (não retorna 404), licença encontrada corretamente, mas enforce_object_scope() bloqueia acesso. CORREÇÃO UUID CONFIRMADA: Endpoint encontra licenças por UUID, problema não é ObjectId vs UUID. PROBLEMA REAL: Campo de ownership - sistema de segurança multi-tenancy usa 'seller_admin_id' mas licenças têm 'created_by'. AÇÃO NECESSÁRIA: Alinhar campos de ownership entre authz.py e estrutura de dados das licenças."
+
+  - task: "CORREÇÃO CRÍTICA: Botão 'Nova Licença' funcionando"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ BOTÃO NOVA LICENÇA FUNCIONANDO PERFEITAMENTE! TESTE URGENTE EXECUTADO: POST /licenses cria licenças com sucesso. EVIDÊNCIAS: Licença criada com ID e697f25d-c2e7-4560-98c0-b5fc2cfa07dd, todos os campos preenchidos corretamente (name, description, max_users, expires_at, license_key, status, created_by). ESTRUTURA CORRETA: Sistema gera UUID, license_key automático, timestamps corretos, created_by com ID do admin atual. CONCLUSÃO: Botão 'Nova Licença' no frontend deve funcionar normalmente, endpoint POST /licenses operacional."
