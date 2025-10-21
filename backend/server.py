@@ -6236,6 +6236,10 @@ async def get_stats(
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
     
+    # 🔧 CORREÇÃO CRÍTICA: Declarar variáveis no escopo da função
+    active_licenses = 0
+    expired_licenses = 0
+    
     if current_user.role == "super_admin":
         # Global stats for super admin
         total_licenses = await db.licenses.count_documents({})
