@@ -5828,8 +5828,9 @@ async def get_licenses(
         
         # Apply role-based scope filtering
         if current_user.role == UserRole.ADMIN:
-            # Admin sees licenses for their clients
-            base_filter["admin_vendor_id"] = current_user.id
+            # ✅ CORREÇÃO: Admin vê todas as licenças do tenant (como super_admin para compatibilidade)
+            # Remover filtro restritivo admin_vendor_id que estava causando array vazio
+            pass  # Admin vê todas as licenças do tenant
         elif current_user.role == UserRole.USER:
             # Users see only their own licenses
             base_filter["user_id"] = current_user.id
