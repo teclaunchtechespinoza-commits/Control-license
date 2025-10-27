@@ -5925,7 +5925,9 @@ async def get_licenses(
 # ------------------------ LICENSES by :id ------------------------
 @api_router.get("/licenses/{license_id}", response_model=License)
 async def get_license_by_id(license_id: str, current_user: User = Depends(get_current_user)):
-    doc = await db.licenses.find_one({"_id": ObjectId(license_id)})
+    """Get license by UUID (not ObjectId)"""
+    # 🔧 FIX: Usar UUID (campo 'id') ao invés de ObjectId (campo '_id')
+    doc = await db.licenses.find_one({"id": license_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Licença não encontrada")
     if not enforce_object_scope(doc, current_user):
@@ -5933,7 +5935,6 @@ async def get_license_by_id(license_id: str, current_user: User = Depends(get_cu
     
     # Remove MongoDB ObjectId
     doc.pop("_id", None)
-    doc["id"] = doc.get("id", str(ObjectId()))
     
     # Ensure required fields exist
     if "name" not in doc or not doc["name"]:
