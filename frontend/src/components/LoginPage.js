@@ -172,7 +172,7 @@ const LoginPage = () => {
                 <CardHeader>
                   <CardTitle>Acesso do Usuário</CardTitle>
                   <CardDescription>
-                    Digite seu código de identificação e senha
+                    Somente para usuarios Cadastrados
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -181,7 +181,7 @@ const LoginPage = () => {
                     <Input
                       id="user-code"
                       type="text"
-                      placeholder="Ex: ABC123, 0x1A2B, 456789, SERIAL-001"
+                      placeholder="Digite aqui..."
                       value={userLoginData.serial_number || ''}
                       onChange={(e) => {
                         const value = e.target.value.trim();
@@ -192,7 +192,7 @@ const LoginPage = () => {
                       className="font-mono"
                     />
                     <div className="text-xs text-gray-500">
-                      📋 Aceita: Texto, Hexadecimal (0x...), Decimal, ou Alfanumérico
+                    
                     </div>
                   </div>
                   
@@ -202,7 +202,7 @@ const LoginPage = () => {
                       <Input
                         id="user-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Sua senha"
+                        placeholder="Digite aqui..."
                         value={userLoginData.password}
                         onChange={(e) => setUserLoginData({...userLoginData, password: e.target.value})}
                         required
