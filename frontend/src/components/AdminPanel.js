@@ -376,7 +376,7 @@ const AdminPanel = () => {
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="licenses" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
-            <span>Gerenciar Licenças ({licenses.length})</span>
+            <span>Gerenciar Licenças ({filteredLicenses.length} de {licenses.length})</span>
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
