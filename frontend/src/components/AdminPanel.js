@@ -257,10 +257,10 @@ const AdminPanel = () => {
       toast.success('Licença excluída com sucesso!');
       setDeleteConfirmId(null);
       
-      // Force refresh with cache invalidation
+      // 🔧 FIX: Aguardar 500ms para garantir que banco confirme transação
       setTimeout(() => {
         fetchData();
-      }, 100);
+      }, 500);
     } catch (error) {
       console.error('Failed to delete license:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
