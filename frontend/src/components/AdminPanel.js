@@ -629,10 +629,32 @@ const AdminPanel = () => {
                   </h3>
                   <p className="text-gray-500 mb-4">
                     {searchTerm || statusFilter !== 'all' 
-                      ? 'Tente ajustar os filtros de busca'
+                      ? `Mostrando 0 de ${licenses.length} licenças. Tente limpar os filtros ou ajustar a busca.`
                       : 'Crie sua primeira licença para começar'
                     }
                   </p>
+                  {(searchTerm || statusFilter !== 'all') && (
+                    <div className="flex justify-center gap-2">
+                      {searchTerm && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSearchTerm('')}
+                        >
+                          Limpar busca
+                        </Button>
+                      )}
+                      {statusFilter !== 'all' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setStatusFilter('all')}
+                        >
+                          Mostrar todos os status
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="rounded-md border">
