@@ -274,7 +274,11 @@ const AdminPanel = () => {
     try {
       await api.put(`/users/${userId}/role`, null, { params: { role: newRole } });
       toast.success('Função do usuário atualizada com sucesso!');
-      fetchData();
+      
+      // 🔧 FIX: Aguardar 500ms para garantir que banco confirme transação
+      setTimeout(() => {
+        fetchData();
+      }, 500);
     } catch (error) {
       console.error('Failed to update user role:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
