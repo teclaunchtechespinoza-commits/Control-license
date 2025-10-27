@@ -199,7 +199,11 @@ const AdminPanel = () => {
       
       resetLicenseForm();
       setShowCreateLicenseDialog(false);
-      fetchData();
+      
+      // 🔧 FIX: Aguardar 500ms para garantir que banco confirme transação antes de buscar dados
+      setTimeout(() => {
+        fetchData();
+      }, 500);
     } catch (error) {
       console.error('Failed to create license:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
