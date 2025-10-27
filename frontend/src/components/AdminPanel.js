@@ -104,28 +104,55 @@ const AdminPanel = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Add cache-busting parameter  
+      // Force fresh data - no cache
       const timestamp = Date.now();
+      const cacheControl = { 
+        headers: { 
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        params: { _: timestamp, refresh: 'true' }
+      };
+      
       const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
-        api.get('/licenses', { params: { _: timestamp } }),
-        api.get('/users', { params: { _: timestamp } }),
-        api.get('/categories', { params: { _: timestamp } }),
-        api.get('/clientes-pf', { params: { _: timestamp } }),
-        api.get('/clientes-pj', { params: { _: timestamp } }),
-        api.get('/products', { params: { _: timestamp } }),
-        api.get('/license-plans', { params: { _: timestamp } })
+        api.get('/licenses', cacheControl),
+        api.get('/users', cacheControl),
+        api.get('/categories', cacheControl),
+        api.get('/clientes-pf', cacheControl),
+        api.get('/clientes-pj', cacheControl),
+        api.get('/products', cacheControl),
+        api.get('/license-plans', cacheControl)
       ]);
       
-      setLicenses(licensesResponse.data);
-      setUsers(usersResponse.data);
-      setCategories(categoriesResponse.data);
-      setClientesPF(pfResponse.data);
-      setClientesPJ(pjResponse.data);
-      setProducts(productsResponse.data);
-      setLicensePlans(plansResponse.data);
+      // Update state with fresh data
+      setLicenses(licensesResponse.data || []);
+      setUsers(usersResponse.data || []);
+      setCategories(categoriesResponse.data || []);
+      setClientesPF(pfResponse.data || []);
+      setClientesPJ(pjResponse.data || []);
+      setProducts(productsResponse.data || []);
+      setLicensePlans(plansResponse.data || []);
+      
+      // Log para debug
+      console.log('📊 Dados atualizados:', {
+        licenses: licensesResponse.data?.length || 0,
+        users: usersResponse.data?.length || 0,
+        categories: categoriesResponse.data?.length || 0,
+        clientesPF: pfResponse.data?.length || 0,
+        clientesPJ: pjResponse.data?.length || 0
+      });
+      
+      // Limpar filtros se não houver resultados
+      if (licensesResponse.data?.length === 0 && statusFilter !== 'all') {
+        setStatusFilter('all');
+        toast.info('Filtros limpos - nenhuma licença encontrada');
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error);
-      toast.error('Erro ao carregar dados');
+      toast.error('Erro ao carregar dados. Tentando novamente...');
+      // Retry once after 1 second
+      setTimeout(() => fetchData(), 1000);
     } finally {
       setLoading(false);
     }
