@@ -2360,14 +2360,14 @@ async def get_scheduler_status(current_user: User = Depends(get_current_user)):
 # 🚀 SUB-FASE 2.2 - Import Redis cache system
 from redis_cache_system import get_cached_dashboard_stats
 
-@api_router.get("/stats", response_model=SystemStats)
+@api_router.get("/stats/system", response_model=SystemStats)
 async def get_system_stats(
     current_user: User = Depends(get_current_user),
     tenant_db = Depends(get_tenant_database) if get_tenant_database else None,
     metrics: RequestMetrics = Depends(get_request_metrics) if get_request_metrics else None
 ):
     """
-    Get system-wide statistics
+    Get system-wide statistics (OLD ENDPOINT - renamed to /stats/system to avoid conflict)
     🚀 SUB-FASE 2.3 - Enhanced with Dependency Injection and Redis caching for massive performance boost
     """
     try:
