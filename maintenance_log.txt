@@ -152,3 +152,10 @@
 [2025-10-21 18:19:25] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-10-21 18:19:29] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.06589808333333333, "total_executions": 0}
 [2025-10-21 18:19:31] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-10-21 18:34:31] [INFO] health - system_health_check: {"database_response_ms": 4.288, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-10-21 18:49:31] [INFO] health - system_health_check: {"database_response_ms": 5.704, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-10-21 23:42:58] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-10-21 23:57:58] [INFO] health - system_health_check: {"database_response_ms": 3.283, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-10-22 00:00:00] [INFO] notifications - licenses_detected: {"expiring_in_days": 1, "licenses_count": 1, "notification_type": "NotificationType.LICENSE_EXPIRING_1", "target_date": "2025-10-23"}
+[2025-10-22 00:12:58] [INFO] health - system_health_check: {"database_response_ms": 3.7529999999999997, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2025-10-27 10:57:44] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
