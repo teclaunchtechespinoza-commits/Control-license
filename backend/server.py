@@ -5796,16 +5796,35 @@ async def create_license(
     tenant_id: str = Depends(require_tenant)
 ):
     """Create license with tenant isolation"""
-    license_dict = license_data.dict()
-    license_dict["created_by"] = current_user.id
-    
-    # CRÍTICO: Adicionar tenant_id à nova licença  
-    license_dict = add_tenant_to_document(license_dict, tenant_id)
-    
-    license = License(**license_dict)
-    await db.licenses.insert_one(license.dict())
-    
-    return license
+    try:
+        license_dict = license_data.dict()
+        license_dict["created_by"] = current_user.id
+        
+        # CRÍTICO: Adicionar tenant_id à nova licença  
+        license_dict = add_tenant_to_document(license_dict, tenant_id)
+        
+        license = License(**license_dict)
+        license_to_insert = license.dict()
+        
+        # 🔧 DEBUG: Log antes de inserir
+        logger.info(f"Inserindo licença: {license.id} no banco")
+        
+        result = await db.licenses.insert_one(license_to_insert)
+        
+        # 🔧 DEBUG: Verificar se inseriu
+        logger.info(f"Licença inserida com _id: {result.inserted_id}")
+        
+        # Verificar se realmente foi inserida
+        inserted = await db.licenses.find_one({"id": license.id})
+        if not inserted:
+            logger.error(f"ERRO: Licença {license.id} NÃO foi encontrada após insert_one!")
+        else:
+            logger.info(f"✅ Licença {license.id} confirmada no banco")
+        
+        return license
+    except Exception as e:
+        logger.error(f"Erro ao criar licença: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(
