@@ -217,11 +217,12 @@ const MaintenanceModule = () => {
       const response = await api.get('/rbac/roles');
       
       console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Response headers:', response.headers);
       
-      if (response.ok) {
-        const data = await response.json();
+      // Axios já retorna data automaticamente
+      const data = response.data;
+      
+      if (response.status === 200) {
         console.log('Dados RBAC recebidos:', data);
         console.log('Tipo dos dados:', typeof data, Array.isArray(data));
         toast.success(`✅ RBAC FUNCIONANDO! ${Array.isArray(data) ? data.length : 'N/A'} roles encontradas`);
