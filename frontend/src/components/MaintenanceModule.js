@@ -233,9 +233,9 @@ const MaintenanceModule = () => {
           console.log('Estados roles atualizados com sucesso');
         }
       } else {
-        const errorText = await response.text();
+        const errorText = response.data || 'Erro desconhecido';
         console.error('Erro na resposta:', response.status, errorText);
-        toast.error(`❌ Erro RBAC: ${response.status} - ${errorText}`);
+        toast.error(`❌ Erro RBAC: ${response.status} - ${JSON.stringify(errorText)}`);
       }
       
     } catch (error) {
