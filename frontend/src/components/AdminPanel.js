@@ -380,6 +380,15 @@ const AdminPanel = () => {
     const matchesStatus = statusFilter === 'all' || license.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+  
+  // Debug: Log quando há diferença entre total e filtrado
+  if (licenses.length !== filteredLicenses.length) {
+    console.log(`🔍 Filtro aplicado: ${filteredLicenses.length} de ${licenses.length} licenças`, {
+      searchTerm,
+      statusFilter,
+      statuses: [...new Set(licenses.map(l => l.status))]
+    });
+  }
 
   if (loading) {
     return <LoadingSpinner message="Carregando painel administrativo..." />;
