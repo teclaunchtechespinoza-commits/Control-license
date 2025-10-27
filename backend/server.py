@@ -6340,6 +6340,13 @@ async def get_stats(
         total_clientes_pf = await db.clientes_pf.count_documents(add_tenant_filter({}, tenant_id))
         total_clientes_pj = await db.clientes_pj.count_documents(add_tenant_filter({}, tenant_id))
     
+    # 🔧 GARANTIR que active_licenses nunca seja None
+    if active_licenses is None:
+        logger.warning("active_licenses era None, definindo como 0")
+        active_licenses = 0
+    
+    logger.info(f"STATS FINAL: total={total_licenses}, active={active_licenses}, expired={expired_licenses}")
+    
     return {
         "total_licenses": total_licenses,
         "active_licenses": active_licenses,
