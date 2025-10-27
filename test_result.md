@@ -399,3 +399,15 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ BOTÃO NOVA LICENÇA FUNCIONANDO PERFEITAMENTE! TESTE URGENTE EXECUTADO: POST /licenses cria licenças com sucesso. EVIDÊNCIAS: Licença criada com ID e697f25d-c2e7-4560-98c0-b5fc2cfa07dd, todos os campos preenchidos corretamente (name, description, max_users, expires_at, license_key, status, created_by). ESTRUTURA CORRETA: Sistema gera UUID, license_key automático, timestamps corretos, created_by com ID do admin atual. CONCLUSÃO: Botão 'Nova Licença' no frontend deve funcionar normalmente, endpoint POST /licenses operacional."
+
+  - task: "TESTE FINAL - Verificar criação e listagem de licença (Race Condition Fix)"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ TESTE FINAL FALHOU - RACE CONDITION AINDA EXISTE! PROBLEMA CRÍTICO IDENTIFICADO: Licença é criada com sucesso (ID: 3fbc8876-ae5a-4a67-a89a-791a433095bb) mas NÃO APARECE na lista GET /api/licenses. CAUSA RAIZ DESCOBERTA: Backend tem BUG CRÍTICO de inconsistência de IDs - (1) POST /licenses retorna UUID como 'id' (ex: 3fbc8876-ae5a-4a67-a89a-791a433095bb), (2) GET /licenses/{id} espera MongoDB ObjectId (24-char hex), (3) Tentativa de acessar licença por UUID resulta em erro 500 'InvalidId'. EVIDÊNCIAS DO BUG: Logs mostram 'bson.errors.InvalidId: 3fbc8876-ae5a-4a67-a89a-791a433095bb is not a valid ObjectId', licença criada mas inacessível por ID, sistema inconsistente entre criação (UUID) e recuperação (ObjectId). IMPACTO: Race condition persiste porque licenças criadas não podem ser recuperadas, frontend não consegue mostrar licenças recém-criadas. CORREÇÃO NECESSÁRIA: Alinhar sistema de IDs - usar apenas UUID ou apenas ObjectId em todo o sistema."
