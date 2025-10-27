@@ -237,7 +237,11 @@ const AdminPanel = () => {
       setShowEditLicenseDialog(false);
       setEditingLicense(null);
       resetLicenseForm();
-      fetchData();
+      
+      // 🔧 FIX: Aguardar 500ms para garantir que banco confirme transação
+      setTimeout(() => {
+        fetchData();
+      }, 500);
     } catch (error) {
       console.error('Failed to update license:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
