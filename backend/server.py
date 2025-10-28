@@ -2861,38 +2861,49 @@ class UserCreate(BaseModel):
 @api_router.post("/users", response_model=User)
 async def create_user(body: UserCreate, current_user: User = Depends(get_current_user)):
     """
-    Criação básica respeitando escopo:
-      - SUPER_ADMIN: pode criar em qualquer tenant (ajuste se desejar).
-      - ADMIN: cria USERS no próprio tenant e os vincula como seus clientes (admin_vendor_id = admin.id).
+    Criação completa de usuário:
+      - SUPER_ADMIN: pode criar em qualquer tenant.
+      - ADMIN: cria USERS no próprio tenant.
       - USER: proibido.
-    Obs.: fluxo de convite pode substituir este endpoint futuramente.
     """
     if current_user.role == UserRole.USER:
         raise HTTPException(status_code=403, detail="Sem permissão")
 
+    # Verificar se email já existe
+    existing = await db.users.find_one({"email": body.email.lower().strip()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+
+    # Hash da senha
+    password_hash = pwd_context.hash(body.password)
+
     doc = {
         "id": str(uuid.uuid4()),
         "email": body.email.lower().strip(),
-        "name": body.email.split("@")[0].title(),  # Nome baseado no email
+        "name": body.name,  # 🔧 FIX: Usar nome do body
+        "password_hash": password_hash,  # 🔧 FIX: Adicionar hash da senha
         "tenant_id": current_user.tenant_id if current_user.role != UserRole.SUPER_ADMIN else getattr(current_user, "tenant_id", None),
-        "role": "user" if current_user.role == UserRole.ADMIN else (body.role or "user"),
+        "role": body.role if body.role else "user",
         "is_active": True,
-        "created_at": datetime.utcnow(),
+        "requires_password_reset": False,  # 🔧 FIX: Não requer reset
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
     }
+    
     if current_user.role == UserRole.ADMIN:
         doc["admin_vendor_id"] = current_user.id
 
-    # Índice único (tenant_id, email) previne duplicatas
     try:
         res = await db.users.insert_one(doc)
         created = await db.users.find_one({"_id": res.inserted_id})
         if created:
-            created.pop("_id", None)  # Remove ObjectId
+            created.pop("_id", None)
             return User(**created)
         else:
             raise HTTPException(status_code=500, detail="Falha ao criar usuário")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
+        logger.error(f"Erro ao criar usuário: {e}")
+        raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {str(e)}")
 
 # ------------------------ USERS by :id ------------------------
 @api_router.get("/users/{user_id}", response_model=User)
