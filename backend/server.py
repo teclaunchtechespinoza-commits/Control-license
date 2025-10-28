@@ -5797,27 +5797,35 @@ async def create_license(
 ):
     """Create license with tenant isolation"""
     try:
+        # 🔧 DEBUG CRÍTICO
+        logger.info(f"🔍 tenant_id recebido: {tenant_id} (type: {type(tenant_id)})")
+        logger.info(f"🔍 current_user.tenant_id: {current_user.tenant_id}")
+        
         license_dict = license_data.dict()
         license_dict["created_by"] = current_user.id
-        license_dict["tenant_id"] = tenant_id  # 🔧 FIX: Adicionar tenant_id diretamente
+        
+        # 🔧 FIX: Usar tenant_id do usuário se o parâmetro for None
+        final_tenant_id = tenant_id if tenant_id else current_user.tenant_id
+        license_dict["tenant_id"] = final_tenant_id
+        
+        logger.info(f"🔍 license_dict['tenant_id']: {license_dict.get('tenant_id')}")
         
         license = License(**license_dict)
         license_to_insert = license.dict()
         
-        # 🔧 DEBUG: Log antes de inserir
+        logger.info(f"🔍 license_to_insert['tenant_id']: {license_to_insert.get('tenant_id')}")
         logger.info(f"Inserindo licença: {license.id} no banco")
         
         result = await db.licenses.insert_one(license_to_insert)
         
-        # 🔧 DEBUG: Verificar se inseriu
         logger.info(f"Licença inserida com _id: {result.inserted_id}")
         
         # Verificar se realmente foi inserida
         inserted = await db.licenses.find_one({"id": license.id})
         if not inserted:
-            logger.error(f"ERRO: Licença {license.id} NÃO foi encontrada após insert_one!")
+            logger.error(f"❌ Licença {license.id} NÃO foi encontrada após insert_one!")
         else:
-            logger.info(f"✅ Licença {license.id} confirmada no banco")
+            logger.info(f"✅ Licença {license.id} confirmada - tenant_id no banco: {inserted.get('tenant_id')}")
         
         return license
     except Exception as e:
