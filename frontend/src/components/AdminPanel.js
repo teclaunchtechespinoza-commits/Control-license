@@ -868,8 +868,8 @@ const AdminPanel = () => {
                     <TableRow>
                       <TableHead>Nome</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Função</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Função</TableHead>
                       <TableHead>Data de Cadastro</TableHead>
                       <TableHead>Último Login</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
