@@ -53,6 +53,7 @@ import {
   FileText,
   Settings,
   Eye,
+  EyeOff,
   Key,
   Calendar,
   CheckCircle,
