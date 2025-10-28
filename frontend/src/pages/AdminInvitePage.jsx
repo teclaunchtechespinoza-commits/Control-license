@@ -230,16 +230,37 @@ export default function AdminInvitePage() {
                               {invite.used_at ? 'Usado' : invite.revoked ? 'Revogado' : 'Pendente'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {!invite.used_at && !invite.revoked && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex gap-2">
+                              {!invite.used_at && !invite.revoked && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      const inviteUrl = `${window.location.origin}/accept-invite?token=${invite.token_hash}`;
+                                      copyToClipboard(inviteUrl);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900 font-medium"
+                                  >
+                                    Copiar Link
+                                  </button>
+                                  <span className="text-gray-300">|</span>
+                                  <button
+                                    onClick={() => onRevoke(invite.token_hash)}
+                                    disabled={revoking}
+                                    className="text-orange-600 hover:text-orange-900 disabled:opacity-50 font-medium"
+                                  >
+                                    Revogar
+                                  </button>
+                                  <span className="text-gray-300">|</span>
+                                </>
+                              )}
                               <button
-                                onClick={() => onRevoke(invite.token_hash)}
-                                disabled={revoking}
-                                className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                                onClick={() => onDelete(invite.token_hash)}
+                                className="text-red-600 hover:text-red-900 font-medium"
                               >
-                                Revogar
+                                Excluir
                               </button>
-                            )}
+                            </div>
                           </td>
                         </tr>
                       ))}
