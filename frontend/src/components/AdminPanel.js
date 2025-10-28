@@ -84,6 +84,12 @@ const AdminPanel = () => {
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [showEditUserDialog, setShowEditUserDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [userForm, setUserForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user'
+  });
   const [activeTab, setActiveTab] = useState('licenses');
 
   // Form states
