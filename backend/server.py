@@ -6275,6 +6275,28 @@ async def revoke_invitation(body: RevokeInvitePayload, current_user: User = Depe
     await db.invitations.update_one({"_id": inv["_id"]}, {"$set": {"revoked": True}})
     return {"ok": True}
 
+@api_router.delete("/admin/invitations/{token}")
+async def delete_invitation(token: str, current_user: User = Depends(get_current_user)):
+    """
+    Exclui um convite (usado, não usado, ou revogado). Admin só pode excluir convites criados por ele.
+    """
+    if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Sem permissão")
+
+    th = token_hash(token)
+    inv = await db.invitations.find_one({"token_hash": th})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Convite não encontrado")
+
+    # Admin só pode excluir convites dele no próprio tenant
+    if current_user.role == UserRole.ADMIN:
+        if inv.get("tenant_id") != current_user.tenant_id or inv.get("admin_vendor_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Fora do escopo")
+
+    # Excluir do banco
+    await db.invitations.delete_one({"_id": inv["_id"]})
+    return {"ok": True, "message": "Convite excluído com sucesso"}
+
 @api_router.get("/admin/invitations")
 async def list_invitations(current_user: User = Depends(get_current_user)):
     """
