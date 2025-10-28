@@ -813,10 +813,18 @@ const AdminPanel = () => {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>Gerenciar Usuários</CardTitle>
-              <CardDescription>
-                Visualize e gerencie os usuários do sistema
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Gerenciar Usuários</CardTitle>
+                  <CardDescription>
+                    Visualize e gerencie os usuários do sistema
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowCreateUserDialog(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Usuário
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
