@@ -881,22 +881,20 @@ const AdminPanel = () => {
                         <TableCell>
                           <div className="font-medium">{userData.name}</div>
                         </TableCell>
-                        <TableCell>{userData.email}</TableCell>
                         <TableCell>
-                          {getUserRoleBadge(userData.role)}
+                          <div className="text-sm text-gray-600">{userData.email}</div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-500">
-                            {formatDate(userData.created_at)}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            userData.is_active 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {userData.is_active ? 'Ativo' : 'Inativo'}
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-500">
-                            {userData.last_login ? formatDate(userData.last_login) : 'Nunca'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {userData.id !== user.id && (
+                          {userData.id !== user.id ? (
                             <Select 
                               value={userData.role} 
                               onValueChange={(newRole) => handleUpdateUserRole(userData.id, newRole)}
@@ -909,15 +907,18 @@ const AdminPanel = () => {
                                 <SelectItem value="admin">Admin</SelectItem>
                               </SelectContent>
                             </Select>
+                          ) : (
+                            <span className="text-sm text-gray-600 capitalize">{userData.role}</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            userData.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {userData.is_active ? 'Ativo' : 'Inativo'}
+                          <span className="text-sm text-gray-500">
+                            {formatDate(userData.created_at)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-500">
+                            {userData.last_login ? formatDate(userData.last_login) : 'Nunca'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
