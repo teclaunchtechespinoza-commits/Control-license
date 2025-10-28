@@ -845,7 +845,7 @@ const AdminPanel = () => {
                             {userData.last_login ? formatDate(userData.last_login) : 'Nunca'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
                           {userData.id !== user.id && (
                             <Select 
                               value={userData.role} 
@@ -860,6 +860,24 @@ const AdminPanel = () => {
                               </SelectContent>
                             </Select>
                           )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {userData.id !== user.id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+                                    handleDeleteUser(userData.id);
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
