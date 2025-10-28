@@ -2933,12 +2933,19 @@ async def update_user_by_id(user_id: str, body: UserUpdate, current_user: User =
 
 @api_router.delete("/users/{user_id}", status_code=204)
 async def delete_user_by_id(user_id: str, current_user: User = Depends(get_current_user)):
-    doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    """Delete user - Using UUID instead of ObjectId"""
+    # Prevenir auto-exclusão
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Você não pode excluir sua própria conta")
+    
+    doc = await db.users.find_one({"id": user_id})
     if not doc:
-        raise HTTPException(status_code=404, detail="User não encontrado")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
     if not enforce_object_scope(doc, current_user):
         raise HTTPException(status_code=403, detail="Fora do escopo")
-    await db.users.delete_one({"_id": doc["_id"]})
+    
+    # Excluir do banco
+    await db.users.delete_one({"id": user_id})
     return Response(status_code=204)
 
 @api_router.put("/users/{user_id}/role")
