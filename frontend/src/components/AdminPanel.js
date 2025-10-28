@@ -129,6 +129,7 @@ const AdminPanel = () => {
       
       // Update state with fresh data
       setLicenses(licensesResponse.data || []);
+      setLicensesTotal(licensesCountResponse.data?.total || 0); // 🔧 Total real
       setUsers(usersResponse.data || []);
       setCategories(categoriesResponse.data || []);
       setClientesPF(pfResponse.data || []);
