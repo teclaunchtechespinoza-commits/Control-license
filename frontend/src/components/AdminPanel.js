@@ -81,6 +81,8 @@ const AdminPanel = () => {
   const [showEditLicenseDialog, setShowEditLicenseDialog] = useState(false);
   const [editingLicense, setEditingLicense] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [showEditUserDialog, setShowEditUserDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [activeTab, setActiveTab] = useState('licenses');
 
   // Form states
