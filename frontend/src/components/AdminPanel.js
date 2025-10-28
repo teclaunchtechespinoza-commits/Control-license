@@ -1198,15 +1198,29 @@ const AdminPanel = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-password">Senha *</Label>
-              <Input
-                id="user-password"
-                type="password"
-                value={userForm.password}
-                onChange={(e) => setUserForm({...userForm, password: e.target.value})}
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="user-password"
+                  type={showPassword ? "text" : "password"}
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({...userForm, password: e.target.value})}
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-role">Função *</Label>
