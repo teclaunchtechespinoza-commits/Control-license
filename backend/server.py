@@ -1331,6 +1331,7 @@ class LicenseBase(BaseModel):
     client_pj_id: Optional[str] = None  # Link to Pessoa Jurídica
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
+    tenant_id: Optional[str] = None  # 🔧 FIX CRÍTICO: tenant_id deve estar no modelo!
 
 class LicenseCreate(LicenseBase):
     assigned_user_id: Optional[str] = None
