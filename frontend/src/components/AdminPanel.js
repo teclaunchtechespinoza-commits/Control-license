@@ -1124,6 +1124,69 @@ const AdminPanel = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Modal de Edição de Usuário */}
+      <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Usuário</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Nome</label>
+                  <p className="mt-1 text-sm text-gray-900">{editingUser.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <p className="mt-1 text-sm text-gray-900">{editingUser.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Função</label>
+                  <p className="mt-1 text-sm text-gray-900 capitalize">{editingUser.role}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <p className="mt-1">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      editingUser.is_active 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {editingUser.is_active ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">ID</label>
+                  <p className="mt-1 text-xs text-gray-600 font-mono">{editingUser.id}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Tenant ID</label>
+                  <p className="mt-1 text-xs text-gray-600 font-mono">{editingUser.tenant_id || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Data de Cadastro</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {editingUser.created_at ? new Date(editingUser.created_at).toLocaleString('pt-BR') : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Último Login</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {editingUser.last_login ? new Date(editingUser.last_login).toLocaleString('pt-BR') : 'Nunca'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowEditUserDialog(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
