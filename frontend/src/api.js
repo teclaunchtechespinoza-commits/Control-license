@@ -451,6 +451,17 @@ export const inviteHelpers = {
     }
   },
 
+  // Excluir convite (Admin)
+  deleteInvitation: async (token) => {
+    try {
+      const response = await api.delete(`/admin/invitations/${token}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete invitation:', error);
+      throw error;
+    }
+  },
+
   // Listar convites (Admin)
   listInvitations: async () => {
     try {
