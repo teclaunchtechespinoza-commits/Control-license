@@ -67,6 +67,7 @@ import LoadingSpinner from './LoadingSpinner';
 const AdminPanel = () => {
   const { user } = useAuth();
   const [licenses, setLicenses] = useState([]);
+  const [licensesTotal, setLicensesTotal] = useState(0); // Total real no banco
   const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [clientesPF, setClientesPF] = useState([]);
