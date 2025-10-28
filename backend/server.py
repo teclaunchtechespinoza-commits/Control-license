@@ -5799,10 +5799,7 @@ async def create_license(
     try:
         license_dict = license_data.dict()
         license_dict["created_by"] = current_user.id
-        
-        # 🔧 FIX CRÍTICO: add_tenant_to_document só aceita 1 parâmetro!
-        # Ela usa require_tenant() internamente
-        license_dict = add_tenant_to_document(license_dict)
+        license_dict["tenant_id"] = tenant_id  # 🔧 FIX: Adicionar tenant_id diretamente
         
         license = License(**license_dict)
         license_to_insert = license.dict()
