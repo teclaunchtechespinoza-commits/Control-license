@@ -5840,6 +5840,29 @@ async def create_license(
         logger.error(f"Erro ao criar licença: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/licenses/count")
+async def get_licenses_count(
+    current_user: User = Depends(get_current_user),
+    tenant_id: str = Depends(require_tenant),
+    status: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """Get total count of licenses (respecting filters and tenant isolation)"""
+    # Build filter
+    filter_query = {"tenant_id": tenant_id}
+    
+    if status and status != "all":
+        filter_query["status"] = status
+    
+    if search:
+        filter_query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"license_key": {"$regex": search, "$options": "i"}}
+        ]
+    
+    total = await db.licenses.count_documents(filter_query)
+    return {"total": total}
+
 @api_router.get("/licenses", response_model=List[License])
 async def get_licenses(
     request: Request,
