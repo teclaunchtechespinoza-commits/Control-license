@@ -317,6 +317,33 @@ const AdminPanel = () => {
     }
   };
 
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/users', userForm);
+      toast.success('Usuário criado com sucesso!');
+      
+      // Limpar formulário
+      setUserForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user'
+      });
+      setShowCreateUserDialog(false);
+      
+      setTimeout(() => {
+        fetchData();
+      }, 500);
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao criar usuário';
+      toast.error(errorMessage);
+    }
+  };
+
   const openEditDialog = (license) => {
     setEditingLicense(license);
     setLicenseForm({
