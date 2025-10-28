@@ -91,6 +91,7 @@ const AdminPanel = () => {
     password: '',
     role: 'user'
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('licenses');
 
   // Form states
