@@ -116,8 +116,9 @@ const AdminPanel = () => {
         params: { _: timestamp, refresh: 'true' }
       };
       
-      const [licensesResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
+      const [licensesResponse, licensesCountResponse, usersResponse, categoriesResponse, pfResponse, pjResponse, productsResponse, plansResponse] = await Promise.all([
         api.get('/licenses', cacheControl),
+        api.get('/licenses/count', cacheControl), // 🔧 NOVO: Buscar total real
         api.get('/users', cacheControl),
         api.get('/categories', cacheControl),
         api.get('/clientes-pf', cacheControl),
