@@ -2854,9 +2854,11 @@ async def list_users(
         return [User(**user) for user in users]
 
 class UserCreate(BaseModel):
+    name: str  # 🔧 FIX: Nome obrigatório
     email: str
-    role: str | None = None  # será ignorado para USER (definimos pelo fluxo)
-    admin_vendor_id: str | None = None  # opcional; para ADMIN, manter None
+    password: str  # 🔧 FIX: Senha obrigatória
+    role: str | None = None
+    admin_vendor_id: str | None = None
 
 @api_router.post("/users", response_model=User)
 async def create_user(body: UserCreate, current_user: User = Depends(get_current_user)):
