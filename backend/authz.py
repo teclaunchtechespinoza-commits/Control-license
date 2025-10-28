@@ -2,9 +2,9 @@ from enum import Enum
 from typing import Dict, Any
 
 class Role(str, Enum):
-    SUPER_ADMIN = "SUPER_ADMIN"
-    ADMIN = "ADMIN"
-    USER = "USER"
+    SUPER_ADMIN = "super_admin"
+    ADMIN = "admin"
+    USER = "user"
 
 def build_scope_filter(current_user, base: Dict[str, Any] | None = None) -> Dict[str, Any]:
     """
