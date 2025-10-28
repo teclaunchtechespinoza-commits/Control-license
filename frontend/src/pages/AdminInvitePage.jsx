@@ -63,6 +63,21 @@ export default function AdminInvitePage() {
     }
   };
 
+  const onDelete = async (token) => {
+    if (!window.confirm("Tem certeza que deseja excluir este convite?")) {
+      return;
+    }
+    
+    setError("");
+    try {
+      await inviteHelpers.deleteInvitation(token);
+      await loadInvites();
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || "Falha ao excluir convite";
+      setError(errorMessage);
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       alert("Link copiado para a área de transferência!");
