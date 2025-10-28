@@ -288,6 +288,23 @@ const AdminPanel = () => {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    try {
+      await api.delete(`/users/${userId}`);
+      toast.success('Usuário excluído com sucesso!');
+      
+      setTimeout(() => {
+        fetchData();
+      }, 500);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao excluir usuário';
+      toast.error(errorMessage);
+    }
+  };
+
   const openEditDialog = (license) => {
     setEditingLicense(license);
     setLicenseForm({
