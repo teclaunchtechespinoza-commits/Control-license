@@ -350,6 +350,9 @@ const AdminPanel = () => {
   };
 
   const openEditDialog = (license) => {
+    // 🔧 FIX: Forçar refresh da lista de usuários ao abrir modal
+    fetchData();
+    
     setEditingLicense(license);
     setLicenseForm({
       name: license.name,
