@@ -25,7 +25,8 @@ import {
   HelpCircle,
   ChevronRight,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  TrendingUp
 } from 'lucide-react';
 
 const HelpCenter = ({ isOpen, onClose }) => {
