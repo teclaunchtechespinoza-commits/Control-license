@@ -2920,7 +2920,9 @@ async def get_user_by_id(user_id: str, current_user: User = Depends(get_current_
     return User(**doc)
 
 class UserUpdate(BaseModel):
+    name: str | None = None
     email: str | None = None
+    is_active: bool | None = None
 
 @api_router.put("/users/{user_id}", response_model=User)
 async def update_user_by_id(user_id: str, body: UserUpdate, current_user: User = Depends(get_current_user)):
