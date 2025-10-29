@@ -295,6 +295,10 @@ const Navbar = () => {
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Configurações</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowHelpCenter(true)}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Ajuda</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -305,6 +309,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* Help Center Modal */}
+      <HelpCenter isOpen={showHelpCenter} onClose={() => setShowHelpCenter(false)} />
     </nav>
   );
 };
