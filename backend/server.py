@@ -2926,15 +2926,21 @@ class UserUpdate(BaseModel):
 
 @api_router.put("/users/{user_id}", response_model=User)
 async def update_user_by_id(user_id: str, body: UserUpdate, current_user: User = Depends(get_current_user)):
-    doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    """Update user - Using UUID instead of ObjectId"""
+    doc = await db.users.find_one({"id": user_id})
     if not doc:
         raise HTTPException(status_code=404, detail="User não encontrado")
     if not enforce_object_scope(doc, current_user):
         raise HTTPException(status_code=403, detail="Fora do escopo")
 
     updates = {}
+    if body.name is not None:
+        updates["name"] = body.name.strip()
     if body.email is not None:
         updates["email"] = body.email.lower().strip()
+    if body.is_active is not None:
+        updates["is_active"] = body.is_active
+    
     if not updates:
         doc["id"] = str(doc["_id"])
         doc.pop("_id", None)
