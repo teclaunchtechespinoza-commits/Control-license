@@ -384,6 +384,188 @@ Se nada funcionar, pode ser um problema de servidor. Contate o administrador.`
       ]
     },
     {
+      id: 'multi-tenancy',
+      icon: Building2,
+      title: '🏢 Sistema Multi-Tenancy',
+      category: 'Arquitetura',
+      tags: ['multitenancy', 'isolamento', 'segurança', 'empresa'],
+      sections: [
+        {
+          title: 'O que é Multi-Tenancy?',
+          content: `Multi-tenancy é uma arquitetura onde múltiplas empresas (tenants) compartilham a mesma aplicação, mas cada uma tem seus dados completamente isolados.
+
+CONCEITO:
+• Cada empresa tem seu próprio "espaço" no sistema
+• Dados são isolados por tenant_id
+• Uma empresa NÃO consegue ver dados de outra
+• Infraestrutura é compartilhada, mas dados não
+
+ANALOGIA:
+Imagine um prédio de apartamentos:
+• Prédio = Sistema License Manager
+• Apartamentos = Empresas (tenants)
+• Cada apartamento tem sua própria chave
+• Você não consegue entrar no apartamento do vizinho`
+        },
+        {
+          title: 'Como funciona o isolamento?',
+          content: `ISOLAMENTO AUTOMÁTICO:
+Quando você faz login, o sistema:
+1. Identifica seu tenant_id (empresa)
+2. Todas as consultas são filtradas por esse ID
+3. Você só vê licenças/usuários/clientes da sua empresa
+4. Outras empresas não aparecem nos seus resultados
+
+EXEMPLO PRÁTICO:
+Empresa A (Autotech):
+• Vê apenas suas 50 licenças
+• Vê apenas seus 5 usuários
+• Vê apenas seus 30 clientes
+
+Empresa B (Competitor):
+• Vê apenas suas 30 licenças
+• Vê apenas seus 3 usuários
+• Vê apenas seus 20 clientes
+
+Elas NUNCA veem dados uma da outra!`
+        },
+        {
+          title: 'Vantagens do Multi-Tenancy',
+          content: `SEGURANÇA:
+✓ Isolamento total de dados entre empresas
+✓ Impossível acessar dados de outros tenants
+✓ Cada empresa gerencia apenas seus próprios recursos
+
+CUSTO:
+✓ Infraestrutura compartilhada = custo menor
+✓ Manutenção centralizada
+✓ Updates automáticos para todos
+
+ESCALABILIDADE:
+✓ Adicionar nova empresa é instantâneo
+✓ Não precisa criar nova instalação
+✓ Sistema cresce automaticamente
+
+MANUTENÇÃO:
+✓ Um único sistema para manter
+✓ Backups centralizados
+✓ Monitoramento unificado`
+        },
+        {
+          title: 'Quando você se registra',
+          content: `O que acontece ao criar sua conta:
+1. Sistema cria um novo tenant (empresa) automaticamente
+2. Você se torna o primeiro admin dessa empresa
+3. Recebe seu próprio tenant_id único
+4. Seus dados ficam isolados desde o início
+5. Você pode convidar outros usuários para sua empresa
+
+PLANO FREE:
+• Até 2 usuários
+• Até 50 licenças
+• Até 25 clientes
+• 30 dias de trial
+
+Depois pode fazer upgrade para planos maiores!`
+        }
+      ]
+    },
+    {
+      id: 'sales-dashboard',
+      icon: TrendingUp,
+      title: '📊 Dashboard de Vendas',
+      category: 'Ferramentas',
+      tags: ['vendas', 'relatórios', 'renovação', 'dashboard'],
+      sections: [
+        {
+          title: 'O que é o Sales Dashboard?',
+          content: `O Sales Dashboard é uma ferramenta poderosa para:
+• Visualizar licenças próximas do vencimento
+• Identificar oportunidades de renovação
+• Enviar lembretes via WhatsApp
+• Acompanhar clientes em risco de cancelamento
+
+ACESSO:
+Menu superior → Métricas / Vendas
+
+INFORMAÇÕES EXIBIDAS:
+• Cliente e dados de contato
+• Chave da licença
+• Status (Venceu há X dias, Vence em X dias)
+• Telefone (quando cadastrado)
+• Botão de WhatsApp para contato rápido`
+        },
+        {
+          title: 'Como usar os filtros',
+          content: `FILTRO DE PERÍODO:
+• 30 dias (padrão) - Licenças vencendo nos próximos 30 dias
+• 60 dias - Visão mais ampla
+• 90 dias - Planejamento de longo prazo
+
+PESQUISA AVANÇADA:
+Digite para buscar por:
+• Nome do cliente
+• Telefone
+• Chave de licença
+• Status (LOW, MEDIUM, HIGH)
+• Valor (se cadastrado)
+
+A busca é em tempo real!
+
+BOTÃO LIMPAR:
+Clique em "Limpar pesquisa" para voltar à lista completa`
+        },
+        {
+          title: 'Envio de WhatsApp em massa',
+          content: `FUNCIONALIDADE:
+Envie mensagens de renovação para múltiplos clientes de uma vez.
+
+COMO USAR:
+1. Selecione os clientes (checkbox)
+2. Clique em "Enviar WhatsApp em Massa"
+3. Escolha ou crie uma mensagem template
+4. Clique em "Enviar"
+5. Sistema processa e envia automaticamente
+
+VALIDAÇÕES:
+✓ Cliente deve ter telefone cadastrado
+✓ Licença deve estar válida ou próxima do vencimento
+✓ Rate limiting: máximo 30 mensagens/minuto
+✓ Idempotência: não envia duplicado em 1 hora
+
+STATUS DO ENVIO:
+• Sucesso: Mensagem enviada ✓
+• Falha: Motivo do erro é exibido
+• Bloqueado: Cliente sem telefone ou licença inválida`
+        },
+        {
+          title: 'Interpretando os status',
+          content: `STATUS DAS LICENÇAS:
+
+🟢 ACTIVE (Verde):
+• Licença válida e funcionando
+• Sem ação imediata necessária
+
+🟡 LOW (Amarelo):
+• Vence em 7-30 dias
+• Enviar lembrete de renovação
+
+🟠 MEDIUM (Laranja):
+• Vence em 3-7 dias
+• Urgente: contatar cliente
+
+🔴 HIGH (Vermelho):
+• Venceu ou vence em 0-3 dias
+• Crítico: ação imediata
+• Cliente pode perder acesso
+
+⚫ EXPIRED (Cinza):
+• Licença expirada há mais de 30 dias
+• Considerar reativação ou arquivamento`
+        }
+      ]
+    },
+    {
       id: 'best-practices',
       icon: CheckCircle,
       title: '✨ Melhores Práticas',
