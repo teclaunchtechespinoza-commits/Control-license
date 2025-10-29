@@ -322,8 +322,8 @@ const AdminPanel = () => {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/users', userForm);
-      toast.success('Usuário criado com sucesso!');
+      const response = await api.post('/users', userForm);
+      toast.success(`Usuário ${response.data.name} criado com sucesso!`);
       
       // Limpar formulário
       setUserForm({
@@ -333,10 +333,12 @@ const AdminPanel = () => {
         role: 'user'
       });
       setShowCreateUserDialog(false);
+      setShowPassword(false); // Resetar visibilidade da senha
       
+      // Forçar atualização imediata
       setTimeout(() => {
         fetchData();
-      }, 500);
+      }, 300);
     } catch (error) {
       console.error('Failed to create user:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
