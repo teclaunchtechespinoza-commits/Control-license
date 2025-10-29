@@ -972,7 +972,7 @@ const AdminPanel = () => {
 
       {/* Edit License Dialog */}
       <Dialog open={showEditLicenseDialog} onOpenChange={setShowEditLicenseDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Licença</DialogTitle>
             <DialogDescription>
