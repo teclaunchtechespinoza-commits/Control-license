@@ -1594,13 +1594,18 @@ async def register(user_data: UserCreate):
     user_dict["password_hash"] = hashed_password
     user_dict["tenant_id"] = tenant_id
     user_dict["role"] = "admin"  # First user in tenant is admin
+    user_dict["id"] = str(uuid.uuid4())
+    user_dict["created_at"] = datetime.utcnow()
+    user_dict["is_active"] = True
+    user_dict["last_login"] = None
+    user_dict["serial_number"] = None
     
-    user = User(**user_dict)
-    # CRÍTICO: Garantir tenant_id no documento antes de inserir
-    user_dict_with_tenant = add_tenant_to_document(user.dict(), tenant_id)
-    await db.users.insert_one(user_dict_with_tenant)
+    # Insert user document directly (password_hash included)
+    await db.users.insert_one(user_dict)
     
-    return user
+    # Return user without password_hash
+    user_dict.pop("password_hash", None)
+    return User(**user_dict)
 
 @api_router.post("/auth/login")
 @rate_limit("auth_login")  # 🚀 SPRINT 1.2 - 5 attempts per minute per IP
