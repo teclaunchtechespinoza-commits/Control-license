@@ -5430,18 +5430,20 @@ async def get_pessoa_juridica(client_id: str, current_user: User = Depends(get_c
 async def update_pessoa_juridica(
     client_id: str,
     client_update: PessoaJuridicaUpdate,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
 ):
-    # Aplicar filtro de tenant
-    query_filter = add_tenant_filter({"id": client_id})
+    """Update Cliente PJ with tenant isolation"""
+    # 🔧 FIX: Usar tenant_id diretamente
+    query_filter = {"id": client_id, "tenant_id": tenant_id}
     
-    update_data = {k: v for k, v in client_update.dict().items() if v is not None}
-    update_data["updated_at"] = datetime.utcnow()
+    update_data = {k: v for k, v in client_update.dict(exclude_unset=True).items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc)
     update_data["updated_by"] = current_user.id
     
     # CORREÇÃO: Converter datetime.date para datetime.datetime para compatibilidade MongoDB
     import datetime as dt
-    for key, value in update_data.items():
+    for key, value in list(update_data.items()):
         if isinstance(value, dt.date) and not isinstance(value, dt.datetime):
             update_data[key] = dt.datetime.combine(value, dt.datetime.min.time())
     
@@ -5451,7 +5453,7 @@ async def update_pessoa_juridica(
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+        raise HTTPException(status_code=404, detail="Cliente não encontrado ou fora do escopo")
     
     updated_client = await db.clientes_pj.find_one(query_filter)
     return PessoaJuridica(**updated_client)
