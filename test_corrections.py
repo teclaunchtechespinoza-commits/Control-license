@@ -12,7 +12,7 @@ import os
 class CorrectionsAPITester:
     def __init__(self):
         # Get base URL from environment
-        self.base_url = "https://multisaas.preview.emergentagent.com/api"
+        self.base_url = "https://licensemanager-6.preview.emergentagent.com/api"
         self.session = requests.Session()
         self.admin_token = None
         
