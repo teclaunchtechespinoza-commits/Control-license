@@ -1272,64 +1272,112 @@ const AdminPanel = () => {
 
       {/* Modal de Edição de Usuário */}
       <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes do Usuário</DialogTitle>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do usuário
+            </DialogDescription>
           </DialogHeader>
           {editingUser && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Nome</label>
-                  <p className="mt-1 text-sm text-gray-900">{editingUser.name}</p>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                // Update user information
+                await api.put(`/users/${editingUser.id}`, {
+                  name: editingUser.name,
+                  email: editingUser.email,
+                  is_active: editingUser.is_active
+                });
+                toast.success('Usuário atualizado com sucesso!');
+                setShowEditUserDialog(false);
+                setEditingUser(null);
+                
+                // Refresh data
+                setTimeout(() => {
+                  fetchData();
+                }, 300);
+              } catch (error) {
+                console.error('Failed to update user:', error);
+                const errorMessage = typeof error.response?.data?.detail === 'string' 
+                  ? error.response.data.detail 
+                  : 'Erro ao atualizar usuário';
+                toast.error(errorMessage);
+              }
+            }}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-user-name">Nome Completo</Label>
+                  <Input
+                    id="edit-user-name"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                    required
+                  />
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="mt-1 text-sm text-gray-900">{editingUser.email}</p>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-user-email">Email</Label>
+                  <Input
+                    id="edit-user-email"
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    required
+                  />
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Função</label>
-                  <p className="mt-1 text-sm text-gray-900 capitalize">{editingUser.role}</p>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-user-active">Status</Label>
+                  <Select 
+                    value={editingUser.is_active ? 'true' : 'false'} 
+                    onValueChange={(value) => setEditingUser({...editingUser, is_active: value === 'true'})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Ativo</SelectItem>
+                      <SelectItem value="false">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <p className="mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      editingUser.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {editingUser.is_active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">ID</label>
-                  <p className="mt-1 text-xs text-gray-600 font-mono">{editingUser.id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Tenant ID</label>
-                  <p className="mt-1 text-xs text-gray-600 font-mono">{editingUser.tenant_id || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Data de Cadastro</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {editingUser.created_at ? new Date(editingUser.created_at).toLocaleString('pt-BR') : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Último Login</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {editingUser.last_login ? new Date(editingUser.last_login).toLocaleString('pt-BR') : 'Nunca'}
-                  </p>
+                
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase">ID</label>
+                    <p className="mt-1 text-xs text-gray-600 font-mono break-all">{editingUser.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase">Função</label>
+                    <p className="mt-1 text-sm text-gray-900 capitalize">{editingUser.role}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase">Cadastrado em</label>
+                    <p className="mt-1 text-xs text-gray-600">
+                      {editingUser.created_at ? new Date(editingUser.created_at).toLocaleString('pt-BR') : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase">Último Login</label>
+                    <p className="mt-1 text-xs text-gray-600">
+                      {editingUser.last_login ? new Date(editingUser.last_login).toLocaleString('pt-BR') : 'Nunca'}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowEditUserDialog(false)}>
-                  Fechar
+              <DialogFooter className="mt-6">
+                <Button type="button" variant="outline" onClick={() => {
+                  setShowEditUserDialog(false);
+                  setEditingUser(null);
+                }}>
+                  Cancelar
                 </Button>
-              </div>
-            </div>
+                <Button type="submit">
+                  Salvar Alterações
+                </Button>
+              </DialogFooter>
+            </form>
           )}
         </DialogContent>
       </Dialog>
