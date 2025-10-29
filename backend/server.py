@@ -3220,6 +3220,15 @@ async def update_pessoa_fisica(
         raise HTTPException(status_code=404, detail="Cliente não encontrado ou fora do escopo")
     
     updated_client = await db.clientes_pf.find_one(query_filter)
+    if not updated_client:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    updated_client.pop("_id", None)
+    
+    # 🔧 FIX: Normalizar client_type para minúscula
+    if "client_type" in updated_client and isinstance(updated_client["client_type"], str):
+        updated_client["client_type"] = updated_client["client_type"].lower()
+    
     return PessoaFisica(**updated_client)
 
 @api_router.delete("/clientes-pf/{client_id}")
