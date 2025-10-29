@@ -1026,7 +1026,18 @@ const AdminPanel = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="edit-user">Usuário Atribuído</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="edit-user">Usuário Atribuído</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fetchData()}
+                    className="text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    🔄 Atualizar Lista
+                  </Button>
+                </div>
                 <Select 
                   value={licenseForm.assigned_user_id || ''} 
                   onValueChange={(value) => setLicenseForm({...licenseForm, assigned_user_id: value || null})}
@@ -1042,6 +1053,9 @@ const AdminPanel = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-gray-500">
+                  {users.filter(u => u.role !== 'admin').length} usuários disponíveis
+                </p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
