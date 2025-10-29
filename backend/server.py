@@ -1743,7 +1743,7 @@ async def login_by_serial(credentials: UserSerialLogin, response: Response):
     if "password_hash" not in user_doc or not user_doc["password_hash"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account requires password reset. Please contact administrator."
+            detail="Conta requer redefinição de senha. Por favor, contate o administrador."
         )
     
     # Verificar senha
