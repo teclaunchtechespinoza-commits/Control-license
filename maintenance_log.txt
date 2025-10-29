@@ -237,3 +237,5 @@
 [2025-10-28 18:37:16] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2025-10-28 22:00:21] [INFO] health - system_health_check: {"database_response_ms": 3.762, "database_status": "healthy", "notification_queue_size": 364, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-10-28 22:03:05] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-10-28 22:04:04] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.9869840166666666, "total_executions": 0}
+[2025-10-28 22:04:06] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
