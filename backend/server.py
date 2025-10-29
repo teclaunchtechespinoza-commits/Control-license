@@ -2971,19 +2971,24 @@ async def update_user_role(
     """Update user role with tenant isolation"""
     role = role_data.get("role")
     
-    # Super admin can update any user, regular admin only in their tenant
+    if not role:
+        raise HTTPException(status_code=400, detail="Role is required")
+    
+    # 🔧 FIX: Usar tenant_id diretamente
     if current_user.role == "super_admin":
         query_filter = {"id": user_id}
     else:
-        query_filter = add_tenant_filter({"id": user_id}, tenant_id)
+        query_filter = {"id": user_id, "tenant_id": tenant_id}
     
     result = await db.users.update_one(
         query_filter,
-        {"$set": {"role": role}}
+        {"$set": {"role": role, "updated_at": datetime.now(timezone.utc)}}
     )
+    
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User role updated successfully"}
+        raise HTTPException(status_code=404, detail="Usuário não encontrado ou fora do escopo")
+    
+    return {"message": "Função atualizada com sucesso", "role": role}
 
 # Equipment Management Models
 class EquipmentBrandBase(BaseModel):
