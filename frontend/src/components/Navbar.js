@@ -42,6 +42,7 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
 
   // Use cached API calls for better performance
   const { data: licensesData, loading: licensesLoading, error: licensesError } = useApiCache('/licenses', [user?.id]);
