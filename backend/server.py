@@ -3489,7 +3489,8 @@ async def create_permission(permission_data: Permission, current_user: User = De
     return permission
 
 @api_router.get("/rbac/roles", response_model=List[Role])  
-async def get_roles(current_user: User = Depends(require_permission("rbac.read"))):
+async def get_roles(current_user: User = Depends(require_admin)):
+    # Apenas admins podem ver roles
     # CRÍTICO: Para roles, usar filtro de tenant (podem ser por tenant ou sistema)
     roles_filter = add_tenant_filter({}, current_user.tenant_id)
     roles = await db.roles.find(roles_filter).to_list(1000)
