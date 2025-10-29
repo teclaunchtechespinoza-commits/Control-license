@@ -124,7 +124,7 @@ const LoginPage = () => {
     e.preventDefault();
     
     if (registerData.password !== registerData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('As senhas não coincidem');
       return;
     }
 
