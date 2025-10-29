@@ -5,6 +5,7 @@ import { useApiCache } from '../hooks/useApiCache';
 import { api } from '../api';
 import { Button } from './ui/button';
 import TenantSelector from './TenantSelector';
+import HelpCenter from './HelpCenter';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -28,6 +29,7 @@ import {
   RotateCcw,
   TrendingUp,
   Building,
+  HelpCircle,
   ChevronDown,
   BarChart3,
   Activity,
