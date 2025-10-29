@@ -286,13 +286,14 @@ const AdminPanel = () => {
 
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
-      await api.put(`/users/${userId}/role`, null, { params: { role: newRole } });
-      toast.success('Função do usuário atualizada com sucesso!');
+      // 🔧 FIX: Enviar role no body ao invés de params
+      await api.put(`/users/${userId}/role`, { role: newRole });
+      toast.success('Função atualizada com sucesso!');
       
-      // 🔧 FIX: Aguardar 500ms para garantir que banco confirme transação
+      // Atualização mais rápida
       setTimeout(() => {
         fetchData();
-      }, 500);
+      }, 200);
     } catch (error) {
       console.error('Failed to update user role:', error);
       const errorMessage = typeof error.response?.data?.detail === 'string' 
