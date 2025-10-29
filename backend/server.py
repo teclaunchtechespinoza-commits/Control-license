@@ -1622,7 +1622,7 @@ async def login(user_credentials: UserLogin, response: Response):
         logger.warning(f"User {user_credentials.email} missing password_hash - login blocked")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account requires password reset. Please contact administrator."
+            detail="Conta requer redefinição de senha. Por favor, contate o administrador."
         )
     
     if not verify_password(user_credentials.password, user_doc["password_hash"]):
