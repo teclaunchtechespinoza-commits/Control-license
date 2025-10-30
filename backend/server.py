@@ -3168,10 +3168,10 @@ async def toggle_user_status(
     user_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Toggle user active status (block/unblock) - Super Admin only"""
-    # Verificar se é super_admin
-    if current_user.role != "super_admin":
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas super administradores.")
+    """Toggle user active status (block/unblock) - Admin/Super Admin only"""
+    # Verificar se é admin ou super_admin
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
     
     # Prevenir auto-bloqueio
     if user_id == current_user.id:
