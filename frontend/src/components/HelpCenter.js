@@ -50,7 +50,9 @@ const HelpCenter = ({ isOpen, onClose }) => {
           content: `O sistema protege informações confidenciais de equipamentos associados a clientes (PF/PJ), como:
 • Credenciais de acesso (usuários e senhas)
 • Identificadores de hardware (MAC address, serial number)
-• Chaves de acesso (WiFi, hardware keys)`
+• Chaves de acesso (WiFi, hardware keys)`,
+          image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Exemplo de interface de dados sensíveis protegidos'
         },
         {
           title: 'Quem pode ver os dados?',
