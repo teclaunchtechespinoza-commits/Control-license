@@ -93,6 +93,17 @@ const AdminPanel = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('licenses');
+  
+  // Estados para controle avançado de usuários
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState(null);
+  const [resetPasswordForm, setResetPasswordForm] = useState({
+    newPassword: '',
+    confirmPassword: '',
+    generateAuto: true,
+    forceChange: true
+  });
+  const [generatedPassword, setGeneratedPassword] = useState('');
 
   // Form states
   const [licenseForm, setLicenseForm] = useState({
