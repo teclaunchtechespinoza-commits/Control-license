@@ -25,3 +25,6 @@
 [2025-10-30 10:55:04] [INFO] health - system_health_check: {"database_response_ms": 3.1719999999999997, "database_status": "healthy", "notification_queue_size": 0, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-10-30 11:10:04] [INFO] health - system_health_check: {"database_response_ms": 5.6530000000000005, "database_status": "healthy", "notification_queue_size": 0, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2025-10-30 11:17:36] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 97.53874181666667, "total_executions": 0}
+[2025-10-30 12:00:08] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2025-10-30 12:00:11] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.05808683333333333, "total_executions": 0}
+[2025-10-30 12:00:14] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
