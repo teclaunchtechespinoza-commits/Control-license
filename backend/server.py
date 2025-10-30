@@ -3113,7 +3113,120 @@ async def unblock_user(
     logger.info(f"User {user_doc.get('email')} unblocked by {current_user.email}")
     
     return {"success": True, "message": "Usuário desbloqueado com sucesso"}
-    return Response(status_code=204)
+
+# User Management System Endpoints (as requested in review)
+@api_router.post("/users/{user_id}/reset-password")
+async def reset_user_password_new(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Reset password for any user (Super Admin only) - New endpoint as requested"""
+    # Verificar se é super_admin
+    if current_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas super administradores.")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar escopo (mesma empresa)
+    if not enforce_object_scope(user_doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Gerar senha temporária aleatória de 12 caracteres
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    temporary_password = ''.join(secrets.choice(alphabet) for i in range(12))
+    
+    # Hash da nova senha
+    new_hash = get_password_hash(temporary_password)
+    
+    # Atualizar no banco
+    updates = {
+        "password_hash": new_hash,
+        "requires_password_reset": True,
+        "password_reset_at": datetime.utcnow(),
+        "password_reset_by": current_user.email
+    }
+    
+    await db.users.update_one({"_id": user_doc["_id"]}, {"$set": updates})
+    
+    # Log da ação
+    logger.info(f"Password reset by {current_user.email} for user {user_doc.get('email')}")
+    
+    return {
+        "success": True,
+        "message": "Senha resetada com sucesso",
+        "temporary_password": temporary_password,
+        "requires_password_reset": True
+    }
+
+@api_router.post("/users/{user_id}/toggle-status")
+async def toggle_user_status(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Toggle user active status (block/unblock) - Super Admin only"""
+    # Verificar se é super_admin
+    if current_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas super administradores.")
+    
+    # Prevenir auto-bloqueio
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Você não pode alterar o status da sua própria conta")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar escopo
+    if not enforce_object_scope(user_doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Toggle status
+    current_status = user_doc.get("is_active", True)
+    new_status = not current_status
+    
+    updates = {
+        "is_active": new_status,
+        "status_changed_at": datetime.utcnow(),
+        "status_changed_by": current_user.email
+    }
+    
+    if not new_status:  # Blocking user
+        updates["blocked_at"] = datetime.utcnow()
+        updates["blocked_by"] = current_user.email
+        message = "Usuário bloqueado com sucesso"
+        log_message = f"User {user_doc.get('email')} blocked by {current_user.email}"
+        logger.warning(log_message)
+    else:  # Unblocking user
+        updates["$unset"] = {"blocked_at": "", "blocked_by": ""}
+        message = "Usuário desbloqueado com sucesso"
+        log_message = f"User {user_doc.get('email')} unblocked by {current_user.email}"
+        logger.info(log_message)
+    
+    # Update with $unset if needed
+    if "$unset" in updates:
+        unset_fields = updates.pop("$unset")
+        await db.users.update_one(
+            {"_id": user_doc["_id"]},
+            {"$set": updates, "$unset": unset_fields}
+        )
+    else:
+        await db.users.update_one(
+            {"_id": user_doc["_id"]},
+            {"$set": updates}
+        )
+    
+    return {
+        "success": True,
+        "message": message,
+        "is_active": new_status,
+        "status": "active" if new_status else "blocked"
+    }
 
 @api_router.put("/users/{user_id}/role")
 async def update_user_role(
