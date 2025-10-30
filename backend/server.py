@@ -1609,7 +1609,7 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login")
 @rate_limit("auth_login")  # 🚀 SPRINT 1.2 - 5 attempts per minute per IP
-async def login(user_credentials: UserLogin, response: Response):
+async def login(user_credentials: UserLogin, response: Response, request: Request):
     # CRÍTICO: Para login, buscar usuário em qualquer tenant
     user_doc = None
     
