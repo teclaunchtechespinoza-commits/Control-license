@@ -1377,6 +1377,135 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Reset de Senha */}
+      <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-purple-600" />
+              Resetar Senha
+            </DialogTitle>
+            <DialogDescription>
+              {resetPasswordUser && `Resetar senha para: ${resetPasswordUser.email}`}
+            </DialogDescription>
+          </DialogHeader>
+          {generatedPassword ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-semibold text-green-900">Senha resetada com sucesso!</span>
+                </div>
+                <p className="text-sm text-green-700 mb-3">
+                  Copie a senha temporária abaixo e envie para o usuário:
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={generatedPassword}
+                    readOnly
+                    className="flex-1 px-3 py-2 bg-white border border-green-300 rounded font-mono text-sm"
+                  />
+                  <Button onClick={copyGeneratedPassword} size="sm">
+                    <Download className="w-4 h-4 mr-1" />
+                    Copiar
+                  </Button>
+                </div>
+                <p className="text-xs text-green-600 mt-2">
+                  ⚠️ O usuário precisará trocar esta senha no próximo login.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => {
+                  setShowResetPasswordDialog(false);
+                  setResetPasswordUser(null);
+                  setGeneratedPassword('');
+                }}>
+                  Fechar
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={resetPasswordForm.generateAuto}
+                    onChange={() => setResetPasswordForm({...resetPasswordForm, generateAuto: true})}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">Gerar senha automática (Recomendado)</span>
+                </label>
+                <p className="text-xs text-gray-500 ml-6">
+                  Sistema gera senha forte automaticamente
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={!resetPasswordForm.generateAuto}
+                    onChange={() => setResetPasswordForm({...resetPasswordForm, generateAuto: false})}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">Definir senha manualmente</span>
+                </label>
+                {!resetPasswordForm.generateAuto && (
+                  <div className="ml-6 space-y-2">
+                    <Input
+                      type="password"
+                      placeholder="Nova senha"
+                      value={resetPasswordForm.newPassword}
+                      onChange={(e) => setResetPasswordForm({...resetPasswordForm, newPassword: e.target.value})}
+                    />
+                    <Input
+                      type="password"
+                      placeholder="Confirmar senha"
+                      value={resetPasswordForm.confirmPassword}
+                      onChange={(e) => setResetPasswordForm({...resetPasswordForm, confirmPassword: e.target.value})}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={resetPasswordForm.forceChange}
+                    onChange={(e) => setResetPasswordForm({...resetPasswordForm, forceChange: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Forçar troca de senha no próximo login</span>
+                </label>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setShowResetPasswordDialog(false);
+                  setResetPasswordUser(null);
+                }}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleResetPassword}
+                  disabled={!resetPasswordForm.generateAuto && (
+                    !resetPasswordForm.newPassword || 
+                    resetPasswordForm.newPassword !== resetPasswordForm.confirmPassword
+                  )}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Resetar Senha
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Edição de Usuário */}
       <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
