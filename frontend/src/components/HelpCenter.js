@@ -938,6 +938,22 @@ A segurança depende do uso responsável.`
                           <div className="text-sm text-gray-700 whitespace-pre-line">
                             {section.content}
                           </div>
+                          {/* Renderizar imagem se existir */}
+                          {section.image && (
+                            <div className="mt-4 rounded-lg overflow-hidden border border-gray-200">
+                              <img 
+                                src={section.image} 
+                                alt={section.title}
+                                className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                                loading="lazy"
+                              />
+                              {section.imageCaption && (
+                                <div className="px-3 py-2 bg-gray-50 text-xs text-gray-600 italic">
+                                  {section.imageCaption}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
