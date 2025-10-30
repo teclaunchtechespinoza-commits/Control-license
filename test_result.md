@@ -413,3 +413,44 @@ backend:
         - working: false
           agent: "testing"
           comment: "❌ TESTE FINAL FALHOU - RACE CONDITION AINDA EXISTE! PROBLEMA CRÍTICO IDENTIFICADO: Licença é criada com sucesso (ID: 3fbc8876-ae5a-4a67-a89a-791a433095bb) mas NÃO APARECE na lista GET /api/licenses. CAUSA RAIZ DESCOBERTA: Backend tem BUG CRÍTICO de inconsistência de IDs - (1) POST /licenses retorna UUID como 'id' (ex: 3fbc8876-ae5a-4a67-a89a-791a433095bb), (2) GET /licenses/{id} espera MongoDB ObjectId (24-char hex), (3) Tentativa de acessar licença por UUID resulta em erro 500 'InvalidId'. EVIDÊNCIAS DO BUG: Logs mostram 'bson.errors.InvalidId: 3fbc8876-ae5a-4a67-a89a-791a433095bb is not a valid ObjectId', licença criada mas inacessível por ID, sistema inconsistente entre criação (UUID) e recuperação (ObjectId). IMPACTO: Race condition persiste porque licenças criadas não podem ser recuperadas, frontend não consegue mostrar licenças recém-criadas. CORREÇÃO NECESSÁRIA: Alinhar sistema de IDs - usar apenas UUID ou apenas ObjectId em todo o sistema."
+
+
+  - task: "SISTEMA DE GERENCIAMENTO DE USUÁRIOS - Reset de Senha"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ IMPLEMENTAÇÃO COMPLETA: Endpoint POST /users/{user_id}/reset-password criado para super_admins resetarem senhas de usuários. FUNCIONALIDADES: (1) Gera nova senha temporária aleatória de 12 caracteres, (2) Seta flag requires_password_reset como true, (3) Retorna senha temporária para super_admin compartilhar com usuário, (4) Apenas super_admins podem executar esta ação. FRONTEND: Botão 'Reset Password' adicionado na tabela de usuários, modal ResetPasswordModal implementado com visualização da senha temporária. PRECISA TESTE: Validar endpoint backend, UI frontend, fluxo completo de reset de senha."
+
+  - task: "SISTEMA DE GERENCIAMENTO DE USUÁRIOS - Bloquear/Desbloquear"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ IMPLEMENTAÇÃO COMPLETA: Endpoint POST /users/{user_id}/toggle-status criado para super_admins bloquearem/desbloquearem usuários. FUNCIONALIDADES: (1) Alterna campo is_active entre true/false, (2) Retorna novo status do usuário, (3) Apenas super_admins podem executar esta ação, (4) Usuários bloqueados não podem fazer login. FRONTEND: Botões 'Block/Unblock' adicionados na tabela de usuários com ícones Lock/Unlock, states e handlers implementados. PRECISA TESTE: Validar endpoint backend, botões frontend, verificar se login é bloqueado para usuários inativos."
+
+  - task: "SISTEMA DE GERENCIAMENTO DE USUÁRIOS - Last Login Tracking"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ IMPLEMENTAÇÃO COMPLETA: Endpoint POST /auth/login modificado para registrar last_login timestamp e ip_address. FUNCIONALIDADES: (1) Registra timestamp do último login (datetime.utcnow), (2) Captura IP do usuário via X-Forwarded-For header, (3) Informações salvas no documento do usuário, (4) Visível no AdminPanel para super_admins auditarem. FRONTEND: Tabela de usuários no AdminPanel pode exibir essas informações. PRECISA TESTE: Validar se login registra corretamente last_login e ip_address, verificar visualização no frontend."
+
+agent_communication:
+    - agent: "main"
+      message: "📋 NOVO SISTEMA DE GERENCIAMENTO DE USUÁRIOS IMPLEMENTADO: Adicionei 3 novas funcionalidades para super_admins gerenciarem usuários: (1) Reset de Senha - Endpoint POST /users/{user_id}/reset-password gera senha temporária, (2) Bloquear/Desbloquear - Endpoint POST /users/{user_id}/toggle-status alterna status ativo/inativo, (3) Last Login Tracking - Login agora registra timestamp e IP. FRONTEND: Botões e modais implementados em AdminPanel.js. Backend reiniciado com sucesso. PRECISA TESTES URGENTES: Validar todos os 3 endpoints, verificar UI frontend, testar fluxo completo de cada funcionalidade."
