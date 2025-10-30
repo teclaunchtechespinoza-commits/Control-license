@@ -1639,9 +1639,26 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
     # CRÍTICO: Adicionar filtro de tenant para atualização do último login
     user_tenant_id = user_doc.get("tenant_id", "default")
     login_filter = add_tenant_filter({"email": user_credentials.email}, user_tenant_id)
+    
+    # Capturar IP do usuário para auditoria
+    user_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown")
+    if user_ip and "," in user_ip:
+        user_ip = user_ip.split(",")[0].strip()  # Pega o primeiro IP (cliente real)
+    
+    # Verificar se usuário está bloqueado
+    if not user_doc.get("is_active", True):
+        logger.warning(f"Blocked user {user_credentials.email} attempted login from {user_ip}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sua conta está bloqueada. Entre em contato com o administrador."
+        )
+    
     await db.users.update_one(
         login_filter,
-        {"$set": {"last_login": datetime.utcnow()}}
+        {"$set": {
+            "last_login": datetime.utcnow(),
+            "ip_address": user_ip
+        }}
     )
     
     # 🔐 SECURITY UPGRADE: Create short-lived access token + long-lived refresh token
