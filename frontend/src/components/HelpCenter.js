@@ -205,6 +205,342 @@ O usuário não conseguirá mais fazer login, mas seus dados são preservados no
       ]
     },
     {
+      id: 'multi-tenant',
+      icon: Building,
+      title: '🏢 Administração Multi-Tenant (SaaS)',
+      category: 'Administração',
+      tags: ['multi-tenant', 'saas', 'tenants', 'empresas', 'isolamento'],
+      sections: [
+        {
+          title: 'O que é Multi-Tenancy?',
+          content: `Multi-Tenancy (Multi-Inquilino) é uma arquitetura SaaS onde UM ÚNICO SISTEMA atende MÚLTIPLOS CLIENTES (tenants) de forma ISOLADA e SEGURA.
+
+🏢 ANALOGIA SIMPLES - PRÉDIO DE APARTAMENTOS:
+• O prédio é o SISTEMA (License Manager)
+• Cada apartamento é um TENANT (empresa cliente)
+• Moradores de cada apartamento NÃO VEEM nem ACESSAM dados dos outros
+• Todos compartilham a mesma INFRAESTRUTURA (água, luz, elevador = banco de dados, servidor)
+
+💼 NO SEU SISTEMA:
+Você tem AutoTech Services (sua empresa) oferecendo o sistema de gerenciamento de licenças para OUTRAS EMPRESAS:
+
+Empresa A (concessionária de carros)
+├── 50 usuários
+├── 1.200 licenças
+└── 300 clientes
+
+Empresa B (oficina mecânica)  
+├── 10 usuários
+├── 150 licenças
+└── 80 clientes
+
+Empresa C (loja de peças)
+├── 5 usuários
+├── 50 licenças
+└── 30 clientes
+
+✅ Cada empresa tem seus próprios: usuários, licenças, clientes, configurações
+❌ NUNCA veem os dados umas das outras!`,
+          image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Arquitetura Multi-Tenant: Múltiplas empresas, dados isolados'
+        },
+        {
+          title: 'Para que serve?',
+          content: `VANTAGENS PARA VOCÊ (PROVEDOR):
+💰 ESCALABILIDADE COMERCIAL
+• Vender para MÚLTIPLOS clientes
+• Cada cliente paga mensalidade
+• Crescimento exponencial de receita
+
+⚙️ EFICIÊNCIA OPERACIONAL
+• 1 sistema serve N clientes
+• 1 atualização beneficia todos
+• Custos compartilhados
+
+🔧 MANUTENÇÃO SIMPLIFICADA
+• Corrigir bug = fix para todos
+• Nova feature = disponível para todos
+• Backup centralizado
+
+VANTAGENS PARA O CLIENTE:
+💵 CUSTO REDUZIDO
+• Não precisa montar infraestrutura própria
+• Sem custos de servidores
+• Paga apenas pelo uso
+
+🚀 RAPIDEZ
+• Sistema pronto para usar
+• Sem instalação complexa
+• Começa a usar em minutos
+
+🔄 SEMPRE ATUALIZADO
+• Atualizações automáticas
+• Novas funcionalidades sem custo extra
+• Sem downtime para updates`,
+          image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Modelo SaaS Multi-Tenant reduz custos e aumenta eficiência'
+        },
+        {
+          title: 'Como acessar (Super Admin)',
+          content: `PASSO A PASSO:
+1. Faça login como Super Admin:
+   📧 superadmin@autotech.com
+   🔐 admin123
+
+2. No menu superior, clique em:
+   "SA+" → "Administração Multi-Tenant"
+
+3. Você verá todos os tenants (empresas clientes)
+
+🔐 RESTRIÇÃO DE ACESSO:
+• APENAS Super Admins veem esta área
+• Admins comuns não têm acesso
+• Usuários regulares não sabem que existe multi-tenancy`,
+          image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Painel de administração multi-tenant'
+        },
+        {
+          title: 'Como criar um novo Tenant (cliente)',
+          content: `CRIANDO UM NOVO CLIENTE:
+
+1. Clique em "+ Novo Tenant"
+
+2. Preencha os dados:
+   • Nome da Empresa: "Concessionária XYZ"
+   • Subdomínio: "xyz" (será: xyz.autotech.app.br)
+   • Email de Contato: contato@xyz.com.br
+   • Plano: Free / Basic / Professional / Enterprise
+   
+3. Dados do Admin (primeiro usuário):
+   • Nome: "João Silva"
+   • Email: joao@xyz.com.br
+   • Senha: (senha temporária)
+
+4. Clique em "Criar Tenant"
+
+✅ O SISTEMA AUTOMATICAMENTE:
+• Cria o tenant no banco de dados
+• Cria o primeiro usuário admin
+• Configura limites do plano
+• Isola todos os dados deste cliente
+• Envia email de boas-vindas (se configurado)`,
+          image: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Criação de novo tenant - Onboarding automatizado'
+        },
+        {
+          title: 'Funcionalidades disponíveis',
+          content: `📊 VER ESTATÍSTICAS (ícone gráfico):
+• Total de usuários
+• Total de licenças
+• Licenças ativas vs expiradas
+• Uso de recursos
+• Últimas atividades
+
+✏️ EDITAR TENANT (ícone lápis):
+• Alterar nome da empresa
+• Atualizar email de contato
+• Mudar plano (upgrade/downgrade)
+• Ajustar limites:
+  - Max usuários: 5 → 50 → ilimitado
+  - Max licenças: 100 → 1000 → ilimitado
+  - Max clientes: 50 → 500 → ilimitado
+
+🗑️ EXCLUIR TENANT (ícone lixeira):
+⚠️ CUIDADO: Ação IRREVERSÍVEL!
+• Remove TODOS os dados do tenant
+• Deleta: usuários, licenças, clientes, configurações
+• Apenas Super Admin pode excluir
+• Exige confirmação dupla
+
+🚫 SUSPENDER TENANT (botão Suspender):
+• Desativa acesso temporariamente
+• Dados são preservados
+• Útil para: inadimplência, violação de termos
+• Pode ser reativado depois
+
+▶️ ATIVAR TENANT (botão Ativar):
+• Reativa tenant suspenso
+• Restaura acesso imediato
+• Todos os dados continuam intactos`,
+          image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Gestão completa de tenants - CRUD e controle de acesso'
+        },
+        {
+          title: 'Planos disponíveis',
+          content: `🆓 FREE (Gratuito):
+• 5 usuários
+• 100 licenças
+• 50 clientes
+• Suporte por email (48h)
+• Ideal para: Teste, pequenos negócios
+
+💙 BASIC (Básico) - R$ 99/mês:
+• 20 usuários
+• 500 licenças
+• 200 clientes
+• Suporte prioritário (24h)
+• Ideal para: Empresas em crescimento
+
+💜 PROFESSIONAL (Profissional) - R$ 299/mês:
+• 50 usuários
+• 2.000 licenças
+• 1.000 clientes
+• Suporte premium (4h)
+• API integrations
+• Relatórios avançados
+• Ideal para: Empresas estabelecidas
+
+💚 ENTERPRISE (Empresarial) - Sob consulta:
+• Usuários ilimitados
+• Licenças ilimitadas
+• Clientes ilimitados
+• Suporte 24/7
+• Gerente de conta dedicado
+• SLA garantido
+• Customizações
+• Ideal para: Grandes corporações
+
+📈 COMO MUDAR DE PLANO:
+1. Edite o tenant
+2. Selecione o novo plano
+3. Ajuste os limites
+4. Salve
+5. Tenant é atualizado imediatamente`,
+          image: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Planos flexíveis para diferentes perfis de clientes'
+        },
+        {
+          title: 'Como funciona o isolamento de dados?',
+          content: `🔒 ISOLAMENTO TÉCNICO (Como o sistema garante segurança):
+
+NÍVEL 1 - TENANT_ID em TODOS os dados:
+Cada registro no banco tem um campo tenant_id:
+
+Exemplo - Usuário:
+{
+  "id": "uuid-123",
+  "name": "João Silva",
+  "email": "joao@empresa-a.com",
+  "tenant_id": "empresa-a" ← IDENTIFICADOR
+}
+
+NÍVEL 2 - FILTROS AUTOMÁTICOS:
+Toda consulta ao banco AUTOMATICAMENTE filtra por tenant:
+
+// Buscar licenças
+SELECT * FROM licenses WHERE tenant_id = 'empresa-a'
+
+// NUNCA retorna dados de 'empresa-b' ou 'empresa-c'
+
+NÍVEL 3 - MIDDLEWARE DE VALIDAÇÃO:
+Antes de processar qualquer request, o sistema:
+1. Identifica o tenant do usuário logado
+2. Adiciona filtro tenant_id em todas as queries
+3. Valida que o usuário só acessa dados do seu tenant
+
+NÍVEL 4 - TESTES DE SEGURANÇA:
+✅ Testes automatizados garantem:
+• Usuário da Empresa A não vê dados da Empresa B
+• Admin da Empresa C não edita licenças da Empresa D
+• 0% de vazamento de dados entre tenants
+
+🛡️ CONFORMIDADE LGPD:
+• Cada tenant é um "controlador de dados" independente
+• Dados nunca são misturados
+• Auditoria completa de acessos
+• Direito ao esquecimento (delete tenant)`,
+          image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Isolamento de dados multi-tenant - Segurança e conformidade'
+        },
+        {
+          title: 'Casos de uso reais',
+          content: `💼 CASO 1 - SOFTWARE HOUSE:
+Você é uma empresa de software que desenvolveu este sistema.
+Agora quer VENDER para múltiplas empresas:
+
+Cliente 1: Concessionária Fiat (200 usuários)
+Cliente 2: Oficina Auto Rápido (15 usuários)
+Cliente 3: Loja de Peças Turbo (8 usuários)
+
+✅ Com Multi-Tenancy:
+• 1 sistema serve todos
+• Cada um paga mensalidade
+• Você gerencia tudo centralizado
+
+🚗 CASO 2 - FRANQUIA DE OFICINAS:
+Você tem 20 franquias espalhadas pelo Brasil.
+Cada franquia precisa do sistema mas:
+• Não pode ver dados das outras
+• Quer autonomia para gerenciar seu negócio
+• Precisa de relatórios centralizados (matriz)
+
+✅ Solução:
+• Cada franquia = 1 tenant
+• Matriz tem Super Admin
+• Franquias gerenciam seus dados
+• Matriz vê estatísticas consolidadas
+
+🏢 CASO 3 - CONDOMÍNIO DE EMPRESAS:
+Condomínio empresarial com 50 empresas.
+Você oferece o sistema como BENEFÍCIO:
+
+✅ Vantagem:
+• Custo dividido entre todos
+• Cada empresa tem privacidade total
+• Manutenção compartilhada
+• Você fatura do condomínio`,
+          image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Casos de uso multi-tenant - Escalabilidade comercial'
+        },
+        {
+          title: 'Boas práticas de segurança',
+          content: `🔐 PARA VOCÊ (SUPER ADMIN):
+
+✅ FAZER:
+• Manter senha forte e única
+• Ativar autenticação 2FA (quando disponível)
+• Fazer backup diário dos dados
+• Monitorar acessos suspeitos
+• Documentar mudanças em tenants
+• Testar isolamento regularmente
+
+❌ NÃO FAZER:
+• Compartilhar credenciais de Super Admin
+• Logar como Super Admin para tarefas comuns
+• Misturar dados de tenants manualmente
+• Dar acesso de Super Admin para clientes
+• Modificar tenant_id diretamente no banco
+
+🛡️ PARA SEUS CLIENTES:
+
+✅ ORIENTAR:
+• Cada tenant deve ter seu próprio admin
+• Admins de tenants gerenciam seus usuários
+• Não compartilhar senhas
+• Revisar acessos periodicamente
+• Reportar atividades suspeitas
+
+🚨 EM CASO DE PROBLEMA:
+1. Suspenda o tenant imediatamente
+2. Investigue os logs
+3. Notifique o cliente
+4. Corrija o problema
+5. Reative após confirmação
+
+📊 AUDITORIA:
+O sistema registra TODAS as ações:
+• Quem acessou o quê
+• Quando acessou
+• De qual IP
+• Que mudanças fez
+
+Use: "Módulo de Manutenção" → "Logs do Sistema"`,
+          image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Segurança multi-tenant - Boas práticas e auditoria'
+        }
+      ]
+    },
+    {
       id: 'license-management',
       icon: FileText,
       title: '📄 Gerenciamento de Licenças',
