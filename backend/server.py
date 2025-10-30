@@ -3985,11 +3985,16 @@ async def get_my_tenant(current_user: User = Depends(get_current_user)):
 # HELPER FUNCTIONS FOR SALES DASHBOARD
 # ================================
 
-async def get_expiring_licenses():
+async def get_expiring_licenses(tenant_id: str = None):
     """
     Busca licenças que estão expirando ou já expiraram
+    CRÍTICO: SEMPRE requer tenant_id para isolamento de dados
     """
     try:
+        if not tenant_id:
+            logger.error("get_expiring_licenses called without tenant_id - SECURITY BREACH")
+            return []
+            
         # Buscar licenças com data de expiração próxima (próximos 90 dias)
         future_date = datetime.utcnow() + timedelta(days=90)
         
@@ -3998,7 +4003,7 @@ async def get_expiring_licenses():
                 {"expires_at": {"$lte": future_date}},  # Expirando em 90 dias
                 {"expires_at": {"$lte": datetime.utcnow()}}  # Já expiraram
             ]
-        })
+        }, tenant_id)  # ← CORREÇÃO CRÍTICA: tenant_id explícito
         
         licenses = await db.licenses.find(query_filter).to_list(1000)
         return licenses
