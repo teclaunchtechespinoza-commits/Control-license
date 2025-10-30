@@ -363,6 +363,78 @@ const AdminPanel = () => {
     }
   };
 
+  // ✨ NOVO: Funções de Controle Avançado de Usuários
+  
+  const handleResetPassword = async () => {
+    try {
+      const requestData = {
+        new_password: resetPasswordForm.generateAuto ? null : resetPasswordForm.newPassword,
+        force_change: resetPasswordForm.forceChange,
+        notify_user: false
+      };
+      
+      const response = await api.post(`/admin/users/${resetPasswordUser.id}/reset-password`, requestData);
+      
+      if (response.data.temporary_password) {
+        setGeneratedPassword(response.data.temporary_password);
+        toast.success('Senha resetada! Copie a senha temporária antes de fechar.');
+      } else {
+        toast.success('Senha resetada com sucesso!');
+        setShowResetPasswordDialog(false);
+        setResetPasswordUser(null);
+      }
+      
+      setTimeout(() => {
+        fetchData();
+      }, 300);
+    } catch (error) {
+      console.error('Failed to reset password:', error);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao resetar senha';
+      toast.error(errorMessage);
+    }
+  };
+  
+  const handleBlockUser = async (userId, isBlocked) => {
+    try {
+      if (isBlocked) {
+        await api.put(`/admin/users/${userId}/unblock`);
+        toast.success('Usuário desbloqueado com sucesso!');
+      } else {
+        await api.put(`/admin/users/${userId}/block`, { reason: 'Bloqueado pelo administrador' });
+        toast.success('Usuário bloqueado com sucesso!');
+      }
+      
+      setTimeout(() => {
+        fetchData();
+      }, 300);
+    } catch (error) {
+      console.error('Failed to block/unblock user:', error);
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Erro ao bloquear/desbloquear usuário';
+      toast.error(errorMessage);
+    }
+  };
+  
+  const openResetPasswordDialog = (user) => {
+    setResetPasswordUser(user);
+    setResetPasswordForm({
+      newPassword: '',
+      confirmPassword: '',
+      generateAuto: true,
+      forceChange: true
+    });
+    setGeneratedPassword('');
+    setShowResetPasswordDialog(true);
+  };
+  
+  const copyGeneratedPassword = () => {
+    navigator.clipboard.writeText(generatedPassword);
+    toast.success('Senha copiada para área de transferência!');
+  };
+
   const openEditDialog = (license) => {
     // 🔧 FIX: Forçar refresh da lista de usuários ao abrir modal
     fetchData();
