@@ -1683,6 +1683,41 @@ Não precisa clicar em "Salvar".`,
               title: '✅ Limpar Tenants Duplicados',
               description: 'Removidas 6 duplicatas do banco - CORRIGIDO',
               category: 'Qualidade'
+            },
+            {
+              id: 'custom_domain_guide',
+              priority: 'high',
+              title: '✅ Guia de Domínio Personalizado',
+              description: 'Documentação completa de DNS/SSL/HTTPS - IMPLEMENTADO',
+              category: 'Documentação'
+            },
+            {
+              id: 'delete_tenant_modal',
+              priority: 'medium',
+              title: '✅ Modal Customizado de Exclusão',
+              description: 'Substituído window.confirm por modal harmonizado - IMPLEMENTADO',
+              category: 'UX/UI'
+            },
+            {
+              id: 'faq_credentials_masked',
+              priority: 'high',
+              title: '✅ Mascarar Credenciais no FAQ',
+              description: 'Credenciais específicas removidas da documentação - SEGURANÇA',
+              category: 'Segurança'
+            },
+            {
+              id: 'building_icon_fix',
+              priority: 'high',
+              title: '✅ Corrigir Ícone Building no FAQ',
+              description: 'Import do ícone Building adicionado - CORRIGIDO',
+              category: 'Bug Fix'
+            },
+            {
+              id: 'multi_tenant_docs',
+              priority: 'high',
+              title: '✅ Documentação Multi-Tenant Completa',
+              description: '9 seções detalhadas sobre arquitetura SaaS - IMPLEMENTADO',
+              category: 'Documentação'
             }
           ]
         },
