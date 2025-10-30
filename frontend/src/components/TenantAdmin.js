@@ -602,6 +602,71 @@ const TenantAdmin = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && tenantToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            {/* Header */}
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 rounded-full p-3 mr-4">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Confirmar Exclusão</h2>
+                <p className="text-sm text-gray-500">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="mb-6">
+              <p className="text-gray-700 mb-4">
+                Tem certeza que deseja excluir o tenant:
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="font-semibold text-red-900">{tenantToDelete.name}</p>
+                <p className="text-sm text-red-700">@{tenantToDelete.subdomain}</p>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 font-medium mb-2">
+                  ⚠️ ATENÇÃO: Esta ação irá remover:
+                </p>
+                <ul className="text-sm text-yellow-700 space-y-1 ml-4">
+                  <li>• Todos os usuários do tenant</li>
+                  <li>• Todas as licenças</li>
+                  <li>• Todos os clientes (PF e PJ)</li>
+                  <li>• Todas as configurações</li>
+                  <li>• Dados não podem ser recuperados</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setTenantToDelete(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteTenant(tenantToDelete.id);
+                  setShowDeleteConfirm(false);
+                  setTenantToDelete(null);
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors flex items-center justify-center"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir Permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
