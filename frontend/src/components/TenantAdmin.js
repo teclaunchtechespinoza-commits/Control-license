@@ -216,6 +216,19 @@ const TenantAdmin = () => {
     }
   };
 
+  const handleDeleteTenant = async (tenantId) => {
+    setLoading(true);
+    try {
+      await api.delete(`/tenants/${tenantId}`);
+      fetchTenants();
+      setError(null);
+    } catch (err) {
+      setError('Erro ao excluir tenant: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openEditForm = (tenant) => {
     setSelectedTenant(tenant);
     setEditForm({
