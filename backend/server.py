@@ -2971,6 +2971,142 @@ async def delete_user_by_id(user_id: str, current_user: User = Depends(get_curre
         raise HTTPException(status_code=403, detail="Fora do escopo")
     
     # Excluir do banco
+    await db.users.delete_one({"_id": doc["_id"]})
+    return
+
+class PasswordResetRequest(BaseModel):
+    new_password: str | None = None  # Se None, gera automaticamente
+    force_change: bool = True  # Forçar troca no próximo login
+    notify_user: bool = False  # Notificar por email (futuro)
+
+@api_router.post("/admin/users/{user_id}/reset-password")
+async def reset_user_password(
+    user_id: str,
+    body: PasswordResetRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Reset password de qualquer usuário (Admin/Super Admin)"""
+    # Verificar se é admin
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar escopo (mesma empresa)
+    if not enforce_object_scope(user_doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Gerar ou usar senha fornecida
+    if body.new_password:
+        new_password = body.new_password
+    else:
+        # Gerar senha temporária aleatória
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        new_password = ''.join(secrets.choice(alphabet) for i in range(12))
+    
+    # Hash da nova senha
+    new_hash = get_password_hash(new_password)
+    
+    # Atualizar no banco
+    updates = {
+        "password_hash": new_hash,
+        "requires_password_reset": body.force_change
+    }
+    
+    await db.users.update_one({"_id": user_doc["_id"]}, {"$set": updates})
+    
+    # Log da ação
+    logger.info(f"Password reset by {current_user.email} for user {user_doc.get('email')}")
+    
+    return {
+        "success": True,
+        "message": "Senha resetada com sucesso",
+        "temporary_password": new_password if not body.new_password else None,
+        "force_change": body.force_change
+    }
+
+class BlockUserRequest(BaseModel):
+    reason: str | None = None
+
+@api_router.put("/admin/users/{user_id}/block")
+async def block_user(
+    user_id: str,
+    body: BlockUserRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Bloquear usuário (Admin/Super Admin)"""
+    # Verificar se é admin
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    # Prevenir auto-bloqueio
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Você não pode bloquear sua própria conta")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar escopo
+    if not enforce_object_scope(user_doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Bloquear (is_active = False)
+    await db.users.update_one(
+        {"_id": user_doc["_id"]},
+        {"$set": {
+            "is_active": False,
+            "blocked_at": datetime.utcnow(),
+            "blocked_by": current_user.email,
+            "block_reason": body.reason
+        }}
+    )
+    
+    logger.warning(f"User {user_doc.get('email')} blocked by {current_user.email}. Reason: {body.reason}")
+    
+    return {"success": True, "message": "Usuário bloqueado com sucesso"}
+
+@api_router.put("/admin/users/{user_id}/unblock")
+async def unblock_user(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Desbloquear usuário (Admin/Super Admin)"""
+    # Verificar se é admin
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar escopo
+    if not enforce_object_scope(user_doc, current_user):
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Desbloquear
+    await db.users.update_one(
+        {"_id": user_doc["_id"]},
+        {
+            "$set": {"is_active": True},
+            "$unset": {"blocked_at": "", "blocked_by": "", "block_reason": ""}
+        }
+    )
+    
+    logger.info(f"User {user_doc.get('email')} unblocked by {current_user.email}")
+    
+    return {"success": True, "message": "Usuário desbloqueado com sucesso"}
+
+        raise HTTPException(status_code=403, detail="Fora do escopo")
+    
+    # Excluir do banco
     await db.users.delete_one({"id": user_id})
     return Response(status_code=204)
 
