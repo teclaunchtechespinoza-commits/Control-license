@@ -5236,10 +5236,10 @@ async def delete_tenant(tenant_id: str, current_user: User = Depends(get_current
     Excluir um tenant (apenas super admins)
     CUIDADO: Esta operação é irreversível e remove todos os dados do tenant
     """
-    if not is_super_admin():
-        user_permissions = await get_user_permissions(current_user.email)
-        if not check_permission(user_permissions, "tenants.delete"):
-            raise HTTPException(status_code=403, detail="Permission required: tenants.delete")
+    # Verificar se é super_admin (usar mesma lógica dos outros endpoints)
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str != "super_admin":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas Super Administradores podem excluir tenants.")
     
     try:
         # Verificar se tenant existe
