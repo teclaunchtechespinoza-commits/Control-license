@@ -1060,6 +1060,12 @@ A segurança depende do uso responsável.`
   ];
 
   const filteredContent = helpContent.filter(item => {
+    // Filtrar conteúdo restrito baseado no role do usuário
+    if (item.restrictedTo && currentUser) {
+      const hasAccess = item.restrictedTo.includes(currentUser.role);
+      if (!hasAccess) return false;
+    }
+    
     const searchLower = searchTerm.toLowerCase();
     return (
       item.title.toLowerCase().includes(searchLower) ||
