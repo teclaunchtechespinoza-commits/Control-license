@@ -1199,7 +1199,19 @@ A segurança depende do uso responsável.`
                     <div className="flex items-center gap-3">
                       <Icon className="w-5 h-5 text-blue-600" />
                       <div className="text-left">
-                        <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                          {/* Badge de acesso para Painel de Engenharia */}
+                          {item.id === 'engineering-panel' && currentUser?.role === 'super_admin' && (
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              engineeringAccess.allowAdmins
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {engineeringAccess.allowAdmins ? 'Acesso Aberto' : 'Acesso Restrito'}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline" className="text-xs">
                             {item.category}
