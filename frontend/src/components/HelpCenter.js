@@ -599,7 +599,9 @@ GARANTIAS DE PRIVACIDADE:
 • Você NUNCA verá dados de outros clientes
 • Outros clientes NUNCA verão seus dados
 • Cada login acessa apenas seu próprio tenant
-• Sistema multi-tenancy com isolamento rigoroso`
+• Sistema multi-tenancy com isolamento rigoroso`,
+          image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Segurança e conformidade LGPD garantida'
         },
         {
           title: 'Como funciona o isolamento de dados?',
