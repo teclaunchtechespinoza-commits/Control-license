@@ -800,6 +800,206 @@ Se nada funcionar:
       ]
     },
     {
+      id: 'engineering-panel',
+      icon: Settings,
+      title: '🔧 Painel de Engenharia',
+      category: 'Restrito - Engenharia',
+      tags: ['admin', 'engenharia', 'desenvolvimento', 'roadmap', 'comercialização'],
+      restrictedTo: ['super_admin', 'admin'], // Apenas super admins veem
+      sections: [
+        {
+          title: '🎯 Avaliação para Comercialização',
+          content: `STATUS ATUAL DO SISTEMA PARA VENDA:`,
+          checklist: [
+            {
+              id: 'config_domain',
+              priority: 'critical',
+              title: 'Configurar domínio www.autotech.app.br',
+              description: 'Migrar de preview para domínio próprio',
+              category: 'Infraestrutura'
+            },
+            {
+              id: 'backup_auto',
+              priority: 'critical',
+              title: 'Implementar backup automático diário',
+              description: 'MongoDB backup com retenção de 30 dias',
+              category: 'Infraestrutura'
+            },
+            {
+              id: 'monitoring',
+              priority: 'critical',
+              title: 'Configurar monitoramento de uptime',
+              description: 'Alertas por email/SMS se sistema cair',
+              category: 'Infraestrutura'
+            },
+            {
+              id: 'sla',
+              priority: 'critical',
+              title: 'Definir SLA de suporte',
+              description: 'Ex: resposta em 24h úteis',
+              category: 'Comercial'
+            },
+            {
+              id: 'contract',
+              priority: 'critical',
+              title: 'Criar template de contrato',
+              description: 'Termos de uso, responsabilidades, LGPD',
+              category: 'Comercial'
+            },
+            {
+              id: 'pricing',
+              priority: 'critical',
+              title: 'Definir política de preços',
+              description: 'Planos Free, Basic, Premium, Enterprise',
+              category: 'Comercial'
+            },
+            {
+              id: 'load_test',
+              priority: 'critical',
+              title: 'Testar com dados reais (50+ licenças)',
+              description: 'Simular uso real antes de vender',
+              category: 'Qualidade'
+            },
+            {
+              id: 'sales_tracking',
+              priority: 'important',
+              title: 'Implementar tracking no Sales Dashboard',
+              description: 'Contatos, conversões, receita real',
+              category: 'Funcionalidade'
+            },
+            {
+              id: 'whatsapp_doc',
+              priority: 'important',
+              title: 'Documentar setup de WhatsApp Business',
+              description: 'Guia passo a passo para clientes',
+              category: 'Documentação'
+            },
+            {
+              id: 'video_tutorials',
+              priority: 'important',
+              title: 'Criar vídeos tutoriais',
+              description: '5-10 vídeos de 3-5min cada',
+              category: 'Documentação'
+            },
+            {
+              id: 'onboarding',
+              priority: 'important',
+              title: 'Preparar materiais de onboarding',
+              description: 'Checklist de setup para novos clientes',
+              category: 'Documentação'
+            },
+            {
+              id: 'stress_test',
+              priority: 'important',
+              title: 'Testes de carga (100 usuários simultâneos)',
+              description: 'Garantir performance sob carga',
+              category: 'Qualidade'
+            }
+          ]
+        },
+        {
+          title: '🚀 Roadmap Técnico',
+          content: `FUNCIONALIDADES PLANEJADAS POR PRIORIDADE:`,
+          checklist: [
+            {
+              id: 'redis_cache',
+              priority: 'high',
+              title: 'Cache Redis para queries frequentes',
+              description: 'Melhorar performance em 50%+',
+              category: 'Performance'
+            },
+            {
+              id: 'audit_log',
+              priority: 'high',
+              title: 'Sistema de Audit Log completo',
+              description: 'Rastrear todas as ações críticas',
+              category: 'Segurança'
+            },
+            {
+              id: 'export_reports',
+              priority: 'medium',
+              title: 'Exportação de relatórios (PDF/Excel)',
+              description: 'Licenças, clientes, vendas',
+              category: 'Funcionalidade'
+            },
+            {
+              id: 'email_notifications',
+              priority: 'medium',
+              title: 'Notificações por email',
+              description: 'Alertas de expiração, renovações',
+              category: 'Funcionalidade'
+            },
+            {
+              id: 'mobile_app',
+              priority: 'low',
+              title: 'Aplicativo Mobile (React Native)',
+              description: 'iOS e Android',
+              category: 'Expansão'
+            },
+            {
+              id: 'public_api',
+              priority: 'low',
+              title: 'API Pública para Integrações',
+              description: 'Permitir integrações externas',
+              category: 'Expansão'
+            }
+          ]
+        },
+        {
+          title: '⚠️ Issues Conhecidos',
+          content: `PROBLEMAS IDENTIFICADOS E STATUS DE CORREÇÃO:`,
+          checklist: [
+            {
+              id: 'fix_sales_metrics',
+              priority: 'high',
+              title: 'Sales Dashboard - Métricas zeradas',
+              description: 'Implementar tracking real de vendas',
+              category: 'Bug/Feature'
+            },
+            {
+              id: 'whatsapp_rate_limit',
+              priority: 'medium',
+              title: 'WhatsApp - Rate limiting não testado em prod',
+              description: 'Testar com API real',
+              category: 'Integração'
+            },
+            {
+              id: 'tenant_isolation_test',
+              priority: 'high',
+              title: 'Testes de isolamento multi-tenant',
+              description: 'Garantir 100% de isolamento',
+              category: 'Segurança'
+            }
+          ]
+        },
+        {
+          title: '💰 Estratégia de Go-to-Market',
+          content: `PLANO DE LANÇAMENTO COMERCIAL:
+
+FASE 1 - Beta (0-3 clientes):
+• Preço: Gratuito por 30 dias
+• Objetivo: Coletar feedback, encontrar bugs
+• Duração: 1 mês
+
+FASE 2 - Early Adopters (3-10 clientes):
+• Preço: 50-70% desconto
+• Contrato: 6 meses
+• Suporte: Dedicado
+
+FASE 3 - Lançamento Comercial (10+ clientes):
+• Preço: Tabela completa
+• Contratos: Anuais
+• Marketing: Ativo
+
+PREÇOS SUGERIDOS (mensais):
+🆓 Free: R$ 0 (2 users, 50 licenses)
+💼 Basic: R$ 199 (5 users, 200 licenses)
+⭐ Premium: R$ 499 (20 users, 1000 licenses)
+👑 Enterprise: R$ 999+ (ilimitado, customizado)`
+        }
+      ]
+    },
+    {
       id: 'best-practices',
       icon: CheckCircle,
       title: '✨ Melhores Práticas',
