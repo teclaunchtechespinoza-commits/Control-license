@@ -37,6 +37,33 @@ const HelpCenter = ({ isOpen, onClose, currentUser }) => {
     const saved = localStorage.getItem('engineering_checklist');
     return saved ? JSON.parse(saved) : {};
   });
+  
+  // Controle de acesso ao Painel de Engenharia
+  const [engineeringAccess, setEngineeringAccess] = useState(() => {
+    const saved = localStorage.getItem('engineering_panel_access');
+    return saved ? JSON.parse(saved) : {
+      enabled: true, // Super admin sempre tem acesso
+      allowAdmins: false // Admins precisam de permissão
+    };
+  });
+
+  const toggleEngineeringAccess = () => {
+    if (currentUser?.role === 'super_admin') {
+      const newAccess = {
+        ...engineeringAccess,
+        allowAdmins: !engineeringAccess.allowAdmins
+      };
+      setEngineeringAccess(newAccess);
+      localStorage.setItem('engineering_panel_access', JSON.stringify(newAccess));
+    }
+  };
+
+  const hasEngineeringAccess = () => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'super_admin') return true;
+    if (currentUser.role === 'admin') return engineeringAccess.allowAdmins;
+    return false;
+  };
 
   const toggleChecklistItem = (itemId) => {
     const newState = {
