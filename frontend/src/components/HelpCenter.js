@@ -284,8 +284,8 @@ VANTAGENS PARA O CLIENTE:
           title: 'Como acessar (Super Admin)',
           content: `PASSO A PASSO:
 1. Faça login como Super Admin:
-   📧 superadmin@autotech.com
-   🔐 admin123
+   📧 seu-super-admin@sua-empresa.com
+   🔐 sua-senha-segura
 
 2. No menu superior, clique em:
    "SA+" → "Administração Multi-Tenant"
@@ -295,7 +295,13 @@ VANTAGENS PARA O CLIENTE:
 🔐 RESTRIÇÃO DE ACESSO:
 • APENAS Super Admins veem esta área
 • Admins comuns não têm acesso
-• Usuários regulares não sabem que existe multi-tenancy`,
+• Usuários regulares não sabem que existe multi-tenancy
+
+⚠️ IMPORTANTE - SEGURANÇA:
+• Mantenha suas credenciais de Super Admin em segredo
+• Não compartilhe com ninguém
+• Use senha forte e única
+• Considere ativar autenticação 2FA (quando disponível)`,
           image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&auto=format&fit=crop&q=60',
           imageCaption: 'Painel de administração multi-tenant'
         },
