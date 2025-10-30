@@ -3120,10 +3120,10 @@ async def reset_user_password_new(
     user_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Reset password for any user (Super Admin only) - New endpoint as requested"""
-    # Verificar se é super_admin
-    if current_user.role != "super_admin":
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas super administradores.")
+    """Reset password for any user (Admin/Super Admin only) - New endpoint as requested"""
+    # Verificar se é admin ou super_admin
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
     
     # Buscar usuário
     user_doc = await db.users.find_one({"id": user_id})
