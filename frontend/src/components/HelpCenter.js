@@ -410,7 +410,9 @@ Imagine um prédio de apartamentos:
 • Prédio = Sistema License Manager
 • Apartamentos = Empresas (tenants)
 • Cada apartamento tem sua própria chave
-• Você não consegue entrar no apartamento do vizinho`
+• Você não consegue entrar no apartamento do vizinho`,
+          image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Visualização conceitual de multi-tenancy: múltiplas empresas isoladas'
         },
         {
           title: 'Como funciona o isolamento?',
