@@ -4748,53 +4748,43 @@ async def get_sales_analytics(
 ):
     """
     Analytics avançadas do dashboard de vendas
+    CRÍTICO: Retorna apenas dados reais do tenant, SEM SIMULAÇÕES
     """
     try:
         end_date = datetime.utcnow().date()
         start_date = end_date - timedelta(days=period_days)
         
-        # Métricas por canal (simulado por enquanto - em produção buscar do banco)
+        # CRÍTICO: Métricas zeradas até implementar tracking real
+        # Melhor retornar zero que dados falsos de outros tenants
         channel_metrics = {
             "whatsapp": {
-                "contacts": 45,
-                "responses": 32,
-                "conversions": 18,
-                "response_rate": 71.1,
-                "conversion_rate": 40.0
+                "contacts": 0,
+                "responses": 0,
+                "conversions": 0,
+                "response_rate": 0.0,
+                "conversion_rate": 0.0
             },
             "phone": {
-                "contacts": 23,
-                "responses": 19,
-                "conversions": 12,
-                "response_rate": 82.6,
-                "conversion_rate": 52.2
+                "contacts": 0,
+                "responses": 0,
+                "conversions": 0,
+                "response_rate": 0.0,
+                "conversion_rate": 0.0
             },
             "email": {
-                "contacts": 67,
-                "responses": 23,
-                "conversions": 8,
-                "response_rate": 34.3,
-                "conversion_rate": 11.9
+                "contacts": 0,
+                "responses": 0,
+                "conversions": 0,
+                "response_rate": 0.0,
+                "conversion_rate": 0.0
             }
         }
         
-        # Métricas por vendedor (simulado)
-        salesperson_metrics = {
-            "João Silva": {"contacts": 45, "conversions": 23, "revenue": 12500.00},
-            "Maria Santos": {"contacts": 38, "conversions": 19, "revenue": 9800.00},
-            "Carlos Oliveira": {"contacts": 52, "conversions": 16, "revenue": 8900.00}
-        }
+        # Métricas por vendedor - vazio até implementar
+        salesperson_metrics = {}
         
-        # Métricas temporais (simulado)
+        # Métricas temporais - vazio até implementar
         daily_metrics = []
-        for i in range(period_days):
-            date = start_date + timedelta(days=i)
-            daily_metrics.append({
-                "date": date.isoformat(),
-                "contacts": random.randint(0, 15),
-                "renewals": random.randint(0, 8),
-                "revenue": random.uniform(0, 3000)
-            })
         
         return {
             "period": {
@@ -4806,12 +4796,12 @@ async def get_sales_analytics(
             "salesperson_metrics": salesperson_metrics,
             "daily_metrics": daily_metrics,
             "summary": {
-                "total_contacts": sum(ch["contacts"] for ch in channel_metrics.values()),
-                "total_responses": sum(ch["responses"] for ch in channel_metrics.values()),
-                "total_conversions": sum(ch["conversions"] for ch in channel_metrics.values()),
-                "total_revenue": sum(sp["revenue"] for sp in salesperson_metrics.values()),
-                "avg_response_rate": sum(ch["response_rate"] for ch in channel_metrics.values()) / len(channel_metrics),
-                "avg_conversion_rate": sum(ch["conversion_rate"] for ch in channel_metrics.values()) / len(channel_metrics)
+                "total_contacts": 0,
+                "total_responses": 0,
+                "total_conversions": 0,
+                "total_revenue": 0.0,
+                "avg_response_rate": 0.0,
+                "avg_conversion_rate": 0.0
             }
         }
         
