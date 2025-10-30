@@ -1020,6 +1020,27 @@ const AdminPanel = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => openResetPasswordDialog(userData)}
+                                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                  title="Resetar senha"
+                                >
+                                  <RotateCw className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleBlockUser(userData.id, !userData.is_active)}
+                                  className={userData.is_active 
+                                    ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                    : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  }
+                                  title={userData.is_active ? "Bloquear usuário" : "Desbloquear usuário"}
+                                >
+                                  {userData.is_active ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => {
                                     setEditingUser(userData);
                                     setShowEditUserDialog(true);
