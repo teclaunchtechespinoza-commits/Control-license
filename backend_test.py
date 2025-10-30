@@ -11693,7 +11693,8 @@ if __name__ == "__main__":
     
     sys.exit(exit_code)
 
-def test_complete_user_management_system(self):
+# Define the test function outside the class first
+def test_complete_user_management_system(tester_instance):
     """TESTE COMPLETO DO SISTEMA DE GERENCIAMENTO DE USUÁRIOS - SEGUNDA TENTATIVA"""
     print("\n" + "="*80)
     print("TESTE COMPLETO DO SISTEMA DE GERENCIAMENTO DE USUÁRIOS - SEGUNDA TENTATIVA")
@@ -11731,7 +11732,7 @@ def test_complete_user_management_system(self):
         "email": "admin@demo.com",
         "password": "admin123"
     }
-    success, response = self.run_test("Super Admin Login", "POST", "auth/login", 200, admin_credentials)
+    success, response = tester_instance.run_test("Super Admin Login", "POST", "auth/login", 200, admin_credentials)
     if success:
         if "access_token" in response:
             super_admin_token = response["access_token"]
@@ -11748,7 +11749,7 @@ def test_complete_user_management_system(self):
     
     # 2. GET /api/users - Obter lista de usuários e seus UUIDs
     print("\n📋 TEST 2: GET /api/users - Obter lista de usuários e seus UUIDs")
-    success, response = self.run_test("Get Users List", "GET", "users", 200, token=super_admin_token)
+    success, response = tester_instance.run_test("Get Users List", "GET", "users", 200, token=super_admin_token)
     if success:
         users_list = response if isinstance(response, list) else response.get('users', [])
         print(f"   ✅ Found {len(users_list)} users in system")
@@ -11782,7 +11783,7 @@ def test_complete_user_management_system(self):
     
     # 4. POST /api/users/{user_id}/reset-password com token super_admin
     print(f"\n🔑 TEST 4: POST /api/users/{user_id_for_tests}/reset-password com token super_admin")
-    success, response = self.run_test("Reset Password (Super Admin)", "POST", 
+    success, response = tester_instance.run_test("Reset Password (Super Admin)", "POST", 
                                     f"users/{user_id_for_tests}/reset-password", 200, 
                                     token=super_admin_token)
     if success:
@@ -11808,7 +11809,7 @@ def test_complete_user_management_system(self):
         "email": "user@demo.com",
         "password": "user123"
     }
-    success, response = self.run_test("User Login", "POST", "auth/login", 200, user_credentials)
+    success, response = tester_instance.run_test("User Login", "POST", "auth/login", 200, user_credentials)
     if success:
         if "access_token" in response:
             user_token = response["access_token"]
@@ -11824,7 +11825,7 @@ def test_complete_user_management_system(self):
     # 6. POST /api/users/{user_id}/reset-password com token de user (deve falhar)
     if user_token and admin_user_id:
         print(f"\n🚫 TEST 6: POST /api/users/{admin_user_id}/reset-password com token de user (deve retornar 403)")
-        success, response = self.run_test("Reset Password (User - Should Fail)", "POST", 
+        success, response = tester_instance.run_test("Reset Password (User - Should Fail)", "POST", 
                                         f"users/{admin_user_id}/reset-password", 403, 
                                         token=user_token)
         if success:
@@ -11841,7 +11842,7 @@ def test_complete_user_management_system(self):
     
     # 7. POST /api/users/{user_id}/toggle-status com token super_admin (bloquear)
     print(f"\n🔒 TEST 7: POST /api/users/{user_id_for_tests}/toggle-status - Bloquear user@demo.com")
-    success, response = self.run_test("Toggle User Status - Block", "POST", 
+    success, response = tester_instance.run_test("Toggle User Status - Block", "POST", 
                                     f"users/{user_id_for_tests}/toggle-status", 200, 
                                     token=super_admin_token)
     if success:
@@ -11867,7 +11868,7 @@ def test_complete_user_management_system(self):
         "email": "user@demo.com",
         "password": "user123"
     }
-    success, response = self.run_test("Blocked User Login (Should Fail)", "POST", "auth/login", 403, 
+    success, response = tester_instance.run_test("Blocked User Login (Should Fail)", "POST", "auth/login", 403, 
                                     blocked_user_credentials)
     if success:
         error_detail = response.get('detail', '')
@@ -11890,7 +11891,7 @@ def test_complete_user_management_system(self):
     
     # 9. POST /api/users/{user_id}/toggle-status com token super_admin (desbloquear)
     print(f"\n🔓 TEST 9: POST /api/users/{user_id_for_tests}/toggle-status - Desbloquear user@demo.com")
-    success, response = self.run_test("Toggle User Status - Unblock", "POST", 
+    success, response = tester_instance.run_test("Toggle User Status - Unblock", "POST", 
                                     f"users/{user_id_for_tests}/toggle-status", 200, 
                                     token=super_admin_token)
     if success:
@@ -11916,7 +11917,7 @@ def test_complete_user_management_system(self):
         "email": "user@demo.com",
         "password": "user123"
     }
-    success, response = self.run_test("Unblocked User Login (Should Work)", "POST", "auth/login", 200, 
+    success, response = tester_instance.run_test("Unblocked User Login (Should Work)", "POST", "auth/login", 200, 
                                     unblocked_user_credentials)
     if success:
         print(f"   ✅ Unblocked user login successful")
@@ -11933,7 +11934,7 @@ def test_complete_user_management_system(self):
     
     # 11. GET /api/users - Verificar user@demo.com last_login e ip_address
     print("\n📊 TEST 11: GET /api/users - Verificar user@demo.com last_login e ip_address")
-    success, response = self.run_test("Check User Last Login", "GET", "users", 200, token=super_admin_token)
+    success, response = tester_instance.run_test("Check User Last Login", "GET", "users", 200, token=super_admin_token)
     if success:
         users_list = response if isinstance(response, list) else response.get('users', [])
         
@@ -11967,7 +11968,7 @@ def test_complete_user_management_system(self):
         "email": "user@demo.com",
         "password": "user123"
     }
-    success, response = self.run_test("User Login for Security Tests", "POST", "auth/login", 200, 
+    success, response = tester_instance.run_test("User Login for Security Tests", "POST", "auth/login", 200, 
                                     user_security_credentials)
     if success:
         if "access_token" in response:
@@ -11983,7 +11984,7 @@ def test_complete_user_management_system(self):
     # 13. POST /api/users/{outro_user_id}/reset-password com token user (deve falhar)
     if user_token and admin_user_id:
         print(f"\n🚫 TEST 13: POST /api/users/{admin_user_id}/reset-password com token user (deve retornar 403)")
-        success, response = self.run_test("User Reset Other Password (Should Fail)", "POST", 
+        success, response = tester_instance.run_test("User Reset Other Password (Should Fail)", "POST", 
                                         f"users/{admin_user_id}/reset-password", 403, 
                                         token=user_token)
         if success:
@@ -11996,7 +11997,7 @@ def test_complete_user_management_system(self):
     # 14. POST /api/users/{outro_user_id}/toggle-status com token user (deve falhar)
     if user_token and admin_user_id:
         print(f"\n🚫 TEST 14: POST /api/users/{admin_user_id}/toggle-status com token user (deve retornar 403)")
-        success, response = self.run_test("User Toggle Other Status (Should Fail)", "POST", 
+        success, response = tester_instance.run_test("User Toggle Other Status (Should Fail)", "POST", 
                                         f"users/{admin_user_id}/toggle-status", 403, 
                                         token=user_token)
         if success:
@@ -12056,9 +12057,6 @@ def test_complete_user_management_system(self):
         print(f"   {passed_tests}/{total_tests} funcionalidades validadas ({success_rate:.1f}%)")
         print("   Algumas funcionalidades podem precisar de ajustes adicionais.")
         return False
-
-# Add the method to the class
-LicenseManagementAPITester.test_complete_user_management_system = test_complete_user_management_system
 
 def test_license_creation_and_listing_race_condition_fix(self):
         """Test final correction for license creation and listing race condition"""
