@@ -4173,35 +4173,14 @@ async def calculate_sales_metrics(alerts, start_date, end_date):
 
 async def get_recent_sales_activities():
     """
-    Busca atividades recentes de vendas (simulado para MVP)
+    Busca atividades recentes de vendas
+    CRÍTICO: Retorna array vazio até implementar tracking real
+    SEM DADOS SIMULADOS para evitar vazamento cross-tenant
     """
     try:
-        # Para o MVP, retornar atividades simuladas
-        activities = [
-            {
-                "id": str(uuid.uuid4()),
-                "type": "whatsapp_sent",
-                "description": "Mensagem de renovação enviada para João Silva",
-                "timestamp": datetime.utcnow() - timedelta(minutes=30),
-                "user": "Vendedor 1"
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "renewal_closed",
-                "description": "Renovação fechada - Empresa ABC Ltda",
-                "timestamp": datetime.utcnow() - timedelta(hours=2),
-                "user": "Vendedor 2"
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "follow_up",
-                "description": "Follow-up realizado com Maria Santos",
-                "timestamp": datetime.utcnow() - timedelta(hours=4),
-                "user": "Vendedor 1"
-            }
-        ]
-        
-        return activities
+        # TODO: Implementar tracking real de atividades por tenant
+        # Por enquanto, retornar array vazio (melhor que dados falsos)
+        return []
         
     except Exception as e:
         logger.error(f"Error fetching recent activities: {e}")
