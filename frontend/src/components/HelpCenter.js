@@ -32,6 +32,20 @@ import {
 const HelpCenter = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSection, setExpandedSection] = useState(null);
+  const [engineeringChecklist, setEngineeringChecklist] = useState(() => {
+    // Carregar estado do localStorage
+    const saved = localStorage.getItem('engineering_checklist');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const toggleChecklistItem = (itemId) => {
+    const newState = {
+      ...engineeringChecklist,
+      [itemId]: !engineeringChecklist[itemId]
+    };
+    setEngineeringChecklist(newState);
+    localStorage.setItem('engineering_checklist', JSON.stringify(newState));
+  };
 
   const toggleSection = (sectionId) => {
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
