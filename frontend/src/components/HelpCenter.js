@@ -1170,6 +1170,354 @@ Se nada funcionar:
       ]
     },
     {
+      id: 'custom-domain',
+      icon: ExternalLink,
+      title: '🌐 Configurar Domínio Personalizado',
+      category: 'Configuração Avançada',
+      tags: ['domínio', 'dns', 'personalizar', 'url', 'configuração'],
+      restrictedTo: ['super_admin'],
+      sections: [
+        {
+          title: 'O que é um domínio personalizado?',
+          content: `Ao invés de usar o endereço padrão:
+❌ https://securemanage-2.preview.emergentagent.com
+
+Você pode usar seu próprio domínio:
+✅ https://www.autotech.app.br
+✅ https://sistema.suaempresa.com.br
+✅ https://licencas.minhaempresa.com
+
+VANTAGENS:
+🎨 Mais profissional
+🔒 Mais confiável para clientes
+📱 Fácil de lembrar e compartilhar
+🏢 Reforça sua marca
+
+REQUISITOS:
+• Ter um domínio registrado (ex: registro.br, GoDaddy, Hostgator)
+• Acesso ao painel de DNS do domínio
+• Certificado SSL (geralmente automático)`,
+          image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Domínio personalizado aumenta profissionalismo'
+        },
+        {
+          title: 'Passo 1: Registrar ou ter um domínio',
+          content: `SE VOCÊ JÁ TEM UM DOMÍNIO:
+✅ Ótimo! Pule para o Passo 2
+
+SE VOCÊ NÃO TEM:
+Registre um domínio em:
+
+🇧🇷 BRASIL (domínios .br):
+• Registro.br (oficial)
+  → https://registro.br
+  → Preço: ~R$ 40/ano
+  → Mais confiável
+
+🌐 INTERNACIONAL (.com, .net, .app):
+• GoDaddy → https://godaddy.com
+• Hostgator → https://hostgator.com.br
+• Hostinger → https://hostinger.com.br
+• Preço: R$ 30-80/ano
+
+DICAS PARA ESCOLHER O DOMÍNIO:
+✅ Curto e fácil de lembrar
+✅ Relacionado ao seu negócio
+✅ Evite números e hífens
+✅ Prefira .com.br ou .app.br
+
+EXEMPLOS PARA SISTEMA DE LICENÇAS:
+• www.autotech.app.br
+• licencas.suaempresa.com.br
+• sistema.suaempresa.com
+• gestao.suaempresa.com.br`,
+          image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Escolha um domínio profissional e memorável'
+        },
+        {
+          title: 'Passo 2: Obter URL atual do sistema',
+          content: `COPIE O ENDEREÇO ATUAL:
+
+1. Faça login no sistema
+2. Copie a URL da barra de endereços:
+   📋 https://securemanage-2.preview.emergentagent.com
+
+OU
+
+Verifique no arquivo .env do frontend:
+📂 /app/frontend/.env
+Linha: REACT_APP_BACKEND_URL=https://...
+
+⚠️ IMPORTANTE:
+Você vai apontar seu domínio para este endereço.
+Anote este URL, você vai precisar!`,
+          image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Identifique a URL atual do sistema'
+        },
+        {
+          title: 'Passo 3: Configurar DNS (Método 1 - CNAME)',
+          content: `MÉTODO MAIS SIMPLES - RECOMENDADO
+
+1. ACESSE O PAINEL DNS:
+   • Entre no site onde registrou o domínio
+   • Procure por: "DNS", "Gerenciar DNS", "Zone Editor"
+
+2. ADICIONE UM REGISTRO CNAME:
+
+Tipo: CNAME
+Nome/Host: www
+Destino/Aponta para: securemanage-2.preview.emergentagent.com
+TTL: 3600 (ou padrão)
+
+EXEMPLO VISUAL:
+╔═══════════════════════════════════════════╗
+║ Tipo  │ Nome │ Destino                    ║
+╠═══════════════════════════════════════════╣
+║ CNAME │ www  │ securemanage-2.preview...  ║
+╚═══════════════════════════════════════════╝
+
+3. SALVE AS ALTERAÇÕES
+
+4. AGUARDE PROPAGAÇÃO:
+   ⏱️ Pode levar de 5 minutos até 48 horas
+   💡 Geralmente funciona em 1-2 horas
+
+5. TESTE:
+   Acesse: http://www.autotech.app.br
+   (pode não ter HTTPS ainda)
+
+✅ VANTAGENS DESTE MÉTODO:
+• Mais simples
+• Se o IP do servidor mudar, não precisa reconfigurar
+• Recomendado pela maioria dos provedores`,
+          image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Configuração DNS via CNAME - Método recomendado'
+        },
+        {
+          title: 'Passo 4: Configurar DNS (Método 2 - A Record)',
+          content: `MÉTODO ALTERNATIVO - USA IP DIRETO
+
+⚠️ Use apenas se CNAME não funcionar!
+
+1. OBTER O IP DO SERVIDOR:
+   Execute no terminal/cmd:
+   
+   Windows:
+   ping securemanage-2.preview.emergentagent.com
+   
+   Linux/Mac:
+   nslookup securemanage-2.preview.emergentagent.com
+   
+   Exemplo de resposta:
+   IP: 34.16.56.64
+
+2. ADICIONE UM REGISTRO A:
+
+Tipo: A
+Nome/Host: www
+Destino/Aponta para: 34.16.56.64 (seu IP)
+TTL: 3600
+
+EXEMPLO VISUAL:
+╔═══════════════════════════════════════════╗
+║ Tipo │ Nome │ Destino                     ║
+╠═══════════════════════════════════════════╣
+║ A    │ www  │ 34.16.56.64                 ║
+║ A    │ @    │ 34.16.56.64 (raiz também)   ║
+╚═══════════════════════════════════════════╝
+
+3. SALVE E AGUARDE PROPAGAÇÃO
+
+❌ DESVANTAGEM:
+• Se o IP do servidor mudar, precisa reconfigurar`,
+          image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Configuração DNS via A Record - IP direto'
+        },
+        {
+          title: 'Passo 5: Configurar HTTPS (SSL/TLS)',
+          content: `⚠️ IMPORTANTE: HTTPS é OBRIGATÓRIO para produção!
+
+OPÇÃO 1 - CLOUDFLARE (RECOMENDADO - GRÁTIS):
+
+1. Crie conta em: https://cloudflare.com
+2. Adicione seu domínio
+3. Cloudflare fornece nameservers:
+   ns1.cloudflare.com
+   ns2.cloudflare.com
+4. Altere os nameservers no registro.br/GoDaddy
+5. Aguarde propagação (até 24h)
+6. No painel Cloudflare:
+   • SSL/TLS → Full
+   • HTTPS automático ✅
+   • Proteção DDoS ✅
+   • CDN grátis ✅
+
+OPÇÃO 2 - LET'S ENCRYPT (CERTIFICADO GRÁTIS):
+
+Se você tem acesso ao servidor:
+1. Instale Certbot
+2. Execute:
+   certbot --nginx -d www.autotech.app.br
+3. Certificado instalado automaticamente
+4. Renova automaticamente a cada 90 dias
+
+OPÇÃO 3 - CERTIFICADO PAGO:
+• GoDaddy SSL: R$ 200-500/ano
+• DigiCert: R$ 500-2000/ano
+• Apenas se precisar de suporte empresarial
+
+🔒 VALIDAR SSL:
+Acesse: https://www.ssllabs.com/ssltest/
+Digite seu domínio e verifique o score`,
+          image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Certificado SSL garante segurança e confiança'
+        },
+        {
+          title: 'Passo 6: Atualizar configurações do sistema',
+          content: `APÓS O DNS ESTAR FUNCIONANDO:
+
+1. ATUALIZAR BACKEND (.env):
+   
+   Não precisa alterar nada!
+   O backend continua respondendo pelo endereço antigo.
+   O DNS apenas "redireciona" o tráfego.
+
+2. ATUALIZAR FRONTEND (.env):
+   
+   Opcional: Se quiser usar o novo domínio internamente:
+   
+   Antes:
+   REACT_APP_BACKEND_URL=https://securemanage-2...
+   
+   Depois:
+   REACT_APP_BACKEND_URL=https://www.autotech.app.br
+   
+   ⚠️ Só faça isso DEPOIS do DNS estar propagado!
+
+3. REINICIAR SERVIÇOS (se alterou .env):
+   
+   sudo supervisorctl restart frontend
+   sudo supervisorctl restart backend
+
+4. TESTAR:
+   • Acesse: https://www.autotech.app.br
+   • Faça login
+   • Teste todas as funcionalidades
+   • Verifique se o cadeado 🔒 aparece
+
+✅ CHECKLIST FINAL:
+☑ Domínio aponta para o sistema
+☑ HTTPS funcionando (cadeado verde)
+☑ Login funciona
+☑ Dashboard carrega
+☑ API responde corretamente`,
+          image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Sistema configurado com domínio personalizado'
+        },
+        {
+          title: 'Troubleshooting - Problemas comuns',
+          content: `❌ PROBLEMA 1: "Site não encontrado"
+Causa: DNS ainda não propagou
+Solução:
+• Aguarde mais tempo (até 48h)
+• Teste em: https://dnschecker.org
+• Digite seu domínio e veja a propagação global
+
+❌ PROBLEMA 2: "Aviso de segurança / Sem HTTPS"
+Causa: Certificado SSL não instalado
+Solução:
+• Configure SSL (ver Passo 5)
+• Use Cloudflare (mais fácil)
+
+❌ PROBLEMA 3: "ERR_TOO_MANY_REDIRECTS"
+Causa: Loop de redirecionamento
+Solução:
+• No Cloudflare: SSL/TLS → Full (não Flexible)
+• Limpe cache do navegador
+• Teste em modo anônimo
+
+❌ PROBLEMA 4: "API não funciona"
+Causa: CORS ou backend não responde
+Solução:
+• Verifique se backend está rodando
+• Confirme REACT_APP_BACKEND_URL no .env
+• Verifique logs: tail -f /var/log/supervisor/backend.err.log
+
+❌ PROBLEMA 5: "www.dominio.com funciona, mas dominio.com não"
+Causa: Falta registro para domínio raiz (@)
+Solução:
+• Adicione registro A ou CNAME para @
+• Tipo: A
+• Nome: @ (ou deixe em branco)
+• Destino: mesmo IP/CNAME do www
+
+❌ PROBLEMA 6: "Clientes ainda usam URL antiga"
+Solução:
+• Configure redirecionamento 301 (permanente)
+• No Cloudflare: Page Rules → Redirect
+• De: securemanage-2.preview.emergentagent.com/*
+• Para: https://www.autotech.app.br/$1
+
+🆘 AINDA COM PROBLEMAS?
+1. Verifique logs do servidor
+2. Teste com curl/Postman
+3. Use ferramentas:
+   • https://dnschecker.org (propagação DNS)
+   • https://www.ssllabs.com/ssltest (teste SSL)
+   • https://mxtoolbox.com (diagnóstico completo)`,
+          image: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Resolução de problemas com domínio personalizado'
+        },
+        {
+          title: 'Resumo executivo - Checklist rápido',
+          content: `📋 CHECKLIST COMPLETO:
+
+☐ ETAPA 1 - PREPARAÇÃO
+  ☐ Registrar domínio (registro.br, GoDaddy, etc)
+  ☐ Anotar URL atual do sistema
+  ☐ Ter acesso ao painel DNS
+
+☐ ETAPA 2 - CONFIGURAÇÃO DNS
+  ☐ Adicionar registro CNAME ou A
+  ☐ Aguardar propagação (1-48h)
+  ☐ Testar: http://www.seu-dominio.com
+
+☐ ETAPA 3 - CONFIGURAR HTTPS
+  ☐ Cloudflare (recomendado) ou
+  ☐ Let's Encrypt ou
+  ☐ Certificado pago
+  ☐ Validar cadeado 🔒 verde
+
+☐ ETAPA 4 - ATUALIZAR SISTEMA
+  ☐ Atualizar .env (opcional)
+  ☐ Reiniciar serviços (se necessário)
+  ☐ Testar funcionalidades
+
+☐ ETAPA 5 - COMUNICAÇÃO
+  ☐ Avisar clientes do novo endereço
+  ☐ Atualizar materiais de marketing
+  ☐ Configurar redirecionamento 301
+
+⏱️ TEMPO ESTIMADO TOTAL:
+• Configuração: 30 minutos
+• Propagação DNS: 1-48 horas
+• Total: 1-2 dias
+
+💰 CUSTOS:
+• Domínio: R$ 40-80/ano
+• SSL (Cloudflare): GRÁTIS
+• Configuração: DIY (você mesmo)
+
+📞 PRECISA DE AJUDA?
+• Registro.br: Central de atendimento
+• Cloudflare: Documentação oficial
+• Suporte Emergent: Para problemas técnicos`,
+          image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Domínio personalizado configurado e funcionando'
+        }
+      ]
+    },
+    {
       id: 'engineering-panel',
       icon: Settings,
       title: '🔧 Painel de Engenharia',
