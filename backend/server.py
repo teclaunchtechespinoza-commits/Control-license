@@ -4518,7 +4518,7 @@ async def get_sales_dashboard_summary(
         start_date = end_date - timedelta(days=90)
         
         # Buscar licenças que estão expirando ou já expiraram
-        expiring_licenses = await get_expiring_licenses()
+        expiring_licenses = await get_expiring_licenses(current_user.tenant_id)  # ← CORREÇÃO CRÍTICA
         
         # Gerar alertas de expiração
         alerts = []
