@@ -4116,34 +4116,32 @@ async def create_expiration_alert(license_doc):
 
 async def calculate_sales_metrics(alerts, start_date, end_date):
     """
-    Calcula métricas de vendas baseadas nos alertas
+    Calcula métricas de vendas baseadas APENAS nos alertas reais do tenant
+    CRÍTICO: SEM DADOS SIMULADOS - Apenas dados reais do tenant
     """
     try:
         total_expiring = len(alerts)
         high_priority = len([a for a in alerts if a.priority == "high"])
         total_opportunity_value = sum(a.renewal_opportunity_value or 0 for a in alerts)
         
-        # Métricas simuladas para o MVP
+        # CRÍTICO: Métricas baseadas APENAS em dados reais do tenant
         metrics = SalesMetrics(
             total_expiring_licenses=total_expiring,
             licenses_expiring_30_days=len([a for a in alerts if 7 < a.days_to_expire <= 30]),
             licenses_expiring_7_days=len([a for a in alerts if 1 < a.days_to_expire <= 7]),
             licenses_expiring_1_day=len([a for a in alerts if a.days_to_expire <= 1 and a.days_to_expire >= 0]),
             expired_licenses=len([a for a in alerts if a.days_to_expire < 0]),
-            contacted_leads=random.randint(10, 50),  # Simulado
-            renewed_licenses=random.randint(5, 25),  # Simulado
-            lost_opportunities=random.randint(2, 10),  # Simulado
-            conversion_rate=random.uniform(15, 35),  # Simulado
+            contacted_leads=0,  # TODO: Implementar tracking real
+            renewed_licenses=0,  # TODO: Implementar tracking real
+            lost_opportunities=0,  # TODO: Implementar tracking real
+            conversion_rate=0.0,  # TODO: Calcular baseado em dados reais
             potential_revenue=total_opportunity_value,
-            confirmed_revenue=random.uniform(5000, 25000),  # Simulado
-            lost_revenue=random.uniform(1000, 8000),  # Simulado
-            whatsapp_contacts=random.randint(20, 60),  # Simulado
-            phone_contacts=random.randint(10, 30),  # Simulado
-            email_contacts=random.randint(30, 80),  # Simulado
-            sales_by_person={
-                "João Silva": {"contacts": 25, "conversions": 12, "revenue": 8500.00},
-                "Maria Santos": {"contacts": 20, "conversions": 8, "revenue": 6200.00}
-            },
+            confirmed_revenue=0.0,  # TODO: Implementar tracking real
+            lost_revenue=0.0,  # TODO: Implementar tracking real
+            whatsapp_contacts=0,  # TODO: Integrar com WhatsApp real
+            phone_contacts=0,  # TODO: Implementar tracking real
+            email_contacts=0,  # TODO: Implementar tracking real
+            sales_by_person={},  # TODO: Implementar tracking por vendedor
             period_start=start_date,
             period_end=end_date
         )
