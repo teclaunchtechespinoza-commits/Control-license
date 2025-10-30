@@ -1157,9 +1157,84 @@ A segurança depende do uso responsável.`
                             <CheckCircle className="w-4 h-4 text-blue-600" />
                             {section.title}
                           </h4>
-                          <div className="text-sm text-gray-700 whitespace-pre-line">
+                          <div className="text-sm text-gray-700 whitespace-pre-line mb-4">
                             {section.content}
                           </div>
+                          
+                          {/* Renderizar checklist interativo se existir */}
+                          {section.checklist && (
+                            <div className="space-y-2 mt-4">
+                              {section.checklist.map((checkItem) => {
+                                const isChecked = engineeringChecklist[checkItem.id] || false;
+                                const priorityColors = {
+                                  critical: 'bg-red-50 border-red-200',
+                                  high: 'bg-orange-50 border-orange-200',
+                                  important: 'bg-yellow-50 border-yellow-200',
+                                  medium: 'bg-blue-50 border-blue-200',
+                                  low: 'bg-gray-50 border-gray-200'
+                                };
+                                const priorityBadges = {
+                                  critical: 'bg-red-100 text-red-800',
+                                  high: 'bg-orange-100 text-orange-800',
+                                  important: 'bg-yellow-100 text-yellow-800',
+                                  medium: 'bg-blue-100 text-blue-800',
+                                  low: 'bg-gray-100 text-gray-800'
+                                };
+                                
+                                return (
+                                  <div 
+                                    key={checkItem.id}
+                                    className={`p-3 rounded-lg border ${priorityColors[checkItem.priority]} ${isChecked ? 'opacity-60' : ''}`}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => toggleChecklistItem(checkItem.id)}
+                                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                      />
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className={`text-xs px-2 py-0.5 rounded ${priorityBadges[checkItem.priority]}`}>
+                                            {checkItem.priority.toUpperCase()}
+                                          </span>
+                                          <span className="text-xs text-gray-500">{checkItem.category}</span>
+                                        </div>
+                                        <p className={`font-medium text-sm ${isChecked ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                          {checkItem.title}
+                                        </p>
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          {checkItem.description}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              
+                              {/* Barra de progresso */}
+                              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-medium text-gray-700">Progresso</span>
+                                  <span className="text-sm font-bold text-blue-600">
+                                    {Math.round((section.checklist.filter(item => engineeringChecklist[item.id]).length / section.checklist.length) * 100)}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${(section.checklist.filter(item => engineeringChecklist[item.id]).length / section.checklist.length) * 100}%`
+                                    }}
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  {section.checklist.filter(item => engineeringChecklist[item.id]).length} de {section.checklist.length} concluídos
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Renderizar imagem se existir */}
                           {section.image && (
                             <div className="mt-4 rounded-lg overflow-hidden border border-gray-200">
