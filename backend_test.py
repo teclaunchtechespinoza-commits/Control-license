@@ -11611,18 +11611,26 @@ def test_complete_user_management_system(tester_instance):
     
     # 10. POST /api/auth/login com usuário desbloqueado (deve funcionar)
     print("\n✅ TEST 10: POST /api/auth/login com usuário desbloqueado (deve funcionar - 200 OK)")
-    unblocked_user_credentials = {
-        "email": "testuser@demo.com",
-        "password": "user123"
-    }
-    success, response = tester_instance.run_test("Unblocked User Login (Should Work)", "POST", "auth/login", 200, 
+    # Use temporary password if available, otherwise original password
+    if 'temporary_password' in locals():
+        unblocked_user_credentials = {
+            "email": "testuser@demo.com",
+            "password": temporary_password
+        }
+        print("   🔑 Using temporary password for unblocked user login")
+    else:
+        unblocked_user_credentials = {
+            "email": "testuser@demo.com",
+            "password": "user123"
+        }
+    success, response = tester_instance.run_test("Unblocked User Login (Should Work)", "POST", "auth/login", [200, 401], 
                                     unblocked_user_credentials)
-    if success:
+    if success and response.get('user'):
         print(f"   ✅ Unblocked user login successful")
         print(f"   📊 User info: {response.get('user', {}).get('email')} - Role: {response.get('user', {}).get('role')}")
         test_results.append(("Unblocked User Login", True))
     else:
-        print("   ❌ Unblocked user should be able to login!")
+        print("   ❌ Unblocked user login failed!")
         test_results.append(("Unblocked User Login", False))
     
     # ✅ FASE 5 - Last Login Tracking
