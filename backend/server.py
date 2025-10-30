@@ -1640,10 +1640,23 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
     user_tenant_id = user_doc.get("tenant_id", "default")
     login_filter = add_tenant_filter({"email": user_credentials.email}, user_tenant_id)
     
-    # Capturar IP do usuário para auditoria
-    user_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown")
-    if user_ip and "," in user_ip:
-        user_ip = user_ip.split(",")[0].strip()  # Pega o primeiro IP (cliente real)
+    # Capturar IP do usuário para auditoria (melhorado)
+    user_ip = "unknown"
+    try:
+        # Tentar X-Forwarded-For (proxies/load balancers)
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            # Pega o primeiro IP (cliente real)
+            user_ip = forwarded_for.split(",")[0].strip()
+        # Fallback para X-Real-IP
+        elif request.headers.get("X-Real-IP"):
+            user_ip = request.headers.get("X-Real-IP")
+        # Fallback para client host
+        elif request.client and request.client.host:
+            user_ip = request.client.host
+    except Exception as e:
+        logger.warning(f"Failed to capture IP address: {e}")
+        user_ip = "unknown"
     
     # Verificar se usuário está bloqueado
     if not user_doc.get("is_active", True):
