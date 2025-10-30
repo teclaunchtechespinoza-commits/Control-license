@@ -1076,11 +1076,11 @@ Não precisa clicar em "Salvar".`,
               category: 'Integração'
             },
             {
-              id: 'tenant_isolation_test',
+              id: 'frontend_user_mgmt_test',
               priority: 'high',
-              title: 'Testes de isolamento multi-tenant',
-              description: 'Garantir 100% de isolamento',
-              category: 'Segurança'
+              title: 'Frontend - Testar UI de User Management',
+              description: 'Validar botões Reset/Block e modais',
+              category: 'Teste Pendente'
             }
           ]
         },
