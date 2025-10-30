@@ -835,6 +835,49 @@ Se nada funcionar:
       restrictedTo: ['super_admin', 'admin'], // Apenas super admins veem
       sections: [
         {
+          title: '📖 Como Usar Este Painel (Guia Rápido)',
+          content: `VOCÊ ESTÁ NO PAINEL DE ENGENHARIA!
+
+Este é um espaço restrito para planejamento técnico e estratégico.
+
+🔐 CONTROLE DE ACESSO:
+Como Super Admin, você controla quem vê este painel:
+• No topo desta janela, há um controle azul
+• Clique para alternar entre:
+  - "✗ Apenas Super Admin" (padrão - só você vê)
+  - "✓ Admins Podem Ver" (admins também veem)
+
+💡 QUANDO PERMITIR ADMINS:
+✅ Equipe de desenvolvimento precisa ver roadmap
+✅ Gerente técnico precisa acompanhar progresso
+✅ Colaboração em tarefas técnicas
+
+💡 QUANDO BLOQUEAR:
+❌ Informações estratégicas confidenciais
+❌ Dados comerciais sensíveis
+❌ Cliente vai ver o sistema (demo)
+❌ Planejamento ainda não definido
+
+📊 CHECKLISTS INTERATIVOS:
+• Clique nos checkboxes para marcar como concluído
+• Itens concluídos ficam ~~riscados~~
+• Barra de progresso atualiza automaticamente
+• Seu progresso é salvo no navegador
+
+🎨 CORES DAS PRIORIDADES:
+🔴 CRITICAL - Faça AGORA (bloqueador)
+🟠 HIGH - Urgente (próximos dias)
+🟡 IMPORTANT - Importante (próximas semanas)
+🔵 MEDIUM - Médio prazo (próximo mês)
+⚪ LOW - Quando possível (backlog)
+
+💾 SALVAMENTO:
+Tudo é salvo automaticamente no seu navegador.
+Não precisa clicar em "Salvar".`,
+          image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Interface de controle e gestão de projetos'
+        },
+        {
           title: '🎯 Avaliação para Comercialização',
           content: `STATUS ATUAL DO SISTEMA PARA VENDA:`,
           checklist: [
