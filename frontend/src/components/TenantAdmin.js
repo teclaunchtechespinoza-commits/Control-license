@@ -466,14 +466,28 @@ const TenantAdmin = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Senha do Admin</label>
-                <input
-                  type="password"
-                  value={createForm.admin_password}
-                  onChange={(e) => setCreateForm({...createForm, admin_password: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  minLength="8"
-                  required
-                />
+                <div className="relative mt-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={createForm.admin_password}
+                    onChange={(e) => setCreateForm({...createForm, admin_password: e.target.value})}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
+                    minLength="8"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Mínimo 8 caracteres</p>
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">
