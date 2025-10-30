@@ -17,6 +17,7 @@ import {
   Key,
   Lock,
   Eye,
+  Building,
   Building2,
   UserCircle,
   Settings,
