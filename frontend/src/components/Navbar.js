@@ -311,7 +311,11 @@ const Navbar = () => {
       </div>
 
       {/* Help Center Modal */}
-      <HelpCenter isOpen={showHelpCenter} onClose={() => setShowHelpCenter(false)} />
+      <HelpCenter 
+        isOpen={showHelpCenter} 
+        onClose={() => setShowHelpCenter(false)}
+        currentUser={user}
+      />
     </nav>
   );
 };
