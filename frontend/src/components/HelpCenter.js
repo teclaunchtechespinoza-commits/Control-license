@@ -122,7 +122,9 @@ CREDENCIAIS:
    • Senha (mínimo 6 caracteres)
    • Função (Usuário ou Administrador)
 4. Clique em "Criar Usuário"
-5. O usuário receberá as credenciais para primeiro acesso`
+5. O usuário receberá as credenciais para primeiro acesso`,
+          image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=60',
+          imageCaption: 'Gerenciamento de usuários no painel administrativo'
         },
         {
           title: 'Como editar um usuário',
