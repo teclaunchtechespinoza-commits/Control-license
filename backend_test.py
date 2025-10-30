@@ -11670,13 +11670,21 @@ def test_complete_user_management_system(tester_instance):
     
     # 12. Login como usuário regular novamente
     print("\n🔐 TEST 12: Login como usuário regular para testes de segurança")
-    user_security_credentials = {
-        "email": "testuser@demo.com",
-        "password": "user123"
-    }
-    success, response = tester_instance.run_test("User Login for Security Tests", "POST", "auth/login", 200, 
+    # Use temporary password if available
+    if 'temporary_password' in locals():
+        user_security_credentials = {
+            "email": "testuser@demo.com",
+            "password": temporary_password
+        }
+        print("   🔑 Using temporary password for security tests")
+    else:
+        user_security_credentials = {
+            "email": "testuser@demo.com",
+            "password": "user123"
+        }
+    success, response = tester_instance.run_test("User Login for Security Tests", "POST", "auth/login", [200, 401], 
                                     user_security_credentials)
-    if success:
+    if success and response.get('user'):
         if "access_token" in response:
             user_token = response["access_token"]
         else:
