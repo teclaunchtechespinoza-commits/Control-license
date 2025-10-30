@@ -1040,6 +1040,20 @@ Não precisa clicar em "Salvar".`,
               title: 'API Pública para Integrações',
               description: 'Permitir integrações externas',
               category: 'Expansão'
+            },
+            {
+              id: 'frontend_tests',
+              priority: 'high',
+              title: 'Testes Frontend Automatizados',
+              description: 'Testar User Management UI com Playwright',
+              category: 'Qualidade'
+            },
+            {
+              id: 'ip_tracking_validation',
+              priority: 'medium',
+              title: 'Validar Captura de IP em Produção',
+              description: 'Confirmar X-Forwarded-For funciona corretamente',
+              category: 'Segurança'
             }
           ]
         },
