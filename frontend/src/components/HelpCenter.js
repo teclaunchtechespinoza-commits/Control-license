@@ -29,7 +29,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-const HelpCenter = ({ isOpen, onClose }) => {
+const HelpCenter = ({ isOpen, onClose, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSection, setExpandedSection] = useState(null);
   const [engineeringChecklist, setEngineeringChecklist] = useState(() => {
