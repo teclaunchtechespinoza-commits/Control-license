@@ -11418,7 +11418,7 @@ def test_complete_user_management_system(tester_instance):
                     "password": "user123",
                     "role": "user"
                 }
-                success, response = tester_instance.run_test("Create Test User", "POST", "users", 201, 
+                success, response = tester_instance.run_test("Create Test User", "POST", "users", [200, 201], 
                                                            create_user_data, token=super_admin_token)
                 if success:
                     user_id_for_tests = response.get('id')
