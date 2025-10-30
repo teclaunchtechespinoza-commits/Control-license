@@ -964,6 +964,34 @@ Não precisa clicar em "Salvar".`,
               title: 'Testes de carga (100 usuários simultâneos)',
               description: 'Garantir performance sob carga',
               category: 'Qualidade'
+            },
+            {
+              id: 'user_management',
+              priority: 'high',
+              title: '✅ Sistema de Gerenciamento de Usuários',
+              description: 'Reset senha, bloquear/desbloquear, tracking login - IMPLEMENTADO',
+              category: 'Funcionalidade'
+            },
+            {
+              id: 'tenant_crud',
+              priority: 'high',
+              title: '✅ CRUD Completo de Tenants',
+              description: 'Botões Editar e Excluir adicionados - IMPLEMENTADO',
+              category: 'Funcionalidade'
+            },
+            {
+              id: 'rbac_super_admin',
+              priority: 'high',
+              title: '✅ Corrigir Permissões RBAC para Super Admin',
+              description: 'Super admin agora acessa roles/permissions - CORRIGIDO',
+              category: 'Segurança'
+            },
+            {
+              id: 'fix_tenant_duplicates',
+              priority: 'high',
+              title: '✅ Limpar Tenants Duplicados',
+              description: 'Removidas 6 duplicatas do banco - CORRIGIDO',
+              category: 'Qualidade'
             }
           ]
         },
