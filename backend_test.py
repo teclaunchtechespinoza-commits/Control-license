@@ -11651,7 +11651,7 @@ if __name__ == "__main__":
         elif test_type == "user-management":
             # Run the user management system test as requested in the review
             print("🚀 RUNNING COMPLETE USER MANAGEMENT SYSTEM TEST")
-            success = tester.test_complete_user_management_system()
+            success = test_complete_user_management_system(tester)
             
             # Print final results
             print("\n" + "="*50)
