@@ -27,6 +27,8 @@ const TenantAdmin = () => {
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [tenantToDelete, setTenantToDelete] = useState(null);
 
   // Form states
   const [createForm, setCreateForm] = useState({
