@@ -567,6 +567,217 @@ STATUS DO ENVIO:
       ]
     },
     {
+      id: 'security-privacy',
+      icon: Lock,
+      title: '🔒 Segurança e Privacidade (LGPD)',
+      category: 'Segurança',
+      tags: ['lgpd', 'privacidade', 'segurança', 'isolamento', 'dados'],
+      sections: [
+        {
+          title: 'Conformidade LGPD',
+          content: `O sistema está 100% conforme à Lei Geral de Proteção de Dados (LGPD):
+
+ISOLAMENTO DE DADOS:
+✓ Cada empresa/tenant tem dados completamente isolados
+✓ Impossível acessar dados de outras empresas
+✓ Filtros de tenant aplicados automaticamente em TODAS as consultas
+✓ Auditoria completa de acessos
+
+ARTIGOS LGPD ATENDIDOS:
+✓ Art. 6º - Adequação: Dados tratados para finalidade legítima
+✓ Art. 46 - Segurança: Medidas técnicas de proteção
+✓ Art. 47 - Segregação: Dados de titulares isolados
+✓ Art. 48 - Comunicação de Incidentes: Logs e auditoria
+
+GARANTIAS DE PRIVACIDADE:
+• Você NUNCA verá dados de outros clientes
+• Outros clientes NUNCA verão seus dados
+• Cada login acessa apenas seu próprio tenant
+• Sistema multi-tenancy com isolamento rigoroso`
+        },
+        {
+          title: 'Como funciona o isolamento de dados?',
+          content: `Quando você faz login, o sistema:
+
+1. IDENTIFICA SEU TENANT:
+   • Busca seu tenant_id único no banco
+   • Associa sua sessão ao seu tenant
+   • Todas as requisições carregam esse ID
+
+2. FILTRA AUTOMATICAMENTE:
+   • TODAS as consultas incluem tenant_id
+   • Banco de dados só retorna SEUS dados
+   • Outros tenants são invisíveis para você
+
+3. VALIDA PERMISSÕES:
+   • Verifica se você tem acesso ao recurso
+   • Confirma que o recurso pertence ao seu tenant
+   • Bloqueia acesso cross-tenant
+
+EXEMPLO PRÁTICO:
+Você (Empresa A - tenant_123):
+  → Busca licenças
+  → Sistema filtra: WHERE tenant_id = "123"
+  → Retorna apenas SUAS licenças
+  
+Outra empresa (Empresa B - tenant_456):
+  → Busca licenças
+  → Sistema filtra: WHERE tenant_id = "456"
+  → Retorna apenas licenças DELA
+  
+Resultado: ISOLAMENTO TOTAL ✅`
+        },
+        {
+          title: 'Como testar se meu isolamento está funcionando?',
+          content: `TESTE SIMPLES:
+1. Cadastre nova conta com email diferente
+2. Faça login com a nova conta
+3. Vá ao Dashboard
+4. Verifique contadores: DEVEM mostrar ZERO
+   • 0 Licenças
+   • 0 Usuários
+   • 0 Clientes
+   • 0 Contatos WhatsApp
+
+Se você VER dados já existentes = BUG DE SEGURANÇA
+Contate imediatamente o administrador!
+
+INDICADORES DE ISOLAMENTO OK:
+✅ Novo tenant começa com dados vazios
+✅ Não vê licenças de outros
+✅ Não vê usuários de outros
+✅ Dashboard mostra apenas seus próprios dados`
+        },
+        {
+          title: 'O que fazer se suspeitar de vazamento de dados?',
+          content: `AÇÃO IMEDIATA:
+1. NÃO COMPARTILHE informações vistas
+2. ANOTE exatamente o que viu:
+   • Que tela estava
+   • Que dados apareceram
+   • Horário do incidente
+3. TIRE SCREENSHOT (se possível)
+4. SAIA DO SISTEMA imediatamente
+5. CONTATE o suporte técnico
+
+INFORMAÇÕES A FORNECER:
+• Seu email de login
+• Tela onde viu os dados
+• Descrição dos dados vistos
+• Horário aproximado
+
+O suporte irá:
+• Investigar imediatamente
+• Corrigir o problema
+• Notificar afetados (se necessário)
+• Documentar incidente para LGPD
+
+IMPORTANTE: 
+Vazamento de dados é CRIME pela LGPD.
+Reporte sempre que suspeitar!`
+        }
+      ]
+    },
+    {
+      id: 'registration-issues',
+      icon: UserCircle,
+      title: '👤 Problemas com Cadastro',
+      category: 'Solução de Problemas',
+      tags: ['registro', 'cadastro', 'senha', 'login'],
+      sections: [
+        {
+          title: 'Erro: "Email já registrado"',
+          content: `CAUSA:
+Você está tentando usar um email que já existe no sistema.
+
+SOLUÇÕES:
+1. Use email diferente:
+   ✓ seunome+empresa@gmail.com
+   ✓ contato@suaempresa.com.br
+   ✓ Variação do email existente
+
+2. Recupere a senha do email existente:
+   ✓ Clique em "Esqueci minha senha"
+   ✓ Digite o email cadastrado
+   ✓ Receba link de recuperação
+   ✓ Defina nova senha
+
+3. Se não lembra de ter cadastrado:
+   ✓ Pode ter testado antes
+   ✓ Outro colaborador pode ter usado
+   ✓ Contate suporte para verificação`
+        },
+        {
+          title: 'Erro: "As senhas não coincidem"',
+          content: `CAUSA:
+Senha e confirmação de senha estão diferentes.
+
+SOLUÇÃO:
+1. Digite a senha no primeiro campo
+2. Digite EXATAMENTE a mesma senha no segundo campo
+3. ATENÇÃO para:
+   ✓ Maiúsculas e minúsculas
+   ✓ Espaços no início ou fim
+   ✓ Caracteres especiais
+   
+DICAS:
+• Use o botão 👁️ para ver a senha
+• Copie e cole entre os campos (Ctrl+C / Ctrl+V)
+• Use gerenciador de senhas`
+        },
+        {
+          title: 'Erro: "Conta requer redefinição de senha"',
+          content: `CAUSA:
+Conta foi criada mas senha não foi configurada corretamente.
+
+SOLUÇÕES:
+1. USUÁRIO NORMAL:
+   ✓ Clique em "Esqueci minha senha"
+   ✓ Siga o processo de recuperação
+   
+2. ADMIN DO SISTEMA:
+   ✓ Contate suporte técnico
+   ✓ Informe seu email
+   ✓ Suporte resetará sua senha
+   
+3. PRIMEIRO ACESSO:
+   ✓ Use a senha fornecida pelo admin
+   ✓ Sistema pedirá para trocar
+   ✓ Defina sua própria senha segura
+
+PREVENÇÃO:
+Sempre complete o cadastro com senha forte e anote em local seguro.`
+        },
+        {
+          title: 'Cadastro criado mas não consigo fazer login',
+          content: `VERIFICAÇÕES:
+1. EMAIL CORRETO?
+   ✓ Verifique se não tem espaços extras
+   ✓ Confirme @ e domínio corretos
+   ✓ Teste maiúsculas/minúsculas
+
+2. SENHA CORRETA?
+   ✓ Atenção para maiúsculas
+   ✓ Verifique Caps Lock
+   ✓ Teste copiar e colar
+
+3. CONTA ATIVA?
+   ✓ Admin pode ter desativado
+   ✓ Pode estar pendente de aprovação
+   ✓ Verifique email de confirmação
+
+4. NAVEGADOR/CACHE:
+   ✓ Limpe cache (Ctrl+Shift+Delete)
+   ✓ Teste em modo anônimo
+   ✓ Teste em outro navegador
+
+Se nada funcionar:
+→ Cadastre nova conta com email diferente
+→ Ou contate suporte com seu email`
+        }
+      ]
+    },
+    {
       id: 'best-practices',
       icon: CheckCircle,
       title: '✨ Melhores Práticas',
