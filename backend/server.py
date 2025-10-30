@@ -1662,6 +1662,16 @@ async def login(user_credentials: UserLogin, response: Response):
     jti = refresh_payload.get("jti")
     await store_refresh_token(jti, user_credentials.email, user_tenant_id)
     
+    # Atualizar last_login e IP
+    client_ip = request.client.host if request.client else "unknown"
+    await db.users.update_one(
+        {"_id": user_doc["_id"]},
+        {"$set": {
+            "last_login": datetime.utcnow(),
+            "last_login_ip": client_ip
+        }}
+    )
+    
     # 🍪 SECURITY: Set HttpOnly cookies (no localStorage exposure to XSS)
     is_secure = os.getenv("HTTPS_ENABLED", "false").lower() == "true"
     
