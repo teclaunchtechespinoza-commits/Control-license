@@ -300,6 +300,17 @@ const TenantAdmin = () => {
                   >
                     <Edit className="w-4 h-4" />
                   </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Tem certeza que deseja excluir o tenant "${tenant.name}"? Esta ação não pode ser desfeita.`)) {
+                        handleDeleteTenant(tenant.id);
+                      }
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-600 rounded"
+                    title="Excluir"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
