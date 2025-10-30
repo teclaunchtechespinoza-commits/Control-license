@@ -1089,6 +1089,12 @@ A segurança depende do uso responsável.`
   const filteredContent = helpContent.filter(item => {
     // Filtrar conteúdo restrito baseado no role do usuário
     if (item.restrictedTo && currentUser) {
+      // Verificar se é o Painel de Engenharia
+      if (item.id === 'engineering-panel') {
+        return hasEngineeringAccess();
+      }
+      
+      // Outros conteúdos restritos
       const hasAccess = item.restrictedTo.includes(currentUser.role);
       if (!hasAccess) return false;
     }
