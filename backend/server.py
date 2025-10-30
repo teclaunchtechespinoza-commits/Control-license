@@ -3113,11 +3113,6 @@ async def unblock_user(
     logger.info(f"User {user_doc.get('email')} unblocked by {current_user.email}")
     
     return {"success": True, "message": "Usuário desbloqueado com sucesso"}
-
-        raise HTTPException(status_code=403, detail="Fora do escopo")
-    
-    # Excluir do banco
-    await db.users.delete_one({"id": user_id})
     return Response(status_code=204)
 
 @api_router.put("/users/{user_id}/role")
