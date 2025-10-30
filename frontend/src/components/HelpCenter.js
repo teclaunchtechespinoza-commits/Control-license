@@ -1135,6 +1135,36 @@ A segurança depende do uso responsável.`
           />
         </div>
 
+        {/* Controle de Acesso ao Painel de Engenharia (apenas super_admin) */}
+        {currentUser?.role === 'super_admin' && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">
+                  Controle de Acesso - Painel de Engenharia
+                </span>
+              </div>
+              <button
+                onClick={toggleEngineeringAccess}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  engineeringAccess.allowAdmins
+                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                {engineeringAccess.allowAdmins ? '✓ Admins Podem Ver' : '✗ Apenas Super Admin'}
+              </button>
+            </div>
+            <p className="text-xs text-blue-700 mt-2">
+              {engineeringAccess.allowAdmins
+                ? 'Administradores comuns podem acessar o Painel de Engenharia'
+                : 'Apenas você (Super Admin) pode ver o Painel de Engenharia'
+              }
+            </p>
+          </div>
+        )}
+
         {/* Results Info */}
         {searchTerm && (
           <div className="text-sm text-gray-600 mb-2">
