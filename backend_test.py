@@ -11485,17 +11485,37 @@ def test_complete_user_management_system(tester_instance):
         "password": "user123"
     }
     success, response = tester_instance.run_test("Test User Login", "POST", "auth/login", [200, 401], test_user_credentials)
-    if success:
+    if success and response.get('user'):
         if "access_token" in response:
             user_token = response["access_token"]
         else:
             user_token = "cookie_based_auth"
-        print(f"   ✅ Test user login successful")
+        print(f"   ✅ Test user login successful with original password")
         print(f"   📊 User info: {response.get('user', {}).get('email')} - Role: {response.get('user', {}).get('role')}")
         test_results.append(("User Login", True))
     else:
-        print("   ⚠️ Test user login failed (may be due to password reset)")
-        test_results.append(("User Login", False))
+        print("   ⚠️ Test user login failed with original password (expected after password reset)")
+        # Try with temporary password if we have one from the reset
+        if 'temporary_password' in locals():
+            print("   🔑 Trying login with temporary password...")
+            temp_credentials = {
+                "email": "testuser@demo.com",
+                "password": temporary_password
+            }
+            success, response = tester_instance.run_test("Test User Login (Temp Password)", "POST", "auth/login", 200, temp_credentials)
+            if success:
+                if "access_token" in response:
+                    user_token = response["access_token"]
+                else:
+                    user_token = "cookie_based_auth"
+                print(f"   ✅ Test user login successful with temporary password")
+                print(f"   📊 User info: {response.get('user', {}).get('email')} - Role: {response.get('user', {}).get('role')}")
+                test_results.append(("User Login", True))
+            else:
+                print("   ❌ Test user login failed even with temporary password")
+                test_results.append(("User Login", False))
+        else:
+            test_results.append(("User Login", False))
     
     # 6. POST /api/users/{user_id}/reset-password com token de user (deve falhar)
     if user_token and admin_user_id:
