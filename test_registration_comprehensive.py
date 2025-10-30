@@ -6,7 +6,7 @@ import sys
 
 def test_comprehensive_registration():
     """Comprehensive test of user registration scenarios"""
-    base_url = "https://licensemanager-6.preview.emergentagent.com/api"
+    base_url = "https://securemanage-2.preview.emergentagent.com/api"
     
     print("🚀 TESTE ABRANGENTE DO SISTEMA DE REGISTRO DE USUÁRIOS")
     print("="*80)
