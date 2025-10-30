@@ -3760,8 +3760,9 @@ async def delete_license_plan(plan_id: str, current_user: User = Depends(get_cur
 # RBAC Endpoints - Sistema de Controle de Acesso
 @api_router.get("/rbac/permissions", response_model=List[Permission])
 async def get_permissions(current_user: User = Depends(get_current_user)):
-    # Apenas admins podem ver permissões
-    if current_user.role != "admin":
+    # Apenas admins e super_admins podem ver permissões
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
     
     # CRÍTICO: Para permissions, usar filtro global ou por tenant (assumindo global por enquanto)
