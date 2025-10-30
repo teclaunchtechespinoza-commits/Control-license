@@ -2088,14 +2088,13 @@ async def startup_event():
 
 @api_router.get("/user/licenses")
 async def get_user_licenses(current_user: User = Depends(get_current_user)):
-    """Busca licenças do usuário atual (apenas para role 'user')"""
+    """Busca licenças do usuário atual"""
     
-    # Verificar se é usuário comum
-    if current_user.role not in ["user"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso restrito a usuários finais"
-        )
+    # Converter role para string se for enum
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    # Super admins e admins podem ver suas próprias licenças também
+    # (não apenas usuários comuns)
     
     try:
         # Buscar licenças associadas ao usuário
