@@ -1406,7 +1406,7 @@ const AdminPanel = () => {
                     className="flex-1 px-3 py-2 bg-white border border-green-300 rounded font-mono text-sm"
                   />
                   <Button onClick={copyGeneratedPassword} size="sm">
-                    <Download className="w-4 h-4 mr-1" />
+                    <CheckCircle className="w-4 h-4 mr-1" />
                     Copiar
                   </Button>
                 </div>
