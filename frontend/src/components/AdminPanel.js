@@ -751,7 +751,9 @@ const AdminPanel = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Licenses Tab */}
+        {/* Users Tab */}
+        <TabsContent value="users">
+          <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
