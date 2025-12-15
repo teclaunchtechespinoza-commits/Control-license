@@ -203,6 +203,145 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchTickets = async () => {
+    try {
+      const response = await api.get('/tickets');
+      const allTickets = response.data || [];
+      setTickets(allTickets);
+      
+      // Filtrar tickets pendentes
+      const pending = allTickets.filter(t => t.status === 'pending');
+      setPendingTickets(pending);
+    } catch (error) {
+      console.error('Erro ao buscar tickets:', error);
+    }
+  };
+
+  const fetchActivityLogs = async (userEmail = null) => {
+    try {
+      const url = userEmail && userEmail !== 'all' 
+        ? `/activity-logs?user_email=${userEmail}&limit=50`
+        : '/activity-logs?limit=50';
+      const response = await api.get(url);
+      setActivityLogs(response.data || []);
+    } catch (error) {
+      console.error('Erro ao buscar logs:', error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const [notifsResponse, countResponse] = await Promise.all([
+        api.get('/notifications'),
+        api.get('/notifications/unread/count')
+      ]);
+      setNotifications(notifsResponse.data || []);
+      setUnreadCount(countResponse.data.count || 0);
+    } catch (error) {
+      console.error('Erro ao buscar notificações:', error);
+    }
+  };
+
+  // Atualizar fetchData para incluir tickets e notificações
+  useEffect(() => {
+    if (activeTab === 'approvals') {
+      fetchTickets();
+    } else if (activeTab === 'logs') {
+      fetchActivityLogs(selectedUserForLogs);
+    }
+  }, [activeTab, selectedUserForLogs]);
+
+  // Buscar notificações ao carregar
+  useEffect(() => {
+    fetchNotifications();
+    // Atualizar a cada 30 segundos
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleApproveTicket = async (ticketId) => {
+    setProcessingTicket(true);
+    try {
+      await api.put(`/tickets/${ticketId}`, {
+        status: 'approved',
+        admin_response: ticketResponse || 'Solicitação aprovada'
+      });
+      toast.success('Ticket aprovado com sucesso!');
+      setShowTicketModal(false);
+      setTicketResponse('');
+      fetchTickets();
+      fetchNotifications();
+    } catch (error) {
+      console.error('Erro ao aprovar ticket:', error);
+      toast.error('Erro ao aprovar ticket');
+    } finally {
+      setProcessingTicket(false);
+    }
+  };
+
+  const handleRejectTicket = async (ticketId) => {
+    if (!ticketResponse.trim()) {
+      toast.error('Por favor, adicione uma justificativa para a rejeição');
+      return;
+    }
+    
+    setProcessingTicket(true);
+    try {
+      await api.put(`/tickets/${ticketId}`, {
+        status: 'rejected',
+        admin_response: ticketResponse
+      });
+      toast.success('Ticket rejeitado');
+      setShowTicketModal(false);
+      setTicketResponse('');
+      fetchTickets();
+      fetchNotifications();
+    } catch (error) {
+      console.error('Erro ao rejeitar ticket:', error);
+      toast.error('Erro ao rejeitar ticket');
+    } finally {
+      setProcessingTicket(false);
+    }
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('pt-BR');
+  };
+
+  const getTicketTypeLabel = (type) => {
+    const labels = {
+      renewal: 'Renovação',
+      support: 'Suporte',
+      problem: 'Problema',
+      general: 'Geral'
+    };
+    return labels[type] || type;
+  };
+
+  const getTicketPriorityColor = (priority) => {
+    const colors = {
+      low: 'bg-gray-100 text-gray-800',
+      medium: 'bg-blue-100 text-blue-800',
+      high: 'bg-orange-100 text-orange-800',
+      urgent: 'bg-red-100 text-red-800'
+    };
+    return colors[priority] || colors.medium;
+  };
+
+  const getActivityIcon = (activityType) => {
+    switch (activityType) {
+      case 'license_viewed': return <Eye className="w-4 h-4 text-blue-600" />;
+      case 'license_renewed': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'certificate_downloaded': return <FileText className="w-4 h-4 text-purple-600" />;
+      case 'ticket_created': return <Clock className="w-4 h-4 text-orange-600" />;
+      case 'login': return <Users className="w-4 h-4 text-gray-600" />;
+      default: return <Settings className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+
   const resetLicenseForm = () => {
     setLicenseForm({
       name: '',
