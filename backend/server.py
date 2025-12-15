@@ -6523,6 +6523,328 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
     await db.licenses.delete_one({"id": license_id})
     return Response(status_code=204)
 
+
+# ============================================================================
+# TICKET ENDPOINTS - Sistema de Solicitações e Suporte
+# ============================================================================
+
+@api_router.post("/tickets", response_model=Ticket)
+async def create_ticket(
+    ticket_data: TicketCreate,
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """Criar novo ticket (renovação, suporte, problema)"""
+    try:
+        ticket_id = str(uuid.uuid4())
+        
+        # Capturar IP e User Agent para auditoria
+        ip_address = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown")
+        user_agent = request.headers.get("User-Agent", "unknown")
+        
+        ticket_dict = {
+            "id": ticket_id,
+            **ticket_data.dict(),
+            "status": TicketStatus.PENDING,
+            "created_by": current_user.email,
+            "created_by_name": current_user.name,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "resolved_at": None,
+            "resolved_by": None,
+            "admin_response": None,
+            "tenant_id": current_user.tenant_id
+        }
+        
+        await db.tickets.insert_one(ticket_dict)
+        
+        # Criar log de atividade
+        activity_log = {
+            "id": str(uuid.uuid4()),
+            "user_email": current_user.email,
+            "user_name": current_user.name,
+            "activity_type": ActivityType.TICKET_CREATED,
+            "description": f"Criou ticket: {ticket_data.title}",
+            "resource_id": ticket_id,
+            "resource_type": "ticket",
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+            "created_at": datetime.utcnow(),
+            "tenant_id": current_user.tenant_id
+        }
+        await db.activity_logs.insert_one(activity_log)
+        
+        # Criar notificação para admins do tenant
+        admins = await db.users.find({
+            "tenant_id": current_user.tenant_id,
+            "role": {"$in": ["admin", "super_admin"]},
+            "is_active": True
+        }).to_list(length=100)
+        
+        for admin in admins:
+            notification = {
+                "id": str(uuid.uuid4()),
+                "user_email": admin["email"],
+                "type": NotificationType.NEW_TICKET,
+                "title": f"Nova solicitação de {current_user.name}",
+                "message": f"{ticket_data.type.value}: {ticket_data.title}",
+                "read": False,
+                "action_url": f"/admin/tickets/{ticket_id}",
+                "created_at": datetime.utcnow(),
+                "tenant_id": current_user.tenant_id
+            }
+            await db.notifications.insert_one(notification)
+        
+        return Ticket(**ticket_dict)
+        
+    except Exception as e:
+        logger.error(f"Erro ao criar ticket: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar ticket")
+
+@api_router.get("/tickets/my", response_model=List[Ticket])
+async def get_my_tickets(current_user: User = Depends(get_current_user)):
+    """Buscar tickets do usuário atual"""
+    try:
+        query = add_tenant_filter({
+            "created_by": current_user.email
+        }, current_user.tenant_id)
+        
+        tickets = await db.tickets.find(query).sort("created_at", -1).to_list(length=100)
+        return [Ticket(**ticket) for ticket in tickets]
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar tickets: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar tickets")
+
+@api_router.get("/tickets", response_model=List[Ticket])
+async def get_all_tickets(current_user: User = Depends(get_current_user)):
+    """Buscar todos os tickets (apenas admins)"""
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    try:
+        query = add_tenant_filter({}, current_user.tenant_id)
+        tickets = await db.tickets.find(query).sort("created_at", -1).to_list(length=100)
+        return [Ticket(**ticket) for ticket in tickets]
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar tickets: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar tickets")
+
+@api_router.get("/tickets/{ticket_id}", response_model=Ticket)
+async def get_ticket_by_id(ticket_id: str, current_user: User = Depends(get_current_user)):
+    """Buscar ticket por ID"""
+    try:
+        query = add_tenant_filter({"id": ticket_id}, current_user.tenant_id)
+        ticket = await db.tickets.find_one(query)
+        
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket não encontrado")
+        
+        # Verificar se o usuário tem permissão (criador ou admin)
+        user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+        if ticket["created_by"] != current_user.email and user_role_str not in ["admin", "super_admin"]:
+            raise HTTPException(status_code=403, detail="Acesso negado")
+        
+        return Ticket(**ticket)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao buscar ticket: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar ticket")
+
+@api_router.put("/tickets/{ticket_id}", response_model=Ticket)
+async def update_ticket(
+    ticket_id: str,
+    ticket_update: TicketUpdate,
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """Atualizar ticket (apenas admins)"""
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    try:
+        query = add_tenant_filter({"id": ticket_id}, current_user.tenant_id)
+        ticket = await db.tickets.find_one(query)
+        
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket não encontrado")
+        
+        update_dict = {"updated_at": datetime.utcnow()}
+        
+        if ticket_update.status:
+            update_dict["status"] = ticket_update.status
+            if ticket_update.status in [TicketStatus.RESOLVED, TicketStatus.CLOSED]:
+                update_dict["resolved_at"] = datetime.utcnow()
+                update_dict["resolved_by"] = current_user.email
+        
+        if ticket_update.priority:
+            update_dict["priority"] = ticket_update.priority
+        
+        if ticket_update.admin_response:
+            update_dict["admin_response"] = ticket_update.admin_response
+        
+        await db.tickets.update_one(query, {"$set": update_dict})
+        
+        # Criar log de atividade
+        ip_address = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown")
+        activity_log = {
+            "id": str(uuid.uuid4()),
+            "user_email": current_user.email,
+            "user_name": current_user.name,
+            "activity_type": ActivityType.TICKET_UPDATED,
+            "description": f"Atualizou ticket: {ticket['title']}",
+            "resource_id": ticket_id,
+            "resource_type": "ticket",
+            "ip_address": ip_address,
+            "user_agent": request.headers.get("User-Agent", "unknown"),
+            "created_at": datetime.utcnow(),
+            "tenant_id": current_user.tenant_id
+        }
+        await db.activity_logs.insert_one(activity_log)
+        
+        # Criar notificação para o criador do ticket
+        if ticket_update.status in [TicketStatus.APPROVED, TicketStatus.REJECTED, TicketStatus.RESOLVED]:
+            notification_type = {
+                TicketStatus.APPROVED: NotificationType.TICKET_APPROVED,
+                TicketStatus.REJECTED: NotificationType.TICKET_REJECTED,
+                TicketStatus.RESOLVED: NotificationType.TICKET_RESOLVED
+            }.get(ticket_update.status)
+            
+            notification = {
+                "id": str(uuid.uuid4()),
+                "user_email": ticket["created_by"],
+                "type": notification_type,
+                "title": f"Ticket atualizado: {ticket['title']}",
+                "message": ticket_update.admin_response or f"Status: {ticket_update.status.value}",
+                "read": False,
+                "action_url": f"/tickets/{ticket_id}",
+                "created_at": datetime.utcnow(),
+                "tenant_id": current_user.tenant_id
+            }
+            await db.notifications.insert_one(notification)
+        
+        # Buscar ticket atualizado
+        updated_ticket = await db.tickets.find_one(query)
+        return Ticket(**updated_ticket)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao atualizar ticket: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao atualizar ticket")
+
+# ============================================================================
+# ACTIVITY LOG ENDPOINTS - Sistema de Auditoria
+# ============================================================================
+
+@api_router.get("/activity-logs/my", response_model=List[ActivityLog])
+async def get_my_activity_logs(
+    limit: int = 50,
+    current_user: User = Depends(get_current_user)
+):
+    """Buscar logs de atividade do usuário atual"""
+    try:
+        query = add_tenant_filter({
+            "user_email": current_user.email
+        }, current_user.tenant_id)
+        
+        logs = await db.activity_logs.find(query).sort("created_at", -1).limit(limit).to_list(length=limit)
+        return [ActivityLog(**log) for log in logs]
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar logs: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar logs")
+
+@api_router.get("/activity-logs", response_model=List[ActivityLog])
+async def get_all_activity_logs(
+    user_email: Optional[str] = None,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
+):
+    """Buscar todos os logs de atividade (apenas admins)"""
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores.")
+    
+    try:
+        query = {}
+        if user_email:
+            query["user_email"] = user_email
+        
+        query = add_tenant_filter(query, current_user.tenant_id)
+        logs = await db.activity_logs.find(query).sort("created_at", -1).limit(limit).to_list(length=limit)
+        return [ActivityLog(**log) for log in logs]
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar logs: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar logs")
+
+# ============================================================================
+# NOTIFICATION ENDPOINTS - Sistema de Notificações
+# ============================================================================
+
+@api_router.get("/notifications", response_model=List[Notification])
+async def get_notifications(current_user: User = Depends(get_current_user)):
+    """Buscar notificações do usuário atual"""
+    try:
+        query = add_tenant_filter({
+            "user_email": current_user.email
+        }, current_user.tenant_id)
+        
+        notifications = await db.notifications.find(query).sort("created_at", -1).limit(50).to_list(length=50)
+        return [Notification(**notif) for notif in notifications]
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar notificações: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar notificações")
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_as_read(
+    notification_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Marcar notificação como lida"""
+    try:
+        query = add_tenant_filter({
+            "id": notification_id,
+            "user_email": current_user.email
+        }, current_user.tenant_id)
+        
+        result = await db.notifications.update_one(query, {"$set": {"read": True}})
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Notificação não encontrada")
+        
+        return {"message": "Notificação marcada como lida"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao marcar notificação: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao marcar notificação")
+
+@api_router.get("/notifications/unread/count")
+async def get_unread_notifications_count(current_user: User = Depends(get_current_user)):
+    """Contar notificações não lidas"""
+    try:
+        query = add_tenant_filter({
+            "user_email": current_user.email,
+            "read": False
+        }, current_user.tenant_id)
+        
+        count = await db.notifications.count_documents(query)
+        return {"count": count}
+        
+    except Exception as e:
+        logger.error(f"Erro ao contar notificações: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao contar notificações")
+
+
 # ------------------------ SEARCH endpoints with safe filters ------------------------
 @api_router.get("/search/users", response_model=List[User])
 async def search_users(request: Request, current_user: User = Depends(get_current_user)):
