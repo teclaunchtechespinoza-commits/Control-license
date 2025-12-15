@@ -722,6 +722,11 @@ def check_permission(user_permissions: List[str], required_permission: str) -> b
 # Dependency para verificar permissões
 def require_permission(permission: str):
     async def permission_checker(current_user: User = Depends(get_current_user)):
+        # Super admins têm acesso total (bypass permission check)
+        user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+        if user_role_str == "super_admin":
+            return current_user
+            
         # RBAC deve considerar o tenant do usuário
         user_permissions = await get_user_permissions(current_user.email, current_user.tenant_id)
         if not check_permission(user_permissions, permission):
