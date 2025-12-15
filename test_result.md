@@ -456,3 +456,23 @@ agent_communication:
       message: "📋 NOVO SISTEMA DE GERENCIAMENTO DE USUÁRIOS IMPLEMENTADO: Adicionei 3 novas funcionalidades para super_admins gerenciarem usuários: (1) Reset de Senha - Endpoint POST /users/{user_id}/reset-password gera senha temporária, (2) Bloquear/Desbloquear - Endpoint POST /users/{user_id}/toggle-status alterna status ativo/inativo, (3) Last Login Tracking - Login agora registra timestamp e IP. FRONTEND: Botões e modais implementados em AdminPanel.js. Backend reiniciado com sucesso. PRECISA TESTES URGENTES: Validar todos os 3 endpoints, verificar UI frontend, testar fluxo completo de cada funcionalidade."
     - agent: "testing"
       message: "🔍 COMPREHENSIVE USER MANAGEMENT SYSTEM TEST COMPLETED - SEGUNDA TENTATIVA. RESULTS: 7/11 tests passed (63.6% success rate). ✅ WORKING PERFECTLY: (1) Password reset with temporary passwords and UUIDs ✅, (2) Login tracking with last_login timestamps ✅, (3) User creation and listing with tenant isolation ✅, (4) Basic security permissions ✅. ❌ CRITICAL ISSUES FOUND: (1) User blocking/unblocking FAILING - admin role gets 403 'Acesso negado. Apenas administradores.' - needs super_admin role or permission fix ❌, (2) IP address tracking not working - returns None instead of actual IP ❌. 🎯 DETAILED FINDINGS: Admin login successful, password reset generates temporary passwords correctly, users must use temp password after reset, tenant isolation working (users only see same-tenant users), UUIDs used properly, login prevention working (returns 401 for blocked users). 🚨 URGENT FIXES NEEDED: Fix user blocking permissions and IP address capture for full functionality."
+
+    - agent: "main"
+      message: "🔧 CORREÇÕES CRÍTICAS DE SINTAXE JSX APLICADAS EM 15/12/2025: 
+      
+      1) AdminPanel.js - Corrigido erro de sintaxe JSX onde TabsContent value='users' não estava fechado corretamente. Adicionado abertura correta do <TabsContent value='users'><Card> nas linhas 754-758.
+      
+      2) AdminPanel.js - Corrigido ícone 'Download' não importado, substituído por 'CheckCircle' que já estava disponível.
+      
+      3) Dashboard.js - Corrigido bug crítico onde a função fetchDashboardData estava cortada e duplicada. Removido código duplicado e reorganizado a função corretamente.
+      
+      4) LoginPage.js - Adicionada aba 'Admin' para permitir login por email/senha. A interface agora tem 3 abas: Usuário (serial), Admin (email), Registrar.
+      
+      5) LoginPage.js - Corrigido problema de chamada da função login() que esperava objeto credentials mas recebia argumentos separados. Alterado de login(email, password) para login({ email, password }).
+      
+      RESULTADOS DOS TESTES:
+      - Página de login carrega corretamente com 3 abas
+      - Login como Admin funciona perfeitamente (admin@demo.com/admin123)
+      - Dashboard unificado carrega com 'Bem-vindo, Demo Admin!'
+      - Painel Administrativo com 3 abas (Usuários, Solicitações, Logs) funcionando
+      - Aba de Usuários mostra tabela corretamente estruturada"
