@@ -731,14 +731,27 @@ const AdminPanel = () => {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="licenses" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
-            <span>Gerenciar Licenças (Total: {licensesTotal})</span>
+            <span>Licenças ({licensesTotal})</span>
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
-            <span>Gerenciar Usuários ({users.length})</span>
+            <span>Usuários ({users.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="approvals" className="flex items-center space-x-2 relative">
+            <MessageSquare className="w-4 h-4" />
+            <span>Solicitações</span>
+            {pendingTickets.length > 0 && (
+              <Badge className="ml-2 bg-red-600 text-white">
+                {pendingTickets.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center space-x-2">
+            <Activity className="w-4 h-4" />
+            <span>Logs</span>
           </TabsTrigger>
         </TabsList>
 
