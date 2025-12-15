@@ -30,7 +30,19 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [recentLicenses, setRecentLicenses] = useState([]);
+  const [allLicenses, setAllLicenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingLicense, setEditingLicense] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [licenseForm, setLicenseForm] = useState({
+    name: '',
+    serial_number: '',
+    plan_id: '',
+    expires_at: '',
+    description: ''
+  });
 
   useEffect(() => {
     fetchDashboardData();
