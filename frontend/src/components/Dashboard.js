@@ -74,6 +74,71 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
+
+
+  const handleCreateLicense = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = { ...licenseForm };
+      if (formData.expires_at) formData.expires_at = new Date(formData.expires_at).toISOString();
+      Object.keys(formData).forEach(key => { if (!formData[key]) delete formData[key]; });
+      
+      await api.post('/licenses', formData);
+      toast.success('Licença criada!');
+      setShowCreateDialog(false);
+      setLicenseForm({ name: '', serial_number: '', plan_id: '', expires_at: '', description: '' });
+      setTimeout(fetchDashboardData, 500);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao criar');
+    }
+  };
+
+  const handleEditLicense = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = { ...licenseForm };
+      if (formData.expires_at) formData.expires_at = new Date(formData.expires_at).toISOString();
+      Object.keys(formData).forEach(key => { if (!formData[key]) delete formData[key]; });
+      
+      await api.put(`/licenses/${editingLicense.id}`, formData);
+      toast.success('Licença atualizada!');
+      setShowEditDialog(false);
+      setEditingLicense(null);
+      setTimeout(fetchDashboardData, 500);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao atualizar');
+    }
+  };
+
+  const handleDeleteLicense = async (licenseId) => {
+    if (!window.confirm('Excluir esta licença?')) return;
+    try {
+      await api.delete(`/licenses/${licenseId}`);
+      toast.success('Licença excluída!');
+      setTimeout(fetchDashboardData, 500);
+    } catch (error) {
+      toast.error('Erro ao excluir');
+    }
+  };
+
+  const openEditDialog = (license) => {
+    setEditingLicense(license);
+    setLicenseForm({
+      name: license.name || '',
+      serial_number: license.serial_number || '',
+      plan_id: license.plan_id || '',
+      expires_at: license.expires_at ? license.expires_at.split('T')[0] : '',
+      description: license.description || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const filteredLicenses = allLicenses.filter(l => 
+    searchTerm === '' || 
+    l.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.serial_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
       if (user.role === 'admin' || user.role === 'super_admin') {
         const statsResponse = await api.get('/stats');
         setStats(statsResponse.data);
