@@ -5,6 +5,9 @@ import { Badge } from './ui/badge';
 import { LicenseStatusBadge, StatusBadgeWithDot } from './ui/semantic-badge';
 import { Progress } from './ui/progress';
 import { Separator } from './ui/separator';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { api } from '../api';
 import { toast } from 'sonner';
 import { 
@@ -15,7 +18,11 @@ import {
   Clock, 
   AlertTriangle,
   TrendingUp,
-  Calendar
+  Calendar,
+  Plus,
+  Edit,
+  Trash2,
+  Search
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
