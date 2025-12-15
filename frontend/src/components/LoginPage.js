@@ -163,8 +163,9 @@ const LoginPage = () => {
 
         <Card className="shadow-lg">
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="user">Usuário</TabsTrigger>
+              <TabsTrigger value="admin">Admin</TabsTrigger>
               <TabsTrigger value="register">Registrar</TabsTrigger>
             </TabsList>
             
