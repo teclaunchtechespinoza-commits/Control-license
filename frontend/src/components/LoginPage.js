@@ -58,7 +58,7 @@ const LoginPage = () => {
       }
 
       console.log('Tentando login admin com:', loginData.email);
-      const result = await login(loginData.email, loginData.password);
+      const result = await login({ email: loginData.email, password: loginData.password });
       
       if (result.success) {
         toast.success('Login realizado com sucesso!');
