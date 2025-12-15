@@ -731,11 +731,7 @@ const AdminPanel = () => {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="licenses" className="flex items-center space-x-2">
-            <FileText className="w-4 h-4" />
-            <span>Licenças ({licensesTotal})</span>
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
             <span>Usuários ({users.length})</span>
