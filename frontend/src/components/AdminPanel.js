@@ -64,7 +64,11 @@ import {
   Clock,
   AlertTriangle,
   Shield,
-  UserPlus
+  UserPlus,
+  Bell,
+  MessageSquare,
+  Activity,
+  AlertCircle
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
