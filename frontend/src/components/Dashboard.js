@@ -74,17 +74,16 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch stats if admin
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'super_admin') {
         const statsResponse = await api.get('/stats');
         setStats(statsResponse.data);
       }
       
-      // Fetch recent licenses
       const licensesResponse = await api.get('/licenses');
       const sortedLicenses = licensesResponse.data.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
+      setAllLicenses(sortedLicenses);
       setRecentLicenses(sortedLicenses.slice(0, 5));
       
     } catch (error) {
