@@ -108,6 +108,23 @@ const AdminPanel = () => {
   });
   const [generatedPassword, setGeneratedPassword] = useState('');
 
+  // Estados para tickets e aprovações
+  const [tickets, setTickets] = useState([]);
+  const [pendingTickets, setPendingTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketResponse, setTicketResponse] = useState('');
+  const [processingTicket, setProcessingTicket] = useState(false);
+  
+  // Estados para logs de auditoria
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [selectedUserForLogs, setSelectedUserForLogs] = useState('all');
+  
+  // Estados para notificações
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+
   // Form states
   const [licenseForm, setLicenseForm] = useState({
     name: '',
