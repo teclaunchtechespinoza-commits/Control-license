@@ -1248,6 +1248,132 @@ const AdminPanel = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+
+        {/* Tab de Solicitações/Aprovações */}
+        <TabsContent value="approvals">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Solicitações Pendentes</span>
+                {pendingTickets.length > 0 && (
+                  <Badge className="bg-red-600">{pendingTickets.length} aguardando</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {tickets.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>Nenhuma solicitação no momento</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tickets.map((ticket) => (
+                    <div key={ticket.id} className={`border rounded-lg p-4 ${ticket.status === 'pending' ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200'}`}>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h3 className="font-semibold text-gray-900">{ticket.title}</h3>
+                            <Badge className={getTicketPriorityColor(ticket.priority)}>
+                              {ticket.priority}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
+                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <span>Tipo: {getTicketTypeLabel(ticket.type)}</span>
+                            <span>Por: {ticket.created_by_name}</span>
+                            <span>{formatDateTime(ticket.created_at)}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col space-y-2 ml-4">
+                          {ticket.status === 'pending' ? (
+                            <>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => {
+                                setSelectedTicket(ticket);
+                                setShowTicketModal(true);
+                              }}>
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Aprovar
+                              </Button>
+                              <Button size="sm" variant="outline" className="border-red-600 text-red-600 hover:bg-red-50" onClick={() => {
+                                setSelectedTicket(ticket);
+                                setShowTicketModal(true);
+                              }}>
+                                <XCircle className="w-4 h-4 mr-1" />
+                                Rejeitar
+                              </Button>
+                            </>
+                          ) : (
+                            <Badge variant="outline">{ticket.status}</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {ticket.admin_response && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-sm text-gray-700"><strong>Resposta:</strong> {ticket.admin_response}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab de Logs */}
+        <TabsContent value="logs">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Logs de Auditoria</CardTitle>
+                <Select value={selectedUserForLogs} onValueChange={setSelectedUserForLogs}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Filtrar por usuário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os usuários</SelectItem>
+                    {users.map(user => (
+                      <SelectItem key={user.id} value={user.email}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {activityLogs.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>Nenhuma atividade registrada</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activityLogs.map((log) => (
+                    <div key={log.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                      <div className="flex-shrink-0 mt-1">
+                        {getActivityIcon(log.activity_type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-medium text-gray-900">{log.user_name}</p>
+                          <span className="text-xs text-gray-500">{formatDateTime(log.created_at)}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{log.description}</p>
+                        {log.ip_address && (
+                          <p className="text-xs text-gray-400 mt-1">IP: {log.ip_address}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
       </Tabs>
 
       {/* Edit License Dialog */}
