@@ -74,7 +74,24 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        const statsResponse = await api.get('/stats');
+        setStats(statsResponse.data);
+      }
+      
+      const licensesResponse = await api.get('/licenses');
+      const sortedLicenses = licensesResponse.data.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      setAllLicenses(sortedLicenses);
+      setRecentLicenses(sortedLicenses.slice(0, 5));
+      
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateLicense = async (e) => {
     e.preventDefault();
