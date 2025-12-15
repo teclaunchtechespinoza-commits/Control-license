@@ -1376,6 +1376,64 @@ const AdminPanel = () => {
 
       </Tabs>
 
+
+
+      {/* Modal de Aprovação de Ticket */}
+      <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Aprovar/Rejeitar Solicitação</DialogTitle>
+          </DialogHeader>
+          {selectedTicket && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">{selectedTicket.title}</h3>
+                  <Badge className={getTicketPriorityColor(selectedTicket.priority)}>
+                    {selectedTicket.priority}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-600">{selectedTicket.description}</p>
+                <div className="text-xs text-gray-500 space-y-1">
+                  <p>Tipo: {getTicketTypeLabel(selectedTicket.type)}</p>
+                  <p>Criado por: {selectedTicket.created_by_name} ({selectedTicket.created_by})</p>
+                  <p>Data: {formatDateTime(selectedTicket.created_at)}</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Resposta/Observação</label>
+                <Textarea
+                  value={ticketResponse}
+                  onChange={(e) => setTicketResponse(e.target.value)}
+                  placeholder="Adicione uma resposta ou observação..."
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTicketModal(false)} disabled={processingTicket}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-red-600 text-red-600 hover:bg-red-50"
+              onClick={() => selectedTicket && handleRejectTicket(selectedTicket.id)}
+              disabled={processingTicket}
+            >
+              {processingTicket ? 'Processando...' : 'Rejeitar'}
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => selectedTicket && handleApproveTicket(selectedTicket.id)}
+              disabled={processingTicket}
+            >
+              {processingTicket ? 'Processando...' : 'Aprovar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit License Dialog */}
       <Dialog open={showEditLicenseDialog} onOpenChange={setShowEditLicenseDialog}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
