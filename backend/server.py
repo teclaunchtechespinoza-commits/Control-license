@@ -1364,6 +1364,108 @@ class LicenseUpdate(BaseModel):
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
 
+
+# ============================================================================
+# TICKET SYSTEM MODELS - Sistema de Solicitações e Suporte
+# ============================================================================
+
+class TicketType(str, Enum):
+    RENEWAL = "renewal"  # Solicitação de renovação
+    SUPPORT = "support"  # Suporte técnico
+    PROBLEM = "problem"  # Reportar problema
+    GENERAL = "general"  # Solicitação geral
+
+class TicketStatus(str, Enum):
+    PENDING = "pending"  # Aguardando aprovação
+    APPROVED = "approved"  # Aprovado
+    REJECTED = "rejected"  # Rejeitado
+    IN_PROGRESS = "in_progress"  # Em andamento
+    RESOLVED = "resolved"  # Resolvido
+    CLOSED = "closed"  # Fechado
+
+class TicketPriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    URGENT = "urgent"
+
+class TicketBase(BaseModel):
+    type: TicketType
+    title: str = Field(..., min_length=3, max_length=200)
+    description: str = Field(..., min_length=10, max_length=2000)
+    priority: TicketPriority = TicketPriority.MEDIUM
+    license_id: Optional[str] = None  # Licença relacionada (se aplicável)
+    
+class TicketCreate(TicketBase):
+    pass
+
+class Ticket(TicketBase):
+    id: str
+    status: TicketStatus = TicketStatus.PENDING
+    created_by: str  # Email do usuário que criou
+    created_by_name: str  # Nome do usuário
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: Optional[datetime] = None
+    resolved_by: Optional[str] = None  # Email do admin que resolveu
+    admin_response: Optional[str] = None
+    tenant_id: str
+
+class TicketUpdate(BaseModel):
+    status: Optional[TicketStatus] = None
+    priority: Optional[TicketPriority] = None
+    admin_response: Optional[str] = None
+
+# ============================================================================
+# ACTIVITY LOG MODELS - Sistema de Auditoria
+# ============================================================================
+
+class ActivityType(str, Enum):
+    LICENSE_VIEWED = "license_viewed"
+    LICENSE_RENEWED = "license_renewed"
+    CERTIFICATE_DOWNLOADED = "certificate_downloaded"
+    TICKET_CREATED = "ticket_created"
+    TICKET_UPDATED = "ticket_updated"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    PROFILE_UPDATED = "profile_updated"
+
+class ActivityLog(BaseModel):
+    id: str
+    user_email: str
+    user_name: str
+    activity_type: ActivityType
+    description: str
+    resource_id: Optional[str] = None  # ID do recurso afetado (licença, ticket, etc)
+    resource_type: Optional[str] = None  # Tipo do recurso
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime
+    tenant_id: str
+
+# ============================================================================
+# NOTIFICATION MODELS - Sistema de Notificações
+# ============================================================================
+
+class NotificationType(str, Enum):
+    LICENSE_EXPIRING = "license_expiring"
+    LICENSE_EXPIRED = "license_expired"
+    TICKET_APPROVED = "ticket_approved"
+    TICKET_REJECTED = "ticket_rejected"
+    TICKET_RESOLVED = "ticket_resolved"
+    NEW_TICKET = "new_ticket"  # Para admins
+
+class Notification(BaseModel):
+    id: str
+    user_email: str
+    type: NotificationType
+    title: str
+    message: str
+    read: bool = False
+    action_url: Optional[str] = None  # Link para ação relacionada
+    created_at: datetime
+    tenant_id: str
+
 # Utility Functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
