@@ -299,79 +299,108 @@ const Dashboard = () => {
       {/* Recent Licenses */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5" />
-            <span>
-              {user.role === 'admin' ? 'Licenças Recentes' : 'Minhas Licenças'}
-            </span>
-          </CardTitle>
-          <CardDescription>
-            {user.role === 'admin' 
-              ? 'Últimas licenças criadas no sistema'
-              : 'Licenças atribuídas a você'
-            }
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5" />
+              <span>Gerenciamento de Licenças</span>
+            </CardTitle>
+            {(user.role === 'admin' || user.role === 'super_admin') && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Licença
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center space-x-2 mt-4">
+            <Search className="w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Buscar licença..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
         </CardHeader>
         <CardContent>
-          {recentLicenses.length === 0 ? (
+          {filteredLicenses.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Nenhuma licença encontrada
-              </h3>
-              <p className="text-gray-500">
-                {user.role === 'admin' 
-                  ? 'Comece criando uma nova licença no painel administrativo'
-                  : 'Você ainda não possui licenças atribuídas'
-                }
-              </p>
+              <p className="text-gray-500">Nenhuma licença encontrada</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {recentLicenses.map((license, index) => (
-                <div key={license.id}>
-                  <div className="flex items-center justify-between p-4 rounded-lg border">
-                    <div className="flex items-center space-x-4">
-                      {getSemanticStatusIcon(license.status)}
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {license.name}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          Chave: {license.license_key}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
-                            Criado em {formatDate(license.created_at)}
-                          </span>
-                          {license.expires_at && (
-                            <>
-                              <span className="text-xs text-gray-300">•</span>
-                              <span className="text-xs text-gray-500">
-                                Expira em {formatDate(license.expires_at)}
-                              </span>
-                            </>
-                          )}
-                        </div>
+            <div className="space-y-3">
+              {filteredLicenses.map((license) => (
+                <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50">
+                  <div className="flex items-center space-x-4 flex-1">
+                    {getSemanticStatusIcon(license.status)}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{license.name}</h4>
+                      <p className="text-sm text-gray-500">Serial: {license.serial_number || license.license_key}</p>
+                      <div className="flex items-center space-x-2 mt-1 text-xs text-gray-500">
+                        <span>Criado: {formatDate(license.created_at)}</span>
+                        {license.expires_at && (
+                          <><span>•</span><span>Expira: {formatDate(license.expires_at)}</span></>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      {getSemanticStatusBadge(license.status)}
-                      {license.max_users > 1 && (
-                        <Badge variant="outline">
-                          {license.max_users} usuários
-                        </Badge>
-                      )}
-                    </div>
                   </div>
-                  {index < recentLicenses.length - 1 && <Separator />}
+                  <div className="flex items-center space-x-2">
+                    {getSemanticStatusBadge(license.status)}
+                    {(user.role === 'admin' || user.role === 'super_admin') && (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(license)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDeleteLicense(license.id)}>
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Modal Criar */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Licença</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateLicense} className="space-y-4">
+            <Input placeholder="Nome" value={licenseForm.name} onChange={(e) => setLicenseForm({...licenseForm, name: e.target.value})} required />
+            <Input placeholder="Serial Number" value={licenseForm.serial_number} onChange={(e) => setLicenseForm({...licenseForm, serial_number: e.target.value})} />
+            <Input placeholder="Plano" value={licenseForm.plan_id} onChange={(e) => setLicenseForm({...licenseForm, plan_id: e.target.value})} />
+            <Input type="date" value={licenseForm.expires_at} onChange={(e) => setLicenseForm({...licenseForm, expires_at: e.target.value})} />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
+              <Button type="submit">Criar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Editar */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Licença</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditLicense} className="space-y-4">
+            <Input placeholder="Nome" value={licenseForm.name} onChange={(e) => setLicenseForm({...licenseForm, name: e.target.value})} required />
+            <Input placeholder="Serial Number" value={licenseForm.serial_number} onChange={(e) => setLicenseForm({...licenseForm, serial_number: e.target.value})} />
+            <Input placeholder="Plano" value={licenseForm.plan_id} onChange={(e) => setLicenseForm({...licenseForm, plan_id: e.target.value})} />
+            <Input type="date" value={licenseForm.expires_at} onChange={(e) => setLicenseForm({...licenseForm, expires_at: e.target.value})} />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+              <Button type="submit">Salvar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Actions for Regular Users */}
       {user.role !== 'admin' && (
