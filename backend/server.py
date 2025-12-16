@@ -6034,8 +6034,7 @@ async def create_product(
         
         maintenance_logger.debug("products", "create_product_before_insert", {
             "product_id": product.id,
-            "product_name": product.name,
-            "complete_product": product.dict()
+            "product_name": product.name
         })
         
         # Insert into database - usar product.dict() para incluir campos gerados
