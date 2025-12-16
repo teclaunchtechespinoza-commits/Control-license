@@ -8262,13 +8262,17 @@ async def ensure_indexes():
                 name="idx_users_tenant_admin_vendor",
             )
 
-        # licenses: único por tenant/serial e consultas por seller/assigned
+        # licenses: único por tenant/license_key e consultas por seller/assigned
         existing = await db.licenses.index_information()
-        if "uniq_tenant_serial" not in existing:
+        # Remover índice antigo se existir (usava 'serial' que não existe no modelo)
+        if "uniq_tenant_serial" in existing:
+            await db.licenses.drop_index("uniq_tenant_serial")
+        # Criar índice correto usando license_key
+        if "uniq_tenant_license_key" not in existing:
             await db.licenses.create_index(
-                [("tenant_id", 1), ("serial", 1)],
+                [("tenant_id", 1), ("license_key", 1)],
                 unique=True,
-                name="uniq_tenant_serial",
+                name="uniq_tenant_license_key",
             )
         if "idx_licenses_tenant_seller" not in existing:
             await db.licenses.create_index([("tenant_id", 1), ("seller_admin_id", 1)], name="idx_licenses_tenant_seller")
