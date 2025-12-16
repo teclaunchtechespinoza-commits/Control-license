@@ -5217,33 +5217,7 @@ async def get_sales_analytics(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Tenant Management Routes - GET endpoint only (POST is defined earlier in the file)
-
-@api_router.get("/tenants", response_model=List[Tenant])
-async def list_tenants(current_user: User = Depends(get_current_user)):
-    """
-    Listar todos os tenants (disponível apenas para super admins)
-    """
-    if not is_super_admin():
-        user_permissions = await get_user_permissions(current_user.email)
-        if not check_permission(user_permissions, "tenants.read"):
-            raise HTTPException(status_code=403, detail="Permission required: tenants.read")
-    
-    try:
-        tenants = await db.tenants.find().to_list(1000)
-        result = []
-        for tenant in tenants:
-            tenant_id = tenant.get("id")
-            # Calcular contadores dinamicamente
-            tenant["current_users"] = await db.users.count_documents({"tenant_id": tenant_id})
-            tenant["current_licenses"] = await db.licenses.count_documents({"tenant_id": tenant_id})
-            tenant["current_clients"] = (
-                await db.clientes_pf.count_documents({"tenant_id": tenant_id}) +
-                await db.clientes_pj.count_documents({"tenant_id": tenant_id})
-            )
-            result.append(Tenant(**tenant))
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error listing tenants: {str(e)}")
+# NOTE: Primary GET /tenants endpoint is at line ~4075 with user/license counts
 
 @api_router.get("/tenants/{tenant_id}", response_model=Tenant)
 async def get_tenant(tenant_id: str, current_user: User = Depends(get_current_user)):
