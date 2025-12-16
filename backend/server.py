@@ -6037,8 +6037,8 @@ async def create_product(
             "complete_product": product.dict()
         })
         
-        # Insert into database
-        result = await db.products.insert_one(product_dict)
+        # Insert into database - usar product.dict() para incluir campos gerados
+        result = await db.products.insert_one(product.dict())
         
         maintenance_logger.info("products", "create_product_success", {
             "product_id": product.id,
