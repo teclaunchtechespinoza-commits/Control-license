@@ -3824,11 +3824,12 @@ async def create_license_plan(
     
     plan_dict = plan_data.dict()
     plan_dict["created_by"] = current_user.id
+    # CRÍTICO: Adicionar tenant_id ANTES de criar a instância LicensePlan
+    plan_dict["tenant_id"] = current_user.tenant_id
     
     plan = LicensePlan(**plan_dict)
-    # CRÍTICO: Inserir plano com tenant_id
-    plan_dict_with_tenant = add_tenant_to_document(plan.dict(), current_user.tenant_id)
-    await db.license_plans.insert_one(plan_dict_with_tenant)
+    # Inserir plano no banco
+    await db.license_plans.insert_one(plan.dict())
     
     return plan
 
