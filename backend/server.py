@@ -4082,7 +4082,18 @@ async def get_tenants(current_user: User = Depends(get_current_user)):
         )
     
     tenants = await db.tenants.find().to_list(1000)
-    return [Tenant(**tenant) for tenant in tenants]
+    result = []
+    for tenant in tenants:
+        tenant_id = tenant.get("id")
+        # Calcular contadores dinamicamente
+        tenant["current_users"] = await db.users.count_documents({"tenant_id": tenant_id})
+        tenant["current_licenses"] = await db.licenses.count_documents({"tenant_id": tenant_id})
+        tenant["current_clients"] = (
+            await db.clientes_pf.count_documents({"tenant_id": tenant_id}) +
+            await db.clientes_pj.count_documents({"tenant_id": tenant_id})
+        )
+        result.append(Tenant(**tenant))
+    return result
 
 @api_router.get("/tenants/{tenant_id}", response_model=Tenant)
 async def get_tenant(tenant_id: str, current_user: User = Depends(get_current_user)):
