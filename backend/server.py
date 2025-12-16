@@ -3717,11 +3717,12 @@ async def create_company(
     
     company_dict = company_data.dict()
     company_dict["created_by"] = current_user.id
+    # CRÍTICO: Adicionar tenant_id ANTES de criar a instância Company
+    company_dict["tenant_id"] = current_user.tenant_id
     
     company = Company(**company_dict)
-    # CRÍTICO: Inserir empresa com tenant_id
-    company_dict_with_tenant = add_tenant_to_document(company.dict(), current_user.tenant_id)
-    await db.companies.insert_one(company_dict_with_tenant)
+    # Inserir empresa no banco
+    await db.companies.insert_one(company.dict())
     
     return company
 
