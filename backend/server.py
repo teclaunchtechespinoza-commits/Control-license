@@ -6113,17 +6113,7 @@ async def delete_product(
     return {"message": "Product deleted successfully"}
 
 # License Plan routes (keeping existing structure)
-@api_router.post("/license-plans", response_model=LicensePlan)
-async def create_license_plan(
-    plan_data: LicensePlanCreate,
-    current_user: User = Depends(get_current_admin_user)
-):
-    plan_dict = plan_data.dict()
-    # CRÍTICO: Adicionar tenant_id ANTES de criar a instância LicensePlan
-    plan_dict["tenant_id"] = current_user.tenant_id
-    plan = LicensePlan(**plan_dict)
-    await db.license_plans.insert_one(plan.dict())
-    return plan
+# POST /license-plans endpoint removed - duplicated, using the one at line 3811
 
 @api_router.get("/license-plans", response_model=List[LicensePlan])
 async def get_license_plans(current_user: User = Depends(get_current_user)):
