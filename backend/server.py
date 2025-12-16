@@ -6025,9 +6025,8 @@ async def create_product(
         # Create product
         product_dict = product_data.dict()
         product_dict["created_by"] = current_user.id
-        
-        # Usar helper de tenant para adicionar tenant_id
-        product_dict = add_tenant_to_document(product_dict)
+        # CRÍTICO: Adicionar tenant_id ANTES de criar a instância Product
+        product_dict["tenant_id"] = current_user.tenant_id
         
         # Criar produto com tenant_id
         product = Product(**product_dict)
@@ -6171,7 +6170,10 @@ async def create_license_plan(
     plan_data: LicensePlanCreate,
     current_user: User = Depends(get_current_admin_user)
 ):
-    plan = LicensePlan(**plan_data.dict())
+    plan_dict = plan_data.dict()
+    # CRÍTICO: Adicionar tenant_id ANTES de criar a instância LicensePlan
+    plan_dict["tenant_id"] = current_user.tenant_id
+    plan = LicensePlan(**plan_dict)
     await db.license_plans.insert_one(plan.dict())
     return plan
 
