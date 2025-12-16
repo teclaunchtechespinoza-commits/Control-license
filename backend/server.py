@@ -5205,59 +5205,7 @@ async def get_sales_analytics(
         logger.error(f"Error generating sales analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Tenant Management Routes
-@api_router.post("/tenants", response_model=Tenant)
-async def create_tenant(tenant_data: TenantCreate, current_user: User = Depends(get_current_user)):
-    """
-    Criar novo tenant (disponível apenas para super admins)
-    """
-    # Verificar se o usuário é super admin
-    if not is_super_admin():
-        user_permissions = await get_user_permissions(current_user.email)
-        if not check_permission(user_permissions, "tenants.create"):
-            raise HTTPException(status_code=403, detail="Permission required: tenants.create")
-    
-    try:
-        # Verificar se subdomain já existe
-        existing = await db.tenants.find_one({"subdomain": tenant_data.subdomain})
-        if existing:
-            raise HTTPException(status_code=400, detail="Subdomain already exists")
-        
-        # Aplicar configurações do plano
-        tenant_dict = tenant_data.dict()
-        tenant_dict = apply_plan_limits(tenant_dict, tenant_data.plan)
-        
-        # Criar tenant
-        tenant = Tenant(**tenant_dict)
-        tenant_doc = tenant.dict()
-        
-        result = await db.tenants.insert_one(tenant_doc)
-        
-        # Criar usuário administrador inicial para o tenant
-        admin_user_data = {
-            "id": str(uuid.uuid4()),
-            "name": tenant_data.admin_name,
-            "email": tenant_data.admin_email,
-            "password_hash": pwd_context.hash(tenant_data.admin_password),
-            "role": "admin",
-            "tenant_id": tenant.id,
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-            "rbac": {
-                "roles": [],  # Será configurado na inicialização RBAC
-                "is_active": True,
-                "last_permission_update": datetime.utcnow()
-            }
-        }
-        
-        # CRÍTICO: Garantir tenant_id no documento admin
-        admin_user_with_tenant = add_tenant_to_document(admin_user_data, tenant.id)
-        await db.users.insert_one(admin_user_with_tenant)
-        
-        return tenant
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating tenant: {str(e)}")
+# Tenant Management Routes - GET endpoint only (POST is defined earlier in the file)
 
 @api_router.get("/tenants", response_model=List[Tenant])
 async def list_tenants(current_user: User = Depends(get_current_user)):
