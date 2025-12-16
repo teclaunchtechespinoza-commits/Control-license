@@ -285,12 +285,9 @@ export const schemas = {
   
   // Company form
   company: {
-    name: [validationRules.required, validationRules.minLength(2)],  // Campo correto do formulário
-    companyName: [validationRules.required, validationRules.minLength(2)],  // Mantido para compatibilidade
-    cnpj: [validationRules.cnpj],
-    city: [validationRules.required],
-    state: [validationRules.required],
-    country: [validationRules.required]
+    name: [validationRules.required, validationRules.minLength(2)]
+    // Removidos campos opcionais: city, state, country não são obrigatórios no formulário
+    // cnpj também é opcional no formulário de empresas
   },
   
   // Client PF form
