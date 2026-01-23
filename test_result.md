@@ -494,3 +494,19 @@ agent_communication:
       - Dashboard unificado carrega com 'Bem-vindo, Demo Admin!'
       - Painel Administrativo com 3 abas (Usuários, Solicitações, Logs) funcionando
       - Aba de Usuários mostra tabela corretamente estruturada"
+
+## GO-LIVE CHECKLIST - Atualização 16/12/2024
+
+### FASE 1 - CORREÇÕES CRÍTICAS
+- [x] Toggle de visibilidade de senha - LoginPage.js (Admin e Registrar)
+- [x] Toggle de visibilidade de senha - AdminPanel.js (Reset de senha)  
+- [x] Toggle de visibilidade de senha - ClientsModule.js (Dados sensíveis)
+- [x] Toggle de visibilidade de senha - SensitiveDataManager.js
+- [x] Correção de endpoints duplicados (tenants, license-plans)
+- [x] Índices únicos no MongoDB para prevenir duplicação
+- [x] Contadores dinâmicos de usuários/licenças por tenant
+
+### FASE 2 - TESTES E2E
+- [ ] Fluxo completo User → Admin (tickets)
+- [ ] Criar 50+ licenças de teste
+- [ ] Testar todos os módulos
