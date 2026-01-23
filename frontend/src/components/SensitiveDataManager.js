@@ -305,6 +305,7 @@ const SensitiveDataEditor = ({ clientId, sensitiveData, onSave }) => {
   const canEdit = canViewSensitiveData(user?.role);
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState(sensitiveData || {});
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   if (!canEdit) return null;
 
