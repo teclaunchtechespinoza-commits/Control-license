@@ -70,7 +70,21 @@ const Navbar = () => {
     return '999+'; // Show 999+ for very large numbers
   };
 
-  const navigationGroups = [
+  // Menu simplificado para usuários comuns
+  const userNavigationGroups = [
+    {
+      id: 'user-home',
+      label: 'Início',
+      icon: Home,
+      color: 'text-blue-600',
+      items: [
+        { label: 'Meu Painel', path: '/minhas-licencas', icon: BarChart3, description: 'Suas licenças e status' }
+      ]
+    }
+  ];
+
+  // Menu completo para admins
+  const adminNavigationGroups = [
     {
       id: 'overview',
       label: 'Visão Geral',
@@ -89,7 +103,7 @@ const Navbar = () => {
       badge: licensesLoading ? '...' : formatBadgeCount(licenseCount),
       items: [
         { 
-          label: 'Minhas Licenças', 
+          label: 'Gestão de Licenças', 
           path: '/licenses', 
           icon: FileText, 
           description: licensesLoading ? 'Carregando...' : 
@@ -100,6 +114,9 @@ const Navbar = () => {
       ]
     }
   ];
+
+  // Usar menu simplificado para users, completo para admins
+  const navigationGroups = user?.role === 'user' ? userNavigationGroups : adminNavigationGroups;
 
   const adminGroups = (user?.role === 'admin' || user?.role === 'super_admin') ? [
     {
