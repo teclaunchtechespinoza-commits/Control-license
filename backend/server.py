@@ -2999,7 +2999,14 @@ async def list_users(
         # 🔄 FALLBACK: Use original implementation if dependency injection fails
         logger.warning("Falling back to original user listing implementation")
         
-        q = build_scope_filter(current_user, {})
+        # SEGURANÇA: User só pode ver a si mesmo
+        if current_user.role == UserRole.USER:
+            q = {"id": current_user.id, "tenant_id": current_user.tenant_id}
+        elif current_user.role == UserRole.ADMIN:
+            q = {"tenant_id": current_user.tenant_id}
+        else:
+            q = {}  # SUPER_ADMIN vê todos
+            
         cursor = db.users.find(q).limit(200)
         users = await cursor.to_list(length=200)
         return [User(**user) for user in users]
