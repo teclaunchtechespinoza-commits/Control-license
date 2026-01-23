@@ -1453,18 +1453,40 @@ const AdminPanel = () => {
                 </label>
                 {!resetPasswordForm.generateAuto && (
                   <div className="ml-6 space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Nova senha"
-                      value={resetPasswordForm.newPassword}
-                      onChange={(e) => setResetPasswordForm({...resetPasswordForm, newPassword: e.target.value})}
-                    />
-                    <Input
-                      type="password"
-                      placeholder="Confirmar senha"
-                      value={resetPasswordForm.confirmPassword}
-                      onChange={(e) => setResetPasswordForm({...resetPasswordForm, confirmPassword: e.target.value})}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Nova senha"
+                        value={resetPasswordForm.newPassword}
+                        onChange={(e) => setResetPasswordForm({...resetPasswordForm, newPassword: e.target.value})}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Confirmar senha"
+                        value={resetPasswordForm.confirmPassword}
+                        onChange={(e) => setResetPasswordForm({...resetPasswordForm, confirmPassword: e.target.value})}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
