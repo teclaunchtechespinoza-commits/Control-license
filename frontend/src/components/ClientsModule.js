@@ -1998,34 +1998,56 @@ const ClientsModule = () => {
                       
                       <div className="space-y-2">
                         <Label className="text-red-700">Senha Admin</Label>
-                        <Input
-                          type="password"
-                          value={formData.sensitive_data?.admin_password || ''}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            sensitive_data: {
-                              ...formData.sensitive_data,
-                              admin_password: e.target.value
-                            }
-                          })}
-                          placeholder="••••••••"
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            value={formData.sensitive_data?.admin_password || ''}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              sensitive_data: {
+                                ...formData.sensitive_data,
+                                admin_password: e.target.value
+                              }
+                            })}
+                            placeholder="••••••••"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="space-y-2">
                         <Label className="text-red-700">Senha WiFi</Label>
-                        <Input
-                          type="password"
-                          value={formData.sensitive_data?.wifi_password || ''}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            sensitive_data: {
-                              ...formData.sensitive_data,
-                              wifi_password: e.target.value
-                            }
-                          })}
-                          placeholder="••••••••"
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            value={formData.sensitive_data?.wifi_password || ''}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              sensitive_data: {
+                                ...formData.sensitive_data,
+                                wifi_password: e.target.value
+                              }
+                            })}
+                            placeholder="••••••••"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="space-y-2">
