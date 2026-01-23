@@ -56,6 +56,7 @@ import {
   Building2,
   UserCheck,
   Eye,
+  EyeOff,
   Save,
   X,
   Phone,
@@ -79,6 +80,7 @@ const ClientsModule = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pf');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   // Data states
   const [clientesPF, setClientesPF] = useState([]);
