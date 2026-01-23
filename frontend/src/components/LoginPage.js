@@ -40,10 +40,12 @@ const LoginPage = () => {
     // Component initialization if needed
   }, []);
 
-  // If user is already logged in, redirect to dashboard
+  // If user is already logged in, redirect based on role
   if (user) {
-    console.log('User is logged in, redirecting to dashboard:', user);
-    return <Navigate to="/dashboard" />;
+    console.log('User is logged in, redirecting based on role:', user.role);
+    // Users vão para suas licenças, admins vão para dashboard
+    const targetPath = user.role === 'user' ? '/minhas-licencas' : '/dashboard';
+    return <Navigate to={targetPath} />;
   }
 
   const handleLogin = async (e) => {
@@ -62,7 +64,10 @@ const LoginPage = () => {
       
       if (result.success) {
         toast.success('Login realizado com sucesso!');
-        navigate('/dashboard');
+        // Redirecionar baseado no role do usuário
+        const userRole = result.user?.role;
+        const targetPath = userRole === 'user' ? '/minhas-licencas' : '/dashboard';
+        navigate(targetPath);
       } else {
         toast.error(result.error || 'Erro no login');
       }
