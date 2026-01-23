@@ -13,6 +13,7 @@ import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import AdminPanel from './components/AdminPanel';
 import UserLicenses from './components/UserLicenses';
+import UserDashboard from './components/UserDashboard';
 import UserLicenseView from './components/UserLicenseView';
 import RegistryModule from './components/RegistryModule';
 import ClientsModule from './components/ClientsModule';
