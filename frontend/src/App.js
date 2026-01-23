@@ -267,7 +267,7 @@ function App() {
                   path="/minhas-licencas" 
                   element={
                     <ProtectedRoute>
-                      <UserLicenseView />
+                      <UserDashboard />
                     </ProtectedRoute>
                   } 
                 />
