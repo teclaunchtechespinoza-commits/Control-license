@@ -105,6 +105,18 @@
 user_problem_statement: "TESTE COMPLETO DO SISTEMA DE PERMISSÕES E LOGIN POR SERIAL: Implementei um sistema completo de restrições de permissões para usuários 'user' e login por número de série. Preciso validar: 1) Proteção de Rotas (/vendas adminOnly, /minhas-licencas para users), 2) Login por Serial (POST /auth/login-serial), 3) Endpoint de Licenças do Usuário (GET /user/licenses), 4) Redirecionamento Inteligente, 5) Estrutura dos Dados (usuários com serial_number, licenças associadas), 6) Interface com abas Admin/Usuário/Registrar."
 
 backend:
+  - task: "E2E GO-LIVE SCENARIOS - Sistema Multi-Tenant Preparação Cliente"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ SISTEMA NÃO PRONTO PARA GO-LIVE - CORREÇÕES CRÍTICAS NECESSÁRIAS! CONTEXTO: Teste E2E completo para apresentação a cliente principal com credenciais: superadmin@autotech.com/admin123, admin@demo.com/admin123, user@demo.com/user123. RESULTADOS: 10/20 testes aprovados (50% taxa de sucesso). CENÁRIOS TESTADOS: ✅ AUTENTICAÇÃO (4/5 - 80%): Super Admin, Admin e User login funcionando, User role verification OK, ❌ Admin role verification falhou (retornando user role), ❌ GESTÃO DE LICENÇAS (1/3 - 33%): ✅ Listagem funcionando, ❌ Criação falhou (403 Not enough permissions), ❌ Stats falhou (403), ❌ CADASTROS (0/4 - 0%): Todas operações falharam com 403 (empresas, produtos, planos, categorias), ✅ TICKETS (1/3 - 33%): ✅ User criação funcionando, ❌ Admin visualização falhou (403 Apenas administradores), ❌ Admin aprovação falhou (403), ✅ MULTI-TENANCY (2/2 - 100%): Isolamento de dados funcionando, Super admin acesso total OK, ⚠️ SEGURANÇA (2/3 - 67%): ❌ Proteção de endpoints falhou (user acessou /users com 200 em vez de 403), ✅ Acesso restrito funcionando, ✅ Rate limiting OK. PROBLEMAS CRÍTICOS IDENTIFICADOS: 1. Admin role não sendo reconhecido corretamente (admin@demo.com retorna user role), 2. Permissões insuficientes para operações CRUD (403 em licenses, companies, products, etc), 3. Sistema de tickets não reconhece admin como administrador, 4. Endpoint /users não protegido adequadamente contra usuários comuns. IMPACTO: Sistema não está pronto para apresentação ao cliente devido a falhas críticas de autorização e permissões."
+
   - task: "TESTE COMPLETO DO SISTEMA PÓS-CORREÇÕES JSX E LOGIN"
     implemented: true
     working: true
