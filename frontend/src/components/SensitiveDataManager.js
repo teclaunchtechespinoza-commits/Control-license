@@ -383,32 +383,65 @@ const SensitiveDataEditor = ({ clientId, sensitiveData, onSave }) => {
             
             <div className="space-y-2">
               <Label>Senha Administrador</Label>
-              <Input
-                type="password"
-                value={formData.admin_password || ''}
-                onChange={(e) => setFormData({...formData, admin_password: e.target.value})}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <Input
+                  type={showEditPassword ? "text" : "password"}
+                  value={formData.admin_password || ''}
+                  onChange={(e) => setFormData({...formData, admin_password: e.target.value})}
+                  placeholder="••••••••"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowEditPassword(!showEditPassword)}
+                >
+                  {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-2">
               <Label>Senha de Serviço</Label>
-              <Input
-                type="password"
-                value={formData.service_password || ''}
-                onChange={(e) => setFormData({...formData, service_password: e.target.value})}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <Input
+                  type={showEditPassword ? "text" : "password"}
+                  value={formData.service_password || ''}
+                  onChange={(e) => setFormData({...formData, service_password: e.target.value})}
+                  placeholder="••••••••"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowEditPassword(!showEditPassword)}
+                >
+                  {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-2">
               <Label>Senha WiFi</Label>
-              <Input
-                type="password"
-                value={formData.wifi_password || ''}
-                onChange={(e) => setFormData({...formData, wifi_password: e.target.value})}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <Input
+                  type={showEditPassword ? "text" : "password"}
+                  value={formData.wifi_password || ''}
+                  onChange={(e) => setFormData({...formData, wifi_password: e.target.value})}
+                  placeholder="••••••••"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowEditPassword(!showEditPassword)}
+                >
+                  {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
