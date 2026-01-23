@@ -60,11 +60,30 @@ const TenantSelector = ({ currentUser }) => {
     return plans[normalizedPlan] || plans['FREE'];
   };
 
-  if (!myTenant || tenantLoading) {
+  if (tenantLoading) {
     return (
       <div className="flex items-center space-x-2 text-gray-500">
         <Building className="w-4 h-4 animate-pulse" />
         <span className="text-sm">Carregando...</span>
+      </div>
+    );
+  }
+
+  // Se não conseguiu carregar o tenant, mostrar fallback sem bloquear
+  if (!myTenant) {
+    return (
+      <div className="flex items-center space-x-3 bg-white rounded-lg px-3 py-2 border border-gray-200">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50">
+          <Building className="w-4 h-4 text-blue-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-medium text-gray-900 truncate">
+            {currentUser?.role === 'super_admin' ? 'Super Admin' : 'Sistema'}
+          </h3>
+          <p className="text-xs text-gray-500">
+            Contexto global
+          </p>
+        </div>
       </div>
     );
   }
