@@ -22,6 +22,11 @@ class AdvancedRateLimiter:
     Supports multiple rate limiting strategies and tenant-aware limits
     """
     
+    # Flag para evitar tentativas repetidas de conexão ao Redis quando não disponível
+    _redis_connection_failed = False
+    _last_redis_attempt = 0
+    _redis_retry_interval = 300  # Tentar reconectar ao Redis a cada 5 minutos
+    
     def __init__(self, redis_url: str = "redis://localhost:6379/1"):
         """Initialize with Redis connection for rate limiting data"""
         self.redis_url = redis_url
@@ -47,29 +52,43 @@ class AdvancedRateLimiter:
         }
     
     async def get_redis_client(self) -> redis.Redis:
-        """Get Redis client with connection pooling"""
+        """Get Redis client with connection pooling - with smart retry logic"""
+        import time as time_module
+        current_time = time_module.time()
+        
+        # Se Redis já falhou, não tentar novamente por um tempo
+        if AdvancedRateLimiter._redis_connection_failed:
+            if current_time - AdvancedRateLimiter._last_redis_attempt < AdvancedRateLimiter._redis_retry_interval:
+                return None  # Retorna imediatamente sem tentar conexão
+            # Tempo de retry passou, tentar novamente
+            AdvancedRateLimiter._redis_connection_failed = False
+        
         if not self._redis_client:
             try:
+                AdvancedRateLimiter._last_redis_attempt = current_time
                 self._redis_client = redis.from_url(
                     self.redis_url,
                     decode_responses=True,
                     max_connections=20,
-                    retry_on_timeout=True
+                    retry_on_timeout=False,  # Não retry em timeout para evitar demora
+                    socket_connect_timeout=1,  # Timeout de 1 segundo para conexão
+                    socket_timeout=1  # Timeout de 1 segundo para operações
                 )
-                # Test connection
-                await self._redis_client.ping()
+                # Test connection com timeout curto
+                await asyncio.wait_for(self._redis_client.ping(), timeout=1.0)
                 structured_logger.info(
                     EventCategory.SYSTEM,
                     "rate_limiter_redis_connected",
                     "Rate limiter connected to Redis successfully"
                 )
             except Exception as e:
-                structured_logger.error(
+                structured_logger.warning(
                     EventCategory.SYSTEM,
-                    "rate_limiter_redis_failed",
-                    f"Rate limiter Redis connection failed: {str(e)}"
+                    "rate_limiter_redis_unavailable",
+                    f"Redis not available, using in-memory fallback: {str(e)}"
                 )
-                # Fallback to in-memory (not recommended for production)
+                # Marcar como falha para não tentar novamente
+                AdvancedRateLimiter._redis_connection_failed = True
                 self._redis_client = None
         
         return self._redis_client
