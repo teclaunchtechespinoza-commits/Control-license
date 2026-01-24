@@ -830,7 +830,8 @@ const AdminPanel = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {userData.id !== user.id && (
+                            {/* Super admin pode editar qualquer usuário, outros admins não podem editar a si mesmos */}
+                            {(user.role === 'super_admin' || userData.id !== user.id) && (
                               <>
                                 <Button
                                   variant="ghost"
