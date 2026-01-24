@@ -205,3 +205,5 @@
 [2026-01-24 10:10:14] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
 [2026-01-24 10:21:34] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 11.32289965, "total_executions": 0}
 [2026-01-24 10:21:36] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
+[2026-01-24 10:21:51] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 0.25545381666666667, "total_executions": 0}
+[2026-01-24 10:21:53] [INFO] scheduler - startup: {"status": "started", "timezone": "America/Recife", "persistence": "mongodb", "features": ["auto_recovery", "job_monitoring", "tenant_isolation"]}
