@@ -2977,15 +2977,21 @@ async def list_users(
         elif current_user.role == UserRole.USER:
             # Users can only see themselves
             base_filter["id"] = current_user.id
-        # SUPER_ADMIN sees all users in the tenant (no additional filter)
+        # SUPER_ADMIN sees all users (no additional filter)
         
-        # 🚀 NEW: Use tenant database with automatic tenant filtering
-        users = await tenant_db.find(
-            "users", 
-            base_filter,
-            skip=pagination["skip"],
-            limit=pagination["limit"]
-        )
+        # 🚀 SUPER_ADMIN vê todos os usuários de todos os tenants
+        if current_user.role == UserRole.SUPER_ADMIN:
+            # Buscar diretamente sem filtro de tenant
+            cursor = db.users.find(base_filter).skip(pagination["skip"]).limit(pagination["limit"])
+            users = await cursor.to_list(length=pagination["limit"])
+        else:
+            # 🚀 Outros roles usam tenant database com filtro automático
+            users = await tenant_db.find(
+                "users", 
+                base_filter,
+                skip=pagination["skip"],
+                limit=pagination["limit"]
+            )
         
         # Record metrics
         metrics.record_db_query()
