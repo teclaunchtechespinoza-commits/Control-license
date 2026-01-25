@@ -3313,6 +3313,144 @@ async def reset_user_password_new(
         "requires_password_reset": True
     }
 
+# ============================================
+# 🔐 SISTEMA DE RECUPERAÇÃO DE SENHA POR CÓDIGO
+# ============================================
+
+class PasswordRecoveryRequest(BaseModel):
+    email: str
+
+class PasswordRecoveryVerify(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+@api_router.post("/auth/forgot-password")
+async def request_password_recovery(request: PasswordRecoveryRequest):
+    """
+    Solicita recuperação de senha - Gera código de 6 dígitos válido por 15 minutos
+    O código deve ser obtido com um administrador
+    """
+    email = request.email.lower().strip()
+    
+    # Verificar se usuário existe (não revelar se existe ou não por segurança)
+    user_doc = await db.users.find_one({"email": email})
+    
+    if user_doc:
+        # Gerar código de 6 dígitos
+        import secrets
+        recovery_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+        
+        # Salvar código no banco com expiração de 15 minutos
+        recovery_data = {
+            "user_id": user_doc["id"],
+            "email": email,
+            "code": recovery_code,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(minutes=15),
+            "used": False
+        }
+        
+        # Remover códigos anteriores deste usuário
+        await db.password_recovery.delete_many({"email": email})
+        
+        # Inserir novo código
+        await db.password_recovery.insert_one(recovery_data)
+        
+        logger.info(f"Password recovery requested for {email} - Code generated")
+    
+    # Sempre retorna sucesso (não revelar se email existe)
+    return {
+        "success": True,
+        "message": "Se o email estiver cadastrado, um código de recuperação foi gerado. Entre em contato com o administrador para obtê-lo.",
+        "expires_in_minutes": 15
+    }
+
+@api_router.post("/auth/verify-recovery-code")
+async def verify_recovery_code(request: PasswordRecoveryVerify):
+    """
+    Verifica código de recuperação e redefine a senha
+    """
+    email = request.email.lower().strip()
+    
+    # Buscar código válido
+    recovery = await db.password_recovery.find_one({
+        "email": email,
+        "code": request.code,
+        "used": False,
+        "expires_at": {"$gt": datetime.utcnow()}
+    })
+    
+    if not recovery:
+        raise HTTPException(
+            status_code=400,
+            detail="Código inválido, expirado ou já utilizado"
+        )
+    
+    # Validar nova senha
+    if len(request.new_password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="A senha deve ter pelo menos 6 caracteres"
+        )
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"email": email})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Atualizar senha
+    new_hash = get_password_hash(request.new_password)
+    await db.users.update_one(
+        {"_id": user_doc["_id"]},
+        {"$set": {
+            "password_hash": new_hash,
+            "password_changed_at": datetime.utcnow()
+        }}
+    )
+    
+    # Marcar código como usado
+    await db.password_recovery.update_one(
+        {"_id": recovery["_id"]},
+        {"$set": {"used": True, "used_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Password successfully reset via recovery code for {email}")
+    
+    return {
+        "success": True,
+        "message": "Senha redefinida com sucesso! Você já pode fazer login."
+    }
+
+@api_router.get("/admin/recovery-codes")
+async def get_pending_recovery_codes(current_user: User = Depends(get_current_user)):
+    """
+    Lista códigos de recuperação pendentes (apenas admins)
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Buscar códigos pendentes não expirados
+    codes = await db.password_recovery.find({
+        "used": False,
+        "expires_at": {"$gt": datetime.utcnow()}
+    }, {"_id": 0}).to_list(100)
+    
+    # Formatar resposta
+    result = []
+    for code in codes:
+        user = await db.users.find_one({"email": code["email"]}, {"_id": 0, "name": 1, "email": 1})
+        result.append({
+            "email": code["email"],
+            "name": user.get("name") if user else "N/A",
+            "code": code["code"],
+            "created_at": code["created_at"].isoformat() if code.get("created_at") else None,
+            "expires_at": code["expires_at"].isoformat() if code.get("expires_at") else None
+        })
+    
+    return result
+
 @api_router.post("/users/{user_id}/toggle-status")
 async def toggle_user_status(
     user_id: str,
