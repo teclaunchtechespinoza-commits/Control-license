@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
-backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://licensehub-23.preview.emergentagent.com')
+backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://tenantbay.preview.emergentagent.com')
 base_url = f"{backend_url}/api"
 
 # Login as admin to get access

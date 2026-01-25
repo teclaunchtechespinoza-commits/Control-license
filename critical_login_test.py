@@ -21,7 +21,7 @@ import json
 from datetime import datetime
 
 class CriticalLoginNavigationTester:
-    def __init__(self, base_url="https://licensehub-23.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://tenantbay.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.test_cookies = None
         
