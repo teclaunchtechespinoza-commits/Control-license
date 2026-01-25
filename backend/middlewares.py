@@ -71,6 +71,8 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         "/api/auth/me",       # 🔐 Allow auth/me with cookies (tenant extracted from JWT)
         "/api/auth/refresh",  # 🔄 Allow refresh endpoint
         "/api/auth/logout",   # 🚪 Allow logout endpoint
+        "/api/auth/forgot-password",     # 🔑 Password recovery - step 1
+        "/api/auth/verify-recovery-code", # 🔑 Password recovery - step 2
         "/docs",
         "/openapi.json",
         "/health",
