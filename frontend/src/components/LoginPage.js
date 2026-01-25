@@ -505,6 +505,181 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
+
+      {/* Modal de Recuperação de Senha */}
+      <Dialog open={showRecoveryModal} onOpenChange={(open) => !open && resetRecoveryModal()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-blue-600" />
+              {recoveryStep === 1 && 'Recuperar Senha'}
+              {recoveryStep === 2 && 'Verificar Código'}
+              {recoveryStep === 3 && 'Senha Redefinida!'}
+            </DialogTitle>
+            <DialogDescription>
+              {recoveryStep === 1 && 'Digite seu email para receber um código de recuperação.'}
+              {recoveryStep === 2 && 'Digite o código de 6 dígitos e sua nova senha.'}
+              {recoveryStep === 3 && 'Sua senha foi alterada com sucesso.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Step 1: Email */}
+          {recoveryStep === 1 && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="recovery-email">Email</Label>
+                <Input
+                  id="recovery-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={recoveryEmail}
+                  onChange={(e) => setRecoveryEmail(e.target.value)}
+                  disabled={recoveryLoading}
+                  data-testid="recovery-email-input"
+                />
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Nota:</strong> Um código de 6 dígitos será gerado. 
+                  Para esta versão de demonstração, verifique os logs do servidor 
+                  ou contate o administrador para obter o código.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Code + New Password */}
+          {recoveryStep === 2 && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="recovery-code">Código de Verificação</Label>
+                <Input
+                  id="recovery-code"
+                  type="text"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={recoveryCode}
+                  onChange={(e) => setRecoveryCode(e.target.value.replace(/\D/g, ''))}
+                  disabled={recoveryLoading}
+                  className="text-center text-2xl tracking-widest font-mono"
+                  data-testid="recovery-code-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova Senha</Label>
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Mínimo 6 caracteres"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={recoveryLoading}
+                    data-testid="new-password-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirmar Nova Senha</Label>
+                <div className="relative">
+                  <Input
+                    id="confirm-new-password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Repita a senha"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    disabled={recoveryLoading}
+                    data-testid="confirm-new-password-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+                  </Button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRecoveryStep(1)}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
+                <ArrowLeft className="h-3 w-3" /> Voltar
+              </button>
+            </div>
+          )}
+
+          {/* Step 3: Success */}
+          {recoveryStep === 3 && (
+            <div className="py-6 text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <p className="text-gray-600">
+                Sua senha foi alterada com sucesso. Agora você pode fazer login com sua nova senha.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            {recoveryStep === 1 && (
+              <Button 
+                onClick={handleRequestRecovery} 
+                disabled={recoveryLoading || !recoveryEmail}
+                className="w-full"
+                data-testid="request-recovery-btn"
+              >
+                {recoveryLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Solicitar Código'
+                )}
+              </Button>
+            )}
+            {recoveryStep === 2 && (
+              <Button 
+                onClick={handleVerifyCode} 
+                disabled={recoveryLoading || recoveryCode.length !== 6 || !newPassword}
+                className="w-full"
+                data-testid="verify-code-btn"
+              >
+                {recoveryLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Redefinir Senha'
+                )}
+              </Button>
+            )}
+            {recoveryStep === 3 && (
+              <Button 
+                onClick={resetRecoveryModal}
+                className="w-full"
+                data-testid="close-recovery-btn"
+              >
+                Fechar e Fazer Login
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
