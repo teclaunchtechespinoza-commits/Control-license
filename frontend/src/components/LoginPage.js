@@ -163,6 +163,68 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
+  // Funções de Recuperação de Senha
+  const handleRequestRecovery = async () => {
+    if (!recoveryEmail.trim()) {
+      toast.error('Digite seu email');
+      return;
+    }
+    
+    setRecoveryLoading(true);
+    try {
+      const response = await api.post('/auth/forgot-password', { email: recoveryEmail });
+      if (response.data.success) {
+        toast.success('Solicitação enviada! Entre em contato com o administrador para obter seu código.');
+        setRecoveryStep(2);
+      }
+    } catch (error) {
+      toast.error('Erro ao solicitar recuperação');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!recoveryCode.trim() || recoveryCode.length !== 6) {
+      toast.error('Digite o código de 6 dígitos');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+    
+    setRecoveryLoading(true);
+    try {
+      const response = await api.post('/auth/verify-recovery-code', {
+        email: recoveryEmail,
+        code: recoveryCode,
+        new_password: newPassword
+      });
+      if (response.data.success) {
+        setRecoveryStep(3);
+        toast.success('Senha redefinida com sucesso!');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Código inválido ou expirado');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  const resetRecoveryModal = () => {
+    setShowRecoveryModal(false);
+    setRecoveryStep(1);
+    setRecoveryEmail('');
+    setRecoveryCode('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="w-full max-w-md px-4 sm:px-6 lg:px-8">
