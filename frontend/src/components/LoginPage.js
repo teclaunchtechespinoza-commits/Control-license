@@ -376,7 +376,7 @@ const LoginPage = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-3">
                   <Button
                     type="submit"
                     className="w-full bg-indigo-600 hover:bg-indigo-700"
@@ -391,6 +391,13 @@ const LoginPage = () => {
                       'Entrar como Admin'
                     )}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRecoveryModal(true)}
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
                 </CardFooter>
               </form>
             </TabsContent>
