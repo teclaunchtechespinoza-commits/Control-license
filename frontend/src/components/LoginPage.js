@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
-import { Loader2, Shield, Eye, EyeOff, KeyRound, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Loader2, Shield, Eye, EyeOff, KeyRound, ArrowLeft, CheckCircle, LogIn, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
@@ -16,25 +16,20 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   
   // Estado do modal de recuperação de senha
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
-  const [recoveryStep, setRecoveryStep] = useState(1); // 1: email, 2: código, 3: sucesso
+  const [recoveryStep, setRecoveryStep] = useState(1);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [recoveryLoading, setRecoveryLoading] = useState(false);
 
-  // Login form state
+  // Login unificado - aceita email ou código
   const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
-
-  // User login form state (serial + password)
-  const [userLoginData, setUserLoginData] = useState({
-    serial_number: '',
+    identifier: '', // Email ou código de acesso
     password: ''
   });
 
@@ -52,82 +47,63 @@ const LoginPage = () => {
 
   // If user is already logged in, redirect based on role
   if (user) {
-    console.log('User is logged in, redirecting based on role:', user.role);
-    // Users vão para suas licenças, admins vão para dashboard
     const targetPath = user.role === 'user' ? '/minhas-licencas' : '/dashboard';
     return <Navigate to={targetPath} />;
   }
 
-  const handleLogin = async (e) => {
+  // Detecta se é email ou código
+  const isEmail = (value) => value.includes('@');
+
+  // Login unificado - detecta automaticamente email ou código
+  const handleUnifiedLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Validação básica
-      if (!loginData.email || !loginData.password) {
-        toast.error('Por favor, preencha email e senha');
+      const { identifier, password } = loginData;
+      
+      if (!identifier || !password) {
+        toast.error('Por favor, preencha todos os campos');
+        setIsLoading(false);
         return;
       }
 
-      console.log('Tentando login admin com:', loginData.email);
-      const result = await login({ email: loginData.email, password: loginData.password });
-      
-      if (result.success) {
-        toast.success('Login realizado com sucesso!');
-        // Redirecionar baseado no role do usuário
-        const userRole = result.user?.role;
-        const targetPath = userRole === 'user' ? '/minhas-licencas' : '/dashboard';
-        navigate(targetPath);
+      // Detecta se é email ou código de acesso
+      if (isEmail(identifier)) {
+        // Login por email
+        const result = await login({ email: identifier, password });
+        
+        if (result.success) {
+          toast.success('Login realizado com sucesso!');
+          const userRole = result.user?.role;
+          const targetPath = userRole === 'user' ? '/minhas-licencas' : '/dashboard';
+          navigate(targetPath);
+        } else {
+          toast.error(result.error || 'Email ou senha incorretos');
+        }
       } else {
-        toast.error(result.error || 'Erro no login');
+        // Login por código de acesso (serial)
+        const response = await api.post('/auth/login-serial', {
+          serial_number: identifier,
+          password: password
+        });
+        
+        if (response.data && response.data.user) {
+          const userData = response.data.user;
+          localStorage.setItem('user', JSON.stringify(userData));
+          if (userData.tenant_id) {  
+            localStorage.setItem('tenant_id', userData.tenant_id);
+          }
+          
+          toast.success('Login realizado com sucesso!');
+          const targetPage = userData.role === 'admin' ? '/dashboard' : '/minhas-licencas';
+          window.location.href = targetPage;
+        } else {
+          toast.error('Credenciais inválidas');
+        }
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      toast.error('Erro no login. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUserLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // Validação básica
-      if (!userLoginData.serial_number || !userLoginData.password) {
-        toast.error('Por favor, preencha número de série e senha');
-        return;
-      }
-
-      console.log('Tentando login usuário com serial:', userLoginData.serial_number);
-      
-      // Fazer login usando endpoint específico para usuários por serial
-      const response = await api.post('/auth/login-serial', {
-        serial_number: userLoginData.serial_number,
-        password: userLoginData.password
-      });
-      
-      if (response.data && response.data.user) {
-        // Atualizar contexto de autenticação
-        const userData = response.data.user;
-        
-        // Store user data
-        localStorage.setItem('user', JSON.stringify(userData));
-        if (userData.tenant_id) {  
-          localStorage.setItem('tenant_id', userData.tenant_id);
-        }
-        
-        // Redirecionamento inteligente baseado no role
-        const targetPage = userData.role === 'admin' ? '/dashboard' : '/minhas-licencas';
-        window.location.href = targetPage;
-        
-        toast.success(`Login realizado com sucesso! Redirecionando para ${userData.role === 'admin' ? 'painel admin' : 'suas licenças'}...`);
-      } else {
-        toast.error('Credenciais inválidas');
-      }
-    } catch (error) {
-      console.error('Erro no login por serial:', error);
       const errorMessage = error.response?.data?.detail || 'Erro no login. Verifique suas credenciais.';
       toast.error(errorMessage);
     } finally {
@@ -144,7 +120,7 @@ const LoginPage = () => {
     }
 
     if (registerData.password.length < 8) {
-      toast.error('Password must be at least 8 characters long');
+      toast.error('A senha deve ter pelo menos 8 caracteres');
       return;
     }
 
@@ -167,6 +143,11 @@ const LoginPage = () => {
   const handleRequestRecovery = async () => {
     if (!recoveryEmail.trim()) {
       toast.error('Digite seu email');
+      return;
+    }
+    
+    if (!isEmail(recoveryEmail)) {
+      toast.error('Digite um email válido');
       return;
     }
     
@@ -225,140 +206,89 @@ const LoginPage = () => {
     setConfirmNewPassword('');
   };
 
+  // Verifica se o campo tem email para mostrar opção de recuperação
+  const showForgotPassword = isEmail(loginData.identifier);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="w-full max-w-md px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
               <Shield className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Controle de Licenças</h1>
-          <p className="text-gray-600">Faça login para acessar o sistema</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Sistema de Controle de Licenças</h1>
+          <p className="text-gray-500 text-sm">Acesse sua conta para continuar</p>
         </div>
 
-        <Card className="shadow-lg">
-          <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="user">Usuário</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
-              <TabsTrigger value="register">Registrar</TabsTrigger>
+        {/* Card Principal */}
+        <Card className="shadow-xl border-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {/* Abas com diferenciação de cor */}
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-100 rounded-t-lg">
+              <TabsTrigger 
+                value="login" 
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md transition-all duration-200"
+                data-testid="tab-login"
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </TabsTrigger>
+              <TabsTrigger 
+                value="register"
+                className="flex items-center gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md transition-all duration-200"
+                data-testid="tab-register"
+              >
+                <UserPlus className="w-4 h-4" />
+                Registrar
+              </TabsTrigger>
             </TabsList>
             
-            {/* Aba de Login Usuário */}
-            <TabsContent value="user">
-              <form onSubmit={handleUserLogin}>
-                <CardHeader>
-                  <CardTitle>Acesso do Usuário</CardTitle>
+            {/* Aba de Login Unificado */}
+            <TabsContent value="login" className="mt-0">
+              <form onSubmit={handleUnifiedLogin}>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Bem-vindo de volta</CardTitle>
                   <CardDescription>
-                    Somente para usuarios Cadastrados
+                    Entre com seu email ou código de acesso
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="user-code">Código de Identificação</Label>
+                    <Label htmlFor="identifier">Identificação</Label>
                     <Input
-                      id="user-code"
+                      id="identifier"
                       type="text"
-                      placeholder="Digite aqui..."
-                      value={userLoginData.serial_number || ''}
-                      onChange={(e) => {
-                        const value = e.target.value.trim();
-                        setUserLoginData({...userLoginData, serial_number: value});
-                      }}
+                      placeholder="Email ou código de acesso"
+                      value={loginData.identifier}
+                      onChange={(e) => setLoginData({...loginData, identifier: e.target.value.trim()})}
                       required
                       disabled={isLoading}
-                      className="font-mono"
+                      className="h-11"
+                      data-testid="login-identifier-input"
                     />
-                    <div className="text-xs text-gray-500">
-                    
-                    </div>
+                    <p className="text-xs text-gray-400">
+                      {loginData.identifier && (isEmail(loginData.identifier) 
+                        ? '📧 Entrando com email' 
+                        : '🔑 Entrando com código de acesso')}
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="user-password">Senha</Label>
+                    <Label htmlFor="password">Senha</Label>
                     <div className="relative">
                       <Input
-                        id="user-password"
+                        id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Digite aqui..."
-                        value={userLoginData.password}
-                        onChange={(e) => setUserLoginData({...userLoginData, password: e.target.value})}
-                        required
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                        disabled={isLoading}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoading}
-                    data-testid="user-login-btn"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Fazendo login...
-                      </>
-                    ) : (
-                      'Acessar Minhas Licenças'
-                    )}
-                  </Button>
-                </CardFooter>
-              </form>
-            </TabsContent>
-            
-            {/* Aba de Login Admin/Email */}
-            <TabsContent value="admin">
-              <form onSubmit={handleLogin}>
-                <CardHeader>
-                  <CardTitle>Acesso Administrativo</CardTitle>
-                  <CardDescription>
-                    Para administradores e super admins
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-email">Email</Label>
-                    <Input
-                      id="admin-email"
-                      type="email"
-                      placeholder="admin@exemplo.com"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({...loginData, email: e.target.value})}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-password">Senha</Label>
-                    <div className="relative">
-                      <Input
-                        id="admin-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Digite sua senha..."
+                        placeholder="Digite sua senha"
                         value={loginData.password}
                         onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                         required
                         disabled={isLoading}
+                        className="h-11 pr-10"
+                        data-testid="login-password-input"
                       />
                       <Button
                         type="button"
@@ -367,22 +297,23 @@ const LoginPage = () => {
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
+                        tabIndex={-1}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
+                          <EyeOff className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
+                          <Eye className="h-4 w-4 text-gray-400" />
                         )}
                       </Button>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-3">
+                <CardFooter className="flex flex-col gap-3 pt-2">
                   <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
                     disabled={isLoading}
-                    data-testid="admin-login-btn"
+                    data-testid="login-submit-btn"
                   >
                     {isLoading ? (
                       <>
@@ -390,27 +321,38 @@ const LoginPage = () => {
                         Entrando...
                       </>
                     ) : (
-                      'Entrar como Admin'
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Entrar no Sistema
+                      </>
                     )}
                   </Button>
-                  <button
-                    type="button"
-                    onClick={() => setShowRecoveryModal(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                    data-testid="admin-forgot-password-link"
-                  >
-                    Esqueci minha senha
-                  </button>
+                  
+                  {/* Link de recuperação - só aparece quando é email */}
+                  {showForgotPassword && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryEmail(loginData.identifier);
+                        setShowRecoveryModal(true);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      data-testid="forgot-password-link"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  )}
                 </CardFooter>
               </form>
             </TabsContent>
             
-            <TabsContent value="register">
+            {/* Aba de Registro */}
+            <TabsContent value="register" className="mt-0">
               <form onSubmit={handleRegister}>
-                <CardHeader>
-                  <CardTitle>Criar Conta</CardTitle>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Criar nova conta</CardTitle>
                   <CardDescription>
-                    Crie uma nova conta no sistema
+                    Preencha os dados para se registrar
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -424,6 +366,8 @@ const LoginPage = () => {
                       onChange={(e) => setRegisterData({...registerData, name: e.target.value})}
                       required
                       disabled={isLoading}
+                      className="h-11"
+                      data-testid="register-name-input"
                     />
                   </div>
                   
@@ -437,6 +381,8 @@ const LoginPage = () => {
                       onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
                       required
                       disabled={isLoading}
+                      className="h-11"
+                      data-testid="register-email-input"
                     />
                   </div>
                   
@@ -452,6 +398,8 @@ const LoginPage = () => {
                         required
                         disabled={isLoading}
                         minLength={8}
+                        className="h-11 pr-10"
+                        data-testid="register-password-input"
                       />
                       <Button
                         type="button"
@@ -460,8 +408,9 @@ const LoginPage = () => {
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
+                        tabIndex={-1}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
                       </Button>
                     </div>
                   </div>
@@ -472,11 +421,13 @@ const LoginPage = () => {
                       <Input
                         id="confirm-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Confirme sua senha"
+                        placeholder="Repita a senha"
                         value={registerData.confirmPassword}
                         onChange={(e) => setRegisterData({...registerData, confirmPassword: e.target.value})}
                         required
                         disabled={isLoading}
+                        className="h-11 pr-10"
+                        data-testid="register-confirm-password-input"
                       />
                       <Button
                         type="button"
@@ -485,16 +436,31 @@ const LoginPage = () => {
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
+                        tabIndex={-1}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
                       </Button>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Criar Conta
+                <CardFooter className="pt-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-medium" 
+                    disabled={isLoading}
+                    data-testid="register-submit-btn"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Criando conta...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Criar Conta
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </form>
@@ -502,8 +468,9 @@ const LoginPage = () => {
           </Tabs>
         </Card>
 
+        {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-gray-400">
             Sistema seguro e confiável para controle de licenças
           </p>
         </div>
