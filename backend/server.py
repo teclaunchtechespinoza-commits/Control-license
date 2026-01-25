@@ -619,8 +619,17 @@ class TenantMiddleware(BaseHTTPMiddleware):
         
         # 3. Para endpoints públicos ou de sistema, usar tenant padrão
         public_endpoints = ["/docs", "/openapi.json", "/health", "/"]
+        # Endpoints de autenticação também são públicos (não exigem tenant)
+        auth_public_paths = [
+            "/api/auth/login", 
+            "/api/auth/register",
+            "/api/auth/forgot-password",
+            "/api/auth/verify-recovery-code"
+        ]
         if request.url.path in public_endpoints:
             tenant_id = "system"
+        elif request.url.path in auth_public_paths:
+            tenant_id = "default"  # Usar tenant default para endpoints de auth
         
         # Se ainda não encontrou tenant_id, usar tenant padrão para compatibilidade
         if not tenant_id:
