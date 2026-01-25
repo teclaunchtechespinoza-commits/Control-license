@@ -390,6 +390,7 @@ const LoginPage = () => {
                     type="submit"
                     className="w-full bg-indigo-600 hover:bg-indigo-700"
                     disabled={isLoading}
+                    data-testid="admin-login-btn"
                   >
                     {isLoading ? (
                       <>
@@ -404,6 +405,7 @@ const LoginPage = () => {
                     type="button"
                     onClick={() => setShowRecoveryModal(true)}
                     className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    data-testid="admin-forgot-password-link"
                   >
                     Esqueci minha senha
                   </button>
