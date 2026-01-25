@@ -305,7 +305,7 @@ const LoginPage = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-3">
+                <CardFooter>
                   <Button
                     type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700"
@@ -321,14 +321,6 @@ const LoginPage = () => {
                       'Acessar Minhas Licenças'
                     )}
                   </Button>
-                  <button
-                    type="button"
-                    onClick={() => setShowRecoveryModal(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                    data-testid="user-forgot-password-link"
-                  >
-                    Esqueci minha senha
-                  </button>
                 </CardFooter>
               </form>
             </TabsContent>
