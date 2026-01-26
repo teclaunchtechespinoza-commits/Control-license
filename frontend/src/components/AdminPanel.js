@@ -1572,10 +1572,6 @@ const AdminPanel = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Modal de Edição de Usuário */}
       <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
