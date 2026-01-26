@@ -896,10 +896,16 @@ const AdminPanel = () => {
 
         {/* Tab de Solicitações/Aprovações */}
         <TabsContent value="approvals">
+          {/* Seção de Aprovações de Registros */}
+          <div className="mb-6">
+            <PendingApprovals />
+          </div>
+          
+          {/* Seção de Solicitações/Tickets */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Solicitações Pendentes</span>
+                <span>Solicitações de Tickets</span>
                 {pendingTickets.length > 0 && (
                   <Badge className="bg-red-600">{pendingTickets.length} aguardando</Badge>
                 )}
