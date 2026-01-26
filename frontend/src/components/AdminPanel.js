@@ -598,30 +598,44 @@ const AdminPanel = () => {
   const openResetPasswordDialog = async (user) => {
     setResetPasswordUser(user);
     setResetPasswordForm({
-      currentPassword: '', // Será carregado do backend
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
-      generateAuto: false, // Começar com edição manual
+      generateAuto: false,
       forceChange: true,
       isEditing: false,
-      originalPassword: ''
+      originalPassword: '',
+      isLoading: true
     });
     setGeneratedPassword('');
     setShowResetPasswordDialog(true);
     
     // Buscar senha atual do usuário (para ambientes de teste/demo)
     try {
+      console.log('Buscando senha para:', user.id);
       const response = await api.get(`/admin/users/${user.id}/password-info`);
+      console.log('Resposta:', response.data);
+      
       if (response.data.password_hint) {
         setResetPasswordForm(prev => ({
           ...prev,
           currentPassword: response.data.password_hint,
           originalPassword: response.data.password_hint,
-          newPassword: response.data.password_hint
+          newPassword: response.data.password_hint,
+          isLoading: false
+        }));
+      } else {
+        setResetPasswordForm(prev => ({
+          ...prev,
+          isLoading: false
         }));
       }
     } catch (error) {
-      console.log('Não foi possível carregar informações de senha');
+      console.error('Erro ao buscar senha:', error);
+      setResetPasswordForm(prev => ({
+        ...prev,
+        isLoading: false
+      }));
     }
   };
   
