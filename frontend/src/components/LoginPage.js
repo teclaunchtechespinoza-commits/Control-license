@@ -17,6 +17,8 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [registrationPending, setRegistrationPending] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
   
   // Estado do modal de recuperação de senha
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
