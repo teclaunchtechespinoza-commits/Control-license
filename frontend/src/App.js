@@ -148,11 +148,24 @@ const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await apiHelpers.register(userData);
-      toast.success('Account created successfully! Please login.');
+      const response = await apiHelpers.register(userData);
+      
+      // Verificar se é resposta de aprovação pendente
+      if (response.approval_status === 'pending') {
+        toast.success('Registro realizado! Aguardando aprovação do administrador.', {
+          duration: 6000
+        });
+        return { 
+          success: true, 
+          pending_approval: true,
+          message: response.message 
+        };
+      }
+      
+      toast.success('Conta criada com sucesso! Faça login para continuar.');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.detail || 'Registration failed';
+      const message = error.response?.data?.detail || 'Falha no registro';
       toast.error(message);
       return { success: false, error: message };
     }
