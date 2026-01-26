@@ -1726,9 +1726,18 @@ async def register(user_data: UserCreate):
     # Log de auditoria
     logger.info(f"New user registration pending approval: {user_data.email}")
     
-    # Return user without password_hash
-    user_dict.pop("password_hash", None)
-    return User(**user_dict)
+    # Return response with pending approval info
+    return {
+        "success": True,
+        "message": "Registro realizado com sucesso! Sua conta está aguardando aprovação do administrador.",
+        "approval_status": "pending",
+        "user": {
+            "id": user_dict["id"],
+            "email": user_dict["email"],
+            "name": user_dict["name"],
+            "tenant_id": user_dict["tenant_id"]
+        }
+    }
 
 @api_router.post("/auth/login")
 @rate_limit("auth_login")  # 🚀 SPRINT 1.2 - 5 attempts per minute per IP
