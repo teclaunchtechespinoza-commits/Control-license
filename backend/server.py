@@ -1646,7 +1646,7 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
     return current_user
 
 # Authentication Routes (keeping existing)
-@api_router.post("/auth/register", response_model=User)
+@api_router.post("/auth/register")
 @rate_limit("auth_register")  # 🚀 SPRINT 1.2 - 3 attempts per minute per IP
 async def register(user_data: UserCreate):
     # Check if user already exists globally (not filtered by tenant)
