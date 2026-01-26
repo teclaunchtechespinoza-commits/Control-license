@@ -3491,6 +3491,157 @@ async def get_pending_recovery_codes(current_user: User = Depends(get_current_us
     
     return result
 
+# ============================================================================
+# SISTEMA DE APROVAÇÃO DE REGISTROS
+# ============================================================================
+
+class ApprovalAction(BaseModel):
+    action: str  # "approve" ou "reject"
+    reason: Optional[str] = None  # Motivo da rejeição (opcional)
+
+@api_router.get("/admin/pending-registrations")
+async def get_pending_registrations(current_user: User = Depends(get_current_user)):
+    """
+    Lista registros pendentes de aprovação (apenas super_admin e admin)
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Super admin vê todos os pendentes, admin vê só do seu tenant
+    query = {"approval_status": "pending"}
+    if user_role_str != "super_admin":
+        query["tenant_id"] = current_user.tenant_id
+    
+    pending_users = await db.users.find(
+        query,
+        {"_id": 0, "password_hash": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Enriquecer com informações do tenant
+    result = []
+    for user in pending_users:
+        tenant = await db.tenants.find_one({"id": user.get("tenant_id")}, {"_id": 0, "name": 1})
+        result.append({
+            "id": user.get("id"),
+            "email": user.get("email"),
+            "name": user.get("name"),
+            "tenant_id": user.get("tenant_id"),
+            "tenant_name": tenant.get("name") if tenant else "N/A",
+            "created_at": user.get("created_at").isoformat() if user.get("created_at") else None,
+            "approval_requested_at": user.get("approval_requested_at").isoformat() if user.get("approval_requested_at") else None
+        })
+    
+    return {
+        "pending_count": len(result),
+        "registrations": result
+    }
+
+@api_router.post("/admin/registrations/{user_id}/approve")
+async def approve_registration(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Aprova um registro pendente
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Buscar usuário pendente
+    user_doc = await db.users.find_one({"id": user_id, "approval_status": "pending"})
+    
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Registro pendente não encontrado")
+    
+    # Verificar permissão (admin só pode aprovar do próprio tenant)
+    if user_role_str != "super_admin" and user_doc.get("tenant_id") != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Sem permissão para aprovar este registro")
+    
+    # Aprovar
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "is_active": True,
+            "approval_status": "approved",
+            "approved_by": current_user.email,
+            "approved_at": datetime.utcnow()
+        }}
+    )
+    
+    logger.info(f"User {user_doc['email']} approved by {current_user.email}")
+    
+    return {
+        "success": True,
+        "message": f"Registro de {user_doc['email']} aprovado com sucesso!",
+        "user_email": user_doc["email"]
+    }
+
+@api_router.post("/admin/registrations/{user_id}/reject")
+async def reject_registration(
+    user_id: str,
+    data: ApprovalAction,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Rejeita um registro pendente
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Buscar usuário pendente
+    user_doc = await db.users.find_one({"id": user_id, "approval_status": "pending"})
+    
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Registro pendente não encontrado")
+    
+    # Verificar permissão
+    if user_role_str != "super_admin" and user_doc.get("tenant_id") != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Sem permissão para rejeitar este registro")
+    
+    # Rejeitar
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "is_active": False,
+            "approval_status": "rejected",
+            "rejection_reason": data.reason,
+            "rejected_by": current_user.email,
+            "rejected_at": datetime.utcnow()
+        }}
+    )
+    
+    logger.info(f"User {user_doc['email']} rejected by {current_user.email}. Reason: {data.reason}")
+    
+    return {
+        "success": True,
+        "message": f"Registro de {user_doc['email']} rejeitado.",
+        "user_email": user_doc["email"]
+    }
+
+@api_router.get("/admin/pending-count")
+async def get_pending_count(current_user: User = Depends(get_current_user)):
+    """
+    Retorna apenas a contagem de registros pendentes (para badge no menu)
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        return {"count": 0}
+    
+    query = {"approval_status": "pending"}
+    if user_role_str != "super_admin":
+        query["tenant_id"] = current_user.tenant_id
+    
+    count = await db.users.count_documents(query)
+    
+    return {"count": count}
+
 @api_router.post("/users/{user_id}/toggle-status")
 async def toggle_user_status(
     user_id: str,
