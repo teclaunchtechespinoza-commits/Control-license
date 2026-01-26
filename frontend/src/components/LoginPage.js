@@ -216,6 +216,67 @@ const LoginPage = () => {
   // Verifica se o campo tem email para mostrar opção de recuperação
   const showForgotPassword = isEmail(loginData.identifier);
 
+  // Tela de aprovação pendente
+  if (registrationPending) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-amber-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="shadow-xl border-0">
+            <CardHeader className="text-center pb-2">
+              <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-10 h-10 text-amber-600" />
+              </div>
+              <CardTitle className="text-xl text-gray-900">Aguardando Aprovação</CardTitle>
+              <CardDescription className="text-base mt-2">
+                Seu registro foi realizado com sucesso!
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center justify-center gap-2 text-amber-700 mb-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="font-medium">{pendingEmail}</span>
+                </div>
+                <p className="text-sm text-amber-600">
+                  Sua conta está aguardando aprovação do administrador do sistema.
+                </p>
+              </div>
+              
+              <div className="text-sm text-gray-500 space-y-2">
+                <p>O que acontece agora?</p>
+                <ul className="text-left list-disc list-inside space-y-1">
+                  <li>Um administrador irá revisar seu cadastro</li>
+                  <li>Após a aprovação, você poderá fazer login</li>
+                  <li>Você será notificado quando sua conta for ativada</li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setRegistrationPending(false);
+                  setActiveTab('login');
+                }}
+                data-testid="back-to-login-btn"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para o Login
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <div className="text-center mt-6">
+            <p className="text-xs text-gray-400">
+              Dúvidas? Entre em contato com o administrador do sistema.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
