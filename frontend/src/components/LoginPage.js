@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
-import { Loader2, Shield, Eye, EyeOff, KeyRound, ArrowLeft, CheckCircle, LogIn, UserPlus } from 'lucide-react';
+import { Loader2, Shield, Eye, EyeOff, KeyRound, ArrowLeft, CheckCircle, LogIn, UserPlus, Clock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
