@@ -595,16 +595,34 @@ const AdminPanel = () => {
     }
   };
   
-  const openResetPasswordDialog = (user) => {
+  const openResetPasswordDialog = async (user) => {
     setResetPasswordUser(user);
     setResetPasswordForm({
+      currentPassword: '', // Será carregado do backend
       newPassword: '',
       confirmPassword: '',
-      generateAuto: true,
-      forceChange: true
+      generateAuto: false, // Começar com edição manual
+      forceChange: true,
+      isEditing: false,
+      originalPassword: ''
     });
     setGeneratedPassword('');
     setShowResetPasswordDialog(true);
+    
+    // Buscar senha atual do usuário (para ambientes de teste/demo)
+    try {
+      const response = await api.get(`/admin/users/${user.id}/password-info`);
+      if (response.data.password_hint) {
+        setResetPasswordForm(prev => ({
+          ...prev,
+          currentPassword: response.data.password_hint,
+          originalPassword: response.data.password_hint,
+          newPassword: response.data.password_hint
+        }));
+      }
+    } catch (error) {
+      console.log('Não foi possível carregar informações de senha');
+    }
   };
   
   const copyGeneratedPassword = () => {
