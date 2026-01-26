@@ -755,10 +755,10 @@ const AdminPanel = () => {
           </TabsTrigger>
           <TabsTrigger value="approvals" className="flex items-center space-x-2 relative">
             <MessageSquare className="w-4 h-4" />
-            <span>Solicitações</span>
-            {pendingTickets.length > 0 && (
+            <span>Aprovações</span>
+            {(pendingTickets.length + pendingRegistrationsCount) > 0 && (
               <Badge className="ml-2 bg-red-600 text-white">
-                {pendingTickets.length}
+                {pendingTickets.length + pendingRegistrationsCount}
               </Badge>
             )}
           </TabsTrigger>
