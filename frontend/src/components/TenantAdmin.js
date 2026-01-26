@@ -683,6 +683,107 @@ const TenantAdmin = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Tenant Modal */}
+      {showEditForm && selectedTenant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 flex items-center">
+              <Edit className="w-5 h-5 mr-2 text-blue-600" />
+              Editar Tenant
+            </h2>
+            <form onSubmit={handleUpdateTenant} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nome do Tenant</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email de Contato</label>
+                <input
+                  type="email"
+                  value={editForm.contact_email}
+                  onChange={(e) => setEditForm({...editForm, contact_email: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Plano</label>
+                <select
+                  value={editForm.plan}
+                  onChange={(e) => setEditForm({...editForm, plan: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                >
+                  <option value="free">Free</option>
+                  <option value="basic">Basic</option>
+                  <option value="professional">Professional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Usuários</label>
+                  <input
+                    type="number"
+                    value={editForm.max_users}
+                    onChange={(e) => setEditForm({...editForm, max_users: parseInt(e.target.value)})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Licenças</label>
+                  <input
+                    type="number"
+                    value={editForm.max_licenses}
+                    onChange={(e) => setEditForm({...editForm, max_licenses: parseInt(e.target.value)})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Max Clientes</label>
+                  <input
+                    type="number"
+                    value={editForm.max_clients}
+                    onChange={(e) => setEditForm({...editForm, max_clients: parseInt(e.target.value)})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditForm(false);
+                    setSelectedTenant(null);
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded-md"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

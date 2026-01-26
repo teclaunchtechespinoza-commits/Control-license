@@ -1647,16 +1647,30 @@ const AdminPanel = () => {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => {
-                  setShowEditUserDialog(false);
-                  setEditingUser(null);
-                }}>
-                  Cancelar
+              <DialogFooter className="mt-6 flex-col sm:flex-row gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                  onClick={() => {
+                    setResetPasswordUser(editingUser);
+                    setShowResetPasswordDialog(true);
+                  }}
+                >
+                  <Key className="h-4 w-4 mr-2" />
+                  Alterar Senha
                 </Button>
-                <Button type="submit">
-                  Salvar Alterações
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setShowEditUserDialog(false);
+                    setEditingUser(null);
+                  }}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">
+                    Salvar Alterações
+                  </Button>
+                </div>
               </DialogFooter>
             </form>
           )}

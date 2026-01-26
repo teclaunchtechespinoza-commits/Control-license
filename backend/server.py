@@ -1482,6 +1482,39 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+async def log_activity(
+    user_email: str,
+    user_name: str,
+    activity_type: str,
+    description: str,
+    tenant_id: str,
+    ip_address: str = None,
+    user_agent: str = None,
+    resource_id: str = None,
+    resource_type: str = None
+):
+    """Registra uma atividade no sistema de logs"""
+    try:
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "user_email": user_email,
+            "user_name": user_name,
+            "action": activity_type,
+            "activity_type": activity_type,
+            "description": description,
+            "resource_id": resource_id,
+            "resource_type": resource_type,
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+            "timestamp": datetime.utcnow(),
+            "created_at": datetime.utcnow(),
+            "tenant_id": tenant_id
+        }
+        await db.activity_logs.insert_one(log_entry)
+        logger.info(f"Activity logged: {activity_type} by {user_email}")
+    except Exception as e:
+        logger.error(f"Failed to log activity: {e}")
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -1841,12 +1874,25 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
     
     # Atualizar last_login e IP
     client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
     await db.users.update_one(
         {"_id": user_doc["_id"]},
         {"$set": {
             "last_login": datetime.utcnow(),
             "last_login_ip": client_ip
         }}
+    )
+    
+    # Registrar log de atividade
+    await log_activity(
+        user_email=user_credentials.email,
+        user_name=user_doc.get("name", "Unknown"),
+        activity_type="login",
+        description=f"Login realizado com sucesso",
+        tenant_id=user_tenant_id,
+        ip_address=client_ip,
+        user_agent=user_agent
     )
     
     # 🍪 SECURITY: Set HttpOnly cookies (no localStorage exposure to XSS)
@@ -7052,12 +7098,56 @@ async def get_all_activity_logs(
     
     try:
         query = {}
-        if user_email:
+        if user_email and user_email != 'all':
             query["user_email"] = user_email
         
-        query = add_tenant_filter(query, current_user.tenant_id)
-        logs = await db.activity_logs.find(query).sort("created_at", -1).limit(limit).to_list(length=limit)
-        return [ActivityLog(**log) for log in logs]
+        # Super admin vê todos os logs
+        if user_role_str != "super_admin":
+            query = add_tenant_filter(query, current_user.tenant_id)
+        
+        logs = await db.activity_logs.find(
+            query, 
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+        
+        # Mapeamento de tipos antigos para novos
+        type_mapping = {
+            "LOGIN": "login",
+            "LOGOUT": "logout",
+            "PROFILE_UPDATED": "profile_updated",
+            "LICENSE_VIEWED": "license_viewed",
+            "UNKNOWN": "login"  # Fallback
+        }
+        
+        # Converter para formato esperado
+        result = []
+        for log in logs:
+            # Normalizar activity_type
+            raw_type = log.get("activity_type", log.get("action", "login"))
+            activity_type = type_mapping.get(raw_type, raw_type.lower() if raw_type else "login")
+            
+            # Garantir que seja um tipo válido
+            valid_types = ["login", "logout", "profile_updated", "license_viewed", "license_renewed", "certificate_downloaded", "ticket_created", "ticket_updated"]
+            if activity_type not in valid_types:
+                activity_type = "login"
+            
+            # Criar objeto de log
+            log_data = {
+                "id": log.get("id", str(uuid.uuid4())),
+                "user_email": log.get("user_email", "unknown"),
+                "user_name": log.get("user_name", "Unknown"),
+                "activity_type": activity_type,
+                "description": log.get("description", ""),
+                "resource_id": log.get("resource_id"),
+                "resource_type": log.get("resource_type"),
+                "ip_address": log.get("ip_address"),
+                "user_agent": log.get("user_agent"),
+                "created_at": log.get("created_at", log.get("timestamp", datetime.utcnow())),
+                "tenant_id": log.get("tenant_id", current_user.tenant_id)
+            }
+            result.append(ActivityLog(**log_data))
+        
+        return result
         
     except Exception as e:
         logger.error(f"Erro ao buscar logs: {e}")
