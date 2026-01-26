@@ -95,6 +95,15 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
             path.startswith("/static") or
             path == "/favicon.ico"
         )
+    
+    def _is_authenticated_endpoint(self, path: str) -> bool:
+        """Endpoints autenticados que extraem tenant do JWT"""
+        auth_endpoints = [
+            "/api/admin/pending-registrations",
+            "/api/admin/registrations/",
+            "/api/admin/pending-count"
+        ]
+        return any(path.startswith(ep) for ep in auth_endpoints)
 
     async def dispatch(self, request: Request, call_next):
         tenant_id = request.headers.get(self.TENANT_HEADER)
@@ -102,6 +111,10 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         
         # Para endpoints públicos, não exigir X-Tenant-ID
         if self._is_public_endpoint(request.url.path):
+            return await call_next(request)
+        
+        # Para endpoints autenticados, permitir sem X-Tenant-ID (será extraído do JWT)
+        if self._is_authenticated_endpoint(request.url.path):
             return await call_next(request)
             
         if not tenant_id and not self._allow_missing:
