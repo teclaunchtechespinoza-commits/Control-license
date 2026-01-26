@@ -223,6 +223,15 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchPendingRegistrationsCount = async () => {
+    try {
+      const response = await api.get('/admin/pending-count');
+      setPendingRegistrationsCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Erro ao buscar contagem de aprovações pendentes:', error);
+    }
+  };
+
   const fetchActivityLogs = async (userEmail = null) => {
     try {
       const url = userEmail && userEmail !== 'all' 
