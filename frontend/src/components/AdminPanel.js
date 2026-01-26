@@ -1479,55 +1479,70 @@ const AdminPanel = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Campo de Senha Atual/Nova */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-gray-500" />
-                  Senha do Usuário
-                </Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Digite a senha"
-                    value={resetPasswordForm.newPassword}
-                    onChange={(e) => setResetPasswordForm({
-                      ...resetPasswordForm, 
-                      newPassword: e.target.value,
-                      isEditing: e.target.value !== resetPasswordForm.originalPassword
-                    })}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
+              {/* Indicador de carregamento */}
+              {resetPasswordForm.isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RotateCw className="w-6 h-6 animate-spin text-purple-600 mr-2" />
+                  <span className="text-gray-500">Carregando informações...</span>
                 </div>
-                
-                {/* Indicador de alteração */}
-                {resetPasswordForm.isEditing && (
-                  <div className="flex items-center gap-2 text-amber-600 text-sm">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>Senha será alterada ao salvar</span>
+              ) : (
+                <>
+                  {/* Campo de Senha Atual/Nova */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-gray-500" />
+                      Senha do Usuário
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder={resetPasswordForm.originalPassword ? "Senha carregada" : "Digite uma nova senha"}
+                        value={resetPasswordForm.newPassword}
+                        onChange={(e) => setResetPasswordForm({
+                          ...resetPasswordForm, 
+                          newPassword: e.target.value,
+                          isEditing: e.target.value !== resetPasswordForm.originalPassword
+                        })}
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                    
+                    {/* Indicador de alteração */}
+                    {resetPasswordForm.isEditing && (
+                      <div className="flex items-center gap-2 text-amber-600 text-sm">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span>Senha será alterada ao salvar</span>
+                      </div>
+                    )}
+                    
+                    {resetPasswordForm.originalPassword && !resetPasswordForm.isEditing && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Senha atual carregada. Edite para alterar.
+                      </p>
+                    )}
+                    
+                    {!resetPasswordForm.originalPassword && !resetPasswordForm.isLoading && (
+                      <p className="text-xs text-gray-500">
+                        Nenhuma senha registrada. Defina uma nova senha.
+                      </p>
+                    )}
                   </div>
-                )}
-                
-                {resetPasswordForm.originalPassword && !resetPasswordForm.isEditing && (
-                  <p className="text-xs text-gray-500">
-                    Senha atual do usuário. Edite para alterar.
-                  </p>
-                )}
-              </div>
 
-              {/* Opção de gerar senha automática */}
-              <div className="pt-3 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
+                  {/* Opção de gerar senha automática */}
+                  <div className="pt-3 border-t">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
                   onClick={() => {
                     const autoPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
                     setResetPasswordForm({
