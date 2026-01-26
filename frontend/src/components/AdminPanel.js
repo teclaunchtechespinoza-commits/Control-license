@@ -261,10 +261,16 @@ const AdminPanel = () => {
   useEffect(() => {
     if (activeTab === 'approvals') {
       fetchTickets();
+      fetchPendingRegistrationsCount();
     } else if (activeTab === 'logs') {
       fetchActivityLogs(selectedUserForLogs);
     }
   }, [activeTab, selectedUserForLogs]);
+
+  // Buscar contagem de aprovações pendentes ao carregar
+  useEffect(() => {
+    fetchPendingRegistrationsCount();
+  }, []);
 
   // Buscar notificações ao carregar
   useEffect(() => {
