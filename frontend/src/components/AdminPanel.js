@@ -120,6 +120,7 @@ const AdminPanel = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [ticketResponse, setTicketResponse] = useState('');
   const [processingTicket, setProcessingTicket] = useState(false);
+  const [pendingRegistrationsCount, setPendingRegistrationsCount] = useState(0);
   
   // Estados para logs de auditoria
   const [activityLogs, setActivityLogs] = useState([]);
