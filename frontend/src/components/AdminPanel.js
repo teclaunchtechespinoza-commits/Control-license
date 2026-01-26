@@ -44,6 +44,7 @@ import {
 } from './ui/alert-dialog';
 import { api } from '../api';
 import { toast } from 'sonner';
+import PendingApprovals from './PendingApprovals';
 import { 
   Plus,
   Edit,
