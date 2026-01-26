@@ -3688,6 +3688,90 @@ async def get_pending_count(current_user: User = Depends(get_current_user)):
     
     return {"count": count}
 
+@api_router.get("/admin/users/{user_id}/password-info")
+async def get_user_password_info(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retorna informações sobre a senha do usuário (apenas para ambiente de demonstração)
+    Em produção, este endpoint deveria ser desabilitado ou retornar apenas metadados
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar permissão de tenant
+    if user_role_str != "super_admin" and user_doc.get("tenant_id") != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+    
+    # Para ambiente de demo, buscar a última senha conhecida
+    # Em produção, isso não existiria
+    last_password = user_doc.get("last_known_password", "")
+    
+    return {
+        "user_id": user_id,
+        "email": user_doc.get("email"),
+        "password_hint": last_password,
+        "has_password": bool(user_doc.get("password_hash")),
+        "last_password_change": user_doc.get("password_changed_at").isoformat() if user_doc.get("password_changed_at") else None
+    }
+
+@api_router.put("/admin/users/{user_id}/password")
+async def update_user_password(
+    user_id: str,
+    password_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Atualiza a senha do usuário diretamente (apenas admin/super_admin)
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    new_password = password_data.get("new_password", "").strip()
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 6 caracteres")
+    
+    # Buscar usuário
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar permissão de tenant
+    if user_role_str != "super_admin" and user_doc.get("tenant_id") != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+    
+    # Hash da nova senha
+    new_hash = get_password_hash(new_password)
+    
+    # Atualizar no banco
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "password_hash": new_hash,
+            "last_known_password": new_password,  # Para ambiente de demo
+            "password_changed_at": datetime.utcnow(),
+            "password_changed_by": current_user.email
+        }}
+    )
+    
+    logger.info(f"Password updated for user {user_doc['email']} by {current_user.email}")
+    
+    return {
+        "success": True,
+        "message": f"Senha do usuário {user_doc['email']} atualizada com sucesso!",
+        "new_password": new_password  # Retornar para exibição (apenas demo)
+    }
+
 @api_router.post("/users/{user_id}/toggle-status")
 async def toggle_user_status(
     user_id: str,
