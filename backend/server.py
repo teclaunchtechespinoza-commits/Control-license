@@ -1712,12 +1712,19 @@ async def register(user_data: UserCreate):
     user_dict["role"] = "admin"  # First user in tenant is admin
     user_dict["id"] = str(uuid.uuid4())
     user_dict["created_at"] = datetime.utcnow()
-    user_dict["is_active"] = True
+    user_dict["is_active"] = False  # Inativo até aprovação
+    user_dict["approval_status"] = "pending"  # pending, approved, rejected
+    user_dict["approval_requested_at"] = datetime.utcnow()
+    user_dict["approved_by"] = None
+    user_dict["approved_at"] = None
     user_dict["last_login"] = None
     user_dict["serial_number"] = None
     
     # Insert user document directly (password_hash included)
     await db.users.insert_one(user_dict)
+    
+    # Log de auditoria
+    logger.info(f"New user registration pending approval: {user_data.email}")
     
     # Return user without password_hash
     user_dict.pop("password_hash", None)
