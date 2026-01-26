@@ -135,6 +135,11 @@ const LoginPage = () => {
     });
 
     if (result.success) {
+      if (result.pending_approval) {
+        // Mostrar tela de aprovação pendente
+        setPendingEmail(registerData.email);
+        setRegistrationPending(true);
+      }
       setRegisterData({ email: '', password: '', name: '', confirmPassword: '' });
     }
     
