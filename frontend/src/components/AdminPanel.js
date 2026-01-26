@@ -1424,10 +1424,10 @@ const AdminPanel = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="w-5 h-5 text-purple-600" />
-              Resetar Senha
+              Gerenciar Senha
             </DialogTitle>
             <DialogDescription>
-              {resetPasswordUser && `Resetar senha para: ${resetPasswordUser.email}`}
+              {resetPasswordUser && `Usuário: ${resetPasswordUser.email}`}
             </DialogDescription>
           </DialogHeader>
           {generatedPassword ? (
@@ -1435,10 +1435,10 @@ const AdminPanel = () => {
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-green-900">Senha resetada com sucesso!</span>
+                  <span className="font-semibold text-green-900">Senha atualizada com sucesso!</span>
                 </div>
                 <p className="text-sm text-green-700 mb-3">
-                  Copie a senha temporária abaixo e envie para o usuário:
+                  Nova senha do usuário:
                 </p>
                 <div className="flex items-center gap-2">
                   <input
@@ -1452,9 +1452,6 @@ const AdminPanel = () => {
                     Copiar
                   </Button>
                 </div>
-                <p className="text-xs text-green-600 mt-2">
-                  ⚠️ O usuário precisará trocar esta senha no próximo login.
-                </p>
               </div>
               <DialogFooter>
                 <Button onClick={() => {
@@ -1468,74 +1465,111 @@ const AdminPanel = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={resetPasswordForm.generateAuto}
-                    onChange={() => setResetPasswordForm({...resetPasswordForm, generateAuto: true})}
-                    className="w-4 h-4"
+              {/* Campo de Senha Atual/Nova */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-gray-500" />
+                  Senha do Usuário
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Digite a senha"
+                    value={resetPasswordForm.newPassword}
+                    onChange={(e) => setResetPasswordForm({
+                      ...resetPasswordForm, 
+                      newPassword: e.target.value,
+                      isEditing: e.target.value !== resetPasswordForm.originalPassword
+                    })}
+                    className="pr-10"
                   />
-                  <span className="text-sm font-medium">Gerar senha automática (Recomendado)</span>
-                </label>
-                <p className="text-xs text-gray-500 ml-6">
-                  Sistema gera senha forte automaticamente
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={!resetPasswordForm.generateAuto}
-                    onChange={() => setResetPasswordForm({...resetPasswordForm, generateAuto: false})}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">Definir senha manualmente</span>
-                </label>
-                {!resetPasswordForm.generateAuto && (
-                  <div className="ml-6 space-y-2">
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Nova senha"
-                        value={resetPasswordForm.newPassword}
-                        onChange={(e) => setResetPasswordForm({...resetPasswordForm, newPassword: e.target.value})}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Confirmar senha"
-                        value={resetPasswordForm.confirmPassword}
-                        onChange={(e) => setResetPasswordForm({...resetPasswordForm, confirmPassword: e.target.value})}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                </div>
+                
+                {/* Indicador de alteração */}
+                {resetPasswordForm.isEditing && (
+                  <div className="flex items-center gap-2 text-amber-600 text-sm">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>Senha será alterada ao salvar</span>
                   </div>
+                )}
+                
+                {resetPasswordForm.originalPassword && !resetPasswordForm.isEditing && (
+                  <p className="text-xs text-gray-500">
+                    Senha atual do usuário. Edite para alterar.
+                  </p>
                 )}
               </div>
 
+              {/* Opção de gerar senha automática */}
               <div className="pt-3 border-t">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    const autoPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+                    setResetPasswordForm({
+                      ...resetPasswordForm,
+                      newPassword: autoPassword,
+                      isEditing: true
+                    });
+                  }}
+                >
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Gerar Senha Automática
+                </Button>
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowResetPasswordDialog(false);
+                    setResetPasswordUser(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    if (!resetPasswordForm.newPassword || resetPasswordForm.newPassword.length < 6) {
+                      toast.error('Senha deve ter pelo menos 6 caracteres');
+                      return;
+                    }
+                    
+                    try {
+                      const response = await api.put(`/admin/users/${resetPasswordUser.id}/password`, {
+                        new_password: resetPasswordForm.newPassword
+                      });
+                      
+                      if (response.data.success) {
+                        setGeneratedPassword(response.data.new_password);
+                        toast.success('Senha atualizada com sucesso!');
+                        fetchData();
+                      }
+                    } catch (error) {
+                      toast.error(error.response?.data?.detail || 'Erro ao atualizar senha');
+                    }
+                  }}
+                  disabled={!resetPasswordForm.newPassword || resetPasswordForm.newPassword.length < 6}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Salvar Senha
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
                     type="checkbox"
                     checked={resetPasswordForm.forceChange}
                     onChange={(e) => setResetPasswordForm({...resetPasswordForm, forceChange: e.target.checked})}
