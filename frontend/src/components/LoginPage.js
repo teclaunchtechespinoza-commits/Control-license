@@ -250,7 +250,7 @@ const LoginPage = () => {
             <TabsContent value="login" className="mt-0">
               <form onSubmit={handleUnifiedLogin}>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Bem-vindo de volta</CardTitle>
+                  <CardTitle className="text-lg">Bem-vindo</CardTitle>
                   <CardDescription>
                     Entre com seu email ou código de acesso
                   </CardDescription>
