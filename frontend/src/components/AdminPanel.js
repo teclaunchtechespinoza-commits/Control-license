@@ -1571,8 +1571,6 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */
-
       {/* Modal de Edição de Usuário */}
       <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
