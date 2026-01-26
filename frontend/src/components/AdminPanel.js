@@ -1570,34 +1570,8 @@ const AdminPanel = () => {
           )}
         </DialogContent>
       </Dialog>
-                    type="checkbox"
-                    checked={resetPasswordForm.forceChange}
-                    onChange={(e) => setResetPasswordForm({...resetPasswordForm, forceChange: e.target.checked})}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">Forçar troca de senha no próximo login</span>
-                </label>
-              </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setShowResetPasswordDialog(false);
-                  setResetPasswordUser(null);
-                }}>
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleResetPassword}
-                  disabled={!resetPasswordForm.generateAuto && (
-                    !resetPasswordForm.newPassword || 
-                    resetPasswordForm.newPassword !== resetPasswordForm.confirmPassword
-                  )}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  Resetar Senha
-                </Button>
-              </DialogFooter>
+      {/* Delete Confirmation Dialog */
             </div>
           )}
         </DialogContent>
