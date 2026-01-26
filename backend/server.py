@@ -1792,11 +1792,26 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
     
     # Verificar se usuário está bloqueado
     if not user_doc.get("is_active", True):
-        logger.warning(f"Blocked user {user_credentials.email} attempted login from {user_ip}")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sua conta está bloqueada. Entre em contato com o administrador."
-        )
+        # Verificar motivo do bloqueio
+        approval_status = user_doc.get("approval_status", "approved")
+        if approval_status == "pending":
+            logger.warning(f"Pending approval user {user_credentials.email} attempted login from {user_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sua conta está aguardando aprovação do administrador. Você receberá uma notificação quando for aprovada."
+            )
+        elif approval_status == "rejected":
+            logger.warning(f"Rejected user {user_credentials.email} attempted login from {user_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sua solicitação de registro foi rejeitada. Entre em contato com o administrador para mais informações."
+            )
+        else:
+            logger.warning(f"Blocked user {user_credentials.email} attempted login from {user_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sua conta está bloqueada. Entre em contato com o administrador."
+            )
     
     await db.users.update_one(
         login_filter,
