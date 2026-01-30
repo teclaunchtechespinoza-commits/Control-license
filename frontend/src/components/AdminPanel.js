@@ -596,6 +596,10 @@ const AdminPanel = () => {
   };
   
   const openResetPasswordDialog = async (user) => {
+    console.log('=== ABRINDO MODAL DE SENHA ===');
+    console.log('Usuário recebido:', user);
+    console.log('ID do usuário:', user?.id);
+    
     setResetPasswordUser(user);
     setResetPasswordForm({
       currentPassword: '',
@@ -611,12 +615,22 @@ const AdminPanel = () => {
     setShowResetPasswordDialog(true);
     
     // Buscar senha atual do usuário (para ambientes de teste/demo)
+    if (!user?.id) {
+      console.error('ERRO: ID do usuário não encontrado!');
+      toast.error('Erro: ID do usuário não encontrado');
+      setResetPasswordForm(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+    
     try {
-      console.log('Buscando senha para:', user.id);
-      const response = await api.get(`/admin/users/${user.id}/password-info`);
-      console.log('Resposta:', response.data);
+      const url = `/admin/users/${user.id}/password-info`;
+      console.log('Chamando API:', url);
       
-      if (response.data.password_hint) {
+      const response = await api.get(url);
+      console.log('Resposta da API:', response.data);
+      
+      if (response.data && response.data.password_hint) {
+        console.log('Senha encontrada:', response.data.password_hint);
         setResetPasswordForm(prev => ({
           ...prev,
           currentPassword: response.data.password_hint,
@@ -624,14 +638,19 @@ const AdminPanel = () => {
           newPassword: response.data.password_hint,
           isLoading: false
         }));
+        toast.success('Senha carregada com sucesso!');
       } else {
+        console.log('Nenhuma senha encontrada na resposta');
         setResetPasswordForm(prev => ({
           ...prev,
           isLoading: false
         }));
       }
     } catch (error) {
-      console.error('Erro ao buscar senha:', error);
+      console.error('=== ERRO AO BUSCAR SENHA ===');
+      console.error('Erro:', error);
+      console.error('Response:', error.response?.data);
+      toast.error('Erro ao carregar senha: ' + (error.response?.data?.detail || error.message));
       setResetPasswordForm(prev => ({
         ...prev,
         isLoading: false
