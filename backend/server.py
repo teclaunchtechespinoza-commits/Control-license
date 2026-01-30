@@ -8709,6 +8709,16 @@ async def get_import_conflicts(
         "total": len(conflicts)
     }
 
+# Include routers (after all endpoints are defined)
+app.include_router(api_router)
+# Import WhatsApp router após resolver circular import
+try:
+    from whatsapp_service import whatsapp_router
+    app.include_router(whatsapp_router)
+    print("WhatsApp router incluído com sucesso")
+except ImportError as e:
+    print(f"WhatsApp router não pôde ser incluído: {e}")
+
 # 🚀 PHASE 1 SECURITY IMPROVEMENTS - Add new middlewares
 # Order is critical: Error handling → Tenant validation → Existing middlewares
 
