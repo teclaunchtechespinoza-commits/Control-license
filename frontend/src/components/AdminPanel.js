@@ -1595,6 +1595,8 @@ const AdminPanel = () => {
                   Salvar Senha
                 </Button>
               </DialogFooter>
+              </>
+              )}
             </div>
           )}
         </DialogContent>
