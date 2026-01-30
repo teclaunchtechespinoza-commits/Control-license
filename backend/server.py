@@ -8400,6 +8400,323 @@ async def structured_logging_middleware(request: Request, call_next):
         )
         raise
 
+# ============================================================================
+# MÓDULO DE IMPORTAÇÃO DE DADOS (CSV/Excel)
+# ============================================================================
+
+class ImportRecord(BaseModel):
+    """Registro individual para importação"""
+    manufacturer: str
+    model: str
+    serial: str
+    added_date: Optional[str] = None  # Data no formato string
+    
+class ImportPreview(BaseModel):
+    """Preview de importação"""
+    records: List[ImportRecord]
+    
+class ImportConflict(BaseModel):
+    """Conflito detectado na importação"""
+    serial: str
+    existing_data: dict
+    new_data: dict
+    conflict_fields: List[str]
+
+@api_router.post("/import/preview")
+async def preview_import(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Pré-visualiza os dados do arquivo CSV/Excel antes de importar.
+    Detecta conflitos com registros existentes.
+    """
+    import csv
+    import io
+    from datetime import datetime
+    
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Apenas administradores podem importar dados")
+    
+    # Ler conteúdo do arquivo
+    content = await file.read()
+    
+    # Detectar encoding e parsear CSV
+    try:
+        # Tentar UTF-8 primeiro, depois Latin-1
+        try:
+            text_content = content.decode('utf-8')
+        except:
+            text_content = content.decode('latin-1')
+        
+        # Parsear CSV
+        reader = csv.DictReader(io.StringIO(text_content))
+        records = []
+        
+        for row in reader:
+            # Mapear campos (flexível para diferentes formatos)
+            manufacturer = row.get('Manufacturer') or row.get('FABRICANTE') or row.get('manufacturer') or ''
+            model = row.get('Model') or row.get('MODELO') or row.get('model') or ''
+            serial = row.get('Serial') or row.get('N° DE SÉRIE') or row.get('SERIAL') or row.get('serial') or ''
+            added_date = row.get('Added') or row.get('ADICIONADO EM') or row.get('added_date') or row.get('Data') or ''
+            
+            if serial:  # Só adicionar se tiver serial
+                records.append({
+                    "manufacturer": manufacturer.strip(),
+                    "model": model.strip(),
+                    "serial": serial.strip(),
+                    "added_date": added_date.strip() if added_date else None
+                })
+        
+        # Verificar conflitos com banco de dados
+        conflicts = []
+        new_records = []
+        
+        for record in records:
+            # Buscar por serial existente
+            existing = await db.licenses.find_one({"serial_number": record["serial"]})
+            
+            if existing:
+                # Detectar quais campos são diferentes
+                conflict_fields = []
+                if existing.get("manufacturer") and existing.get("manufacturer") != record["manufacturer"]:
+                    conflict_fields.append("manufacturer")
+                if existing.get("model") and existing.get("model") != record["model"]:
+                    conflict_fields.append("model")
+                
+                conflicts.append({
+                    "serial": record["serial"],
+                    "existing_data": {
+                        "manufacturer": existing.get("manufacturer", ""),
+                        "model": existing.get("model", ""),
+                        "name": existing.get("name", ""),
+                        "activation_date": existing.get("activation_date").isoformat() if existing.get("activation_date") else None
+                    },
+                    "new_data": record,
+                    "conflict_fields": conflict_fields,
+                    "status": "conflict"
+                })
+            else:
+                record["status"] = "new"
+                new_records.append(record)
+        
+        return {
+            "success": True,
+            "filename": file.filename,
+            "total_records": len(records),
+            "new_records": len(new_records),
+            "conflicts": len(conflicts),
+            "preview": {
+                "new": new_records[:50],  # Limitar preview
+                "conflicts": conflicts[:50]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao processar arquivo de importação: {e}")
+        raise HTTPException(status_code=400, detail=f"Erro ao processar arquivo: {str(e)}")
+
+@api_router.post("/import/execute")
+async def execute_import(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Executa a importação dos registros selecionados.
+    """
+    from datetime import datetime
+    
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Apenas administradores podem importar dados")
+    
+    records = data.get("records", [])
+    import_conflicts = data.get("import_conflicts", False)  # Se deve importar conflitos também
+    
+    if not records:
+        raise HTTPException(status_code=400, detail="Nenhum registro para importar")
+    
+    # Gerar ID do lote de importação
+    batch_id = f"IMP-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{str(uuid.uuid4())[:8]}"
+    
+    imported = []
+    skipped = []
+    updated = []
+    errors = []
+    
+    for record in records:
+        try:
+            serial = record.get("serial", "").strip()
+            if not serial:
+                continue
+            
+            # Verificar se já existe
+            existing = await db.licenses.find_one({"serial_number": serial})
+            
+            # Parsear data de ativação
+            activation_date = None
+            added_date_str = record.get("added_date", "")
+            if added_date_str:
+                try:
+                    # Tentar vários formatos de data
+                    for fmt in ["%d/%m/%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y", "%Y-%m-%d"]:
+                        try:
+                            # Remover timezone se presente
+                            clean_date = added_date_str.split(" BRT")[0].strip()
+                            activation_date = datetime.strptime(clean_date, fmt)
+                            break
+                        except:
+                            continue
+                except:
+                    pass
+            
+            if existing:
+                if import_conflicts:
+                    # Atualizar registro existente
+                    await db.licenses.update_one(
+                        {"serial_number": serial},
+                        {"$set": {
+                            "manufacturer": record.get("manufacturer", existing.get("manufacturer")),
+                            "model": record.get("model", existing.get("model")),
+                            "updated_at": datetime.utcnow(),
+                            "updated_by": current_user.email,
+                            "import_batch_id": batch_id,
+                            "has_conflict": True,
+                            "conflict_resolved_at": datetime.utcnow(),
+                            "conflict_resolved_by": current_user.email
+                        }}
+                    )
+                    updated.append(serial)
+                else:
+                    skipped.append(serial)
+            else:
+                # Criar novo registro
+                manufacturer = record.get("manufacturer", "")
+                model = record.get("model", "")
+                
+                # Gerar nome amigável
+                name = f"{manufacturer} - {model}" if model != "All Models" else manufacturer
+                if not name:
+                    name = f"Licença {serial[:8]}"
+                
+                license_doc = {
+                    "id": str(uuid.uuid4()),
+                    "name": name,
+                    "description": f"Importado de planilha - Serial: {serial}",
+                    "serial_number": serial,
+                    "manufacturer": manufacturer,
+                    "model": model,
+                    "license_key": f"LIC-{serial}",
+                    "status": "active",
+                    "max_users": 1,
+                    "features": [],
+                    "tenant_id": current_user.tenant_id,
+                    "activation_date": activation_date,
+                    "expires_at": None,  # Será calculado baseado no plano
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow(),
+                    "created_by": current_user.email,
+                    "import_source": "AutoAuthTool",
+                    "import_batch_id": batch_id
+                }
+                
+                await db.licenses.insert_one(license_doc)
+                imported.append(serial)
+                
+        except Exception as e:
+            logger.error(f"Erro ao importar serial {record.get('serial')}: {e}")
+            errors.append({"serial": record.get("serial"), "error": str(e)})
+    
+    # Registrar log de auditoria
+    await db.activity_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "tenant_id": current_user.tenant_id,
+        "user_id": current_user.id,
+        "user_email": current_user.email,
+        "action": "import_licenses",
+        "category": "data_import",
+        "details": {
+            "batch_id": batch_id,
+            "total_records": len(records),
+            "imported": len(imported),
+            "updated": len(updated),
+            "skipped": len(skipped),
+            "errors": len(errors)
+        },
+        "created_at": datetime.utcnow()
+    })
+    
+    return {
+        "success": True,
+        "batch_id": batch_id,
+        "summary": {
+            "total": len(records),
+            "imported": len(imported),
+            "updated": len(updated),
+            "skipped": len(skipped),
+            "errors": len(errors)
+        },
+        "details": {
+            "imported_serials": imported[:20],  # Limitar resposta
+            "updated_serials": updated[:20],
+            "skipped_serials": skipped[:20],
+            "errors": errors[:10]
+        }
+    }
+
+@api_router.get("/import/history")
+async def get_import_history(
+    current_user: User = Depends(get_current_user),
+    limit: int = 20
+):
+    """
+    Retorna histórico de importações
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Buscar logs de importação
+    query = {"action": "import_licenses"}
+    if user_role_str != "super_admin":
+        query["tenant_id"] = current_user.tenant_id
+    
+    logs = await db.activity_logs.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return {
+        "imports": logs,
+        "total": len(logs)
+    }
+
+@api_router.get("/import/conflicts")
+async def get_import_conflicts(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista licenças com conflitos pendentes de resolução
+    """
+    user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if user_role_str not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    query = {"has_conflict": True}
+    if user_role_str != "super_admin":
+        query["tenant_id"] = current_user.tenant_id
+    
+    conflicts = await db.licenses.find(
+        query,
+        {"_id": 0}
+    ).to_list(100)
+    
+    return {
+        "conflicts": conflicts,
+        "total": len(conflicts)
+    }
+
 # 🚀 PHASE 1 SECURITY IMPROVEMENTS - Add new middlewares
 # Order is critical: Error handling → Tenant validation → Existing middlewares
 
