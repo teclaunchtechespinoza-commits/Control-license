@@ -1346,6 +1346,13 @@ class LicenseBase(BaseModel):
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
     tenant_id: Optional[str] = None  # 🔧 FIX CRÍTICO: tenant_id deve estar no modelo!
+    # Campos para importação
+    serial_number: Optional[str] = None  # Número de série único
+    manufacturer: Optional[str] = None  # Fabricante
+    model: Optional[str] = None  # Modelo do equipamento
+    activation_date: Optional[datetime] = None  # Data de ativação (Adicionado em)
+    import_source: Optional[str] = None  # Origem da importação (ex: "AutoAuthTool")
+    import_batch_id: Optional[str] = None  # ID do lote de importação
 
 class LicenseCreate(LicenseBase):
     assigned_user_id: Optional[str] = None
