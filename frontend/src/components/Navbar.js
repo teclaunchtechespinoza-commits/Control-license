@@ -35,7 +35,8 @@ import {
   Activity,
   Eye,
   Package,
-  Mail
+  Mail,
+  Upload
 } from 'lucide-react';
 
 const Navbar = () => {
