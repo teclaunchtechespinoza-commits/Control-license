@@ -8320,15 +8320,7 @@ LIGUE URGENTE: (11) 9999-9999
             "timestamp": datetime.utcnow()
         }
 
-# Include routers
-app.include_router(api_router)
-# Import WhatsApp router após resolver circular import
-try:
-    from whatsapp_service import whatsapp_router
-    app.include_router(whatsapp_router)
-    print("WhatsApp router incluído com sucesso")
-except ImportError as e:
-    print(f"WhatsApp router não pôde ser incluído: {e}")
+# NOTE: Router inclusion moved to after all endpoints are defined
 
 # Add structured logging middlewares (simplified integration)
 @app.middleware("http")
