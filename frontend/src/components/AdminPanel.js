@@ -597,8 +597,13 @@ const AdminPanel = () => {
   
   const openResetPasswordDialog = async (user) => {
     console.log('=== ABRINDO MODAL DE SENHA ===');
-    console.log('Usuário recebido:', user);
-    console.log('ID do usuário:', user?.id);
+    console.log('Usuário recebido:', JSON.stringify(user, null, 2));
+    
+    // Validar objeto user
+    if (!user || typeof user !== 'object') {
+      toast.error('Erro: Dados do usuário inválidos');
+      return;
+    }
     
     setResetPasswordUser(user);
     setResetPasswordForm({
@@ -615,22 +620,25 @@ const AdminPanel = () => {
     setShowResetPasswordDialog(true);
     
     // Buscar senha atual do usuário (para ambientes de teste/demo)
-    if (!user?.id) {
-      console.error('ERRO: ID do usuário não encontrado!');
+    const userId = user.id || user._id;
+    if (!userId) {
+      console.error('ERRO: ID do usuário não encontrado!', user);
       toast.error('Erro: ID do usuário não encontrado');
       setResetPasswordForm(prev => ({ ...prev, isLoading: false }));
       return;
     }
     
     try {
-      const url = `/admin/users/${user.id}/password-info`;
+      const url = `/admin/users/${userId}/password-info`;
       console.log('Chamando API:', url);
+      toast.info('Carregando informações da senha...');
       
       const response = await api.get(url);
-      console.log('Resposta da API:', response.data);
+      console.log('Resposta completa:', response);
+      console.log('Dados da resposta:', response.data);
       
       if (response.data && response.data.password_hint) {
-        console.log('Senha encontrada:', response.data.password_hint);
+        console.log('✅ Senha encontrada:', response.data.password_hint);
         setResetPasswordForm(prev => ({
           ...prev,
           currentPassword: response.data.password_hint,
@@ -638,9 +646,10 @@ const AdminPanel = () => {
           newPassword: response.data.password_hint,
           isLoading: false
         }));
-        toast.success('Senha carregada com sucesso!');
+        toast.success(`Senha carregada: ${response.data.password_hint}`);
       } else {
-        console.log('Nenhuma senha encontrada na resposta');
+        console.log('⚠️ Resposta sem password_hint:', response.data);
+        toast.warning('Nenhuma senha registrada para este usuário');
         setResetPasswordForm(prev => ({
           ...prev,
           isLoading: false
@@ -648,8 +657,9 @@ const AdminPanel = () => {
       }
     } catch (error) {
       console.error('=== ERRO AO BUSCAR SENHA ===');
-      console.error('Erro:', error);
-      console.error('Response:', error.response?.data);
+      console.error('Erro completo:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Status:', error.response?.status);
       toast.error('Erro ao carregar senha: ' + (error.response?.data?.detail || error.message));
       setResetPasswordForm(prev => ({
         ...prev,
