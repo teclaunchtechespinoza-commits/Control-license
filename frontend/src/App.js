@@ -20,6 +20,7 @@ import ClientsModule from './components/ClientsModule';
 import MaintenanceModule from './components/MaintenanceModule';
 import SalesDashboard from './components/SalesDashboard';
 import TenantAdmin from './components/TenantAdmin';
+import DataImport from './components/DataImport';
 import Navbar from './components/Navbar';
 import QuickAccessPanel from './components/QuickAccessPanel';
 import LoadingSpinner from './components/LoadingSpinner';
