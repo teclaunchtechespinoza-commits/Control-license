@@ -129,6 +129,7 @@ const Navbar = () => {
         { label: 'Clientes', path: '/clientes', icon: Users, description: 'PF e PJ' },
         { label: 'Convites', path: '/admin/convites', icon: Mail, description: 'Convidar usuários' },
         { label: 'Cadastros', path: '/cadastros', icon: Tag, description: 'Categorias e produtos' },
+        { label: 'Importar Dados', path: '/import', icon: Upload, description: 'CSV/Excel para licenças' },
         { label: 'Manutenção', path: '/manutencao', icon: Activity, description: 'Logs do sistema' },
         // Super Admin exclusive items integrated in the same group
         ...(user?.role === 'super_admin' ? [
