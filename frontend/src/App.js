@@ -334,6 +334,16 @@ function App() {
                   } 
                 />
                 
+                {/* Módulo de Importação de Dados */}
+                <Route 
+                  path="/import" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <DataImport />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 {/* Sprint 2 - Convites */}
                 <Route path="/accept-invite" element={<AcceptInvitePage />} />
                 <Route 
