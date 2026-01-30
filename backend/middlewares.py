@@ -103,7 +103,8 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
             "/api/admin/registrations/",
             "/api/admin/pending-count",
             "/api/admin/users/",
-            "/api/activity-logs"
+            "/api/activity-logs",
+            "/api/import/"
         ]
         return any(path.startswith(ep) for ep in auth_endpoints)
 
