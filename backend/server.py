@@ -6976,6 +6976,154 @@ async def delete_license_by_id(license_id: str, current_user: User = Depends(get
 
 
 # ============================================================================
+# 🆕 ADVANCED LICENSE MANAGEMENT - Gestão Avançada de Licenças
+# ============================================================================
+
+class LicenseRenewRequest(BaseModel):
+    """Request para renovar uma licença"""
+    validity_days: Optional[int] = None  # Se não informado, usa o padrão da licença
+    notes: Optional[str] = None  # Observações da renovação
+
+@api_router.post("/licenses/{license_id}/renew")
+async def renew_license(
+    license_id: str,
+    renew_data: LicenseRenewRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Renovar uma licença
+    - Atualiza a data de expiração
+    - Registra no histórico de renovações
+    - Reativa licença se expirada
+    """
+    # Buscar licença
+    doc = await db.licenses.find_one({"id": license_id, "tenant_id": tenant_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    
+    # Determinar dias de validade
+    validity_days = renew_data.validity_days or doc.get("validity_days", 365)
+    
+    # Calcular nova data de expiração
+    now = datetime.now(timezone.utc)
+    previous_expiration = doc.get("expires_at")
+    
+    # Se a licença ainda está ativa, adicionar dias a partir da expiração atual
+    # Se expirada, começar a partir de agora
+    if previous_expiration and previous_expiration > now:
+        base_date = previous_expiration
+    else:
+        base_date = now
+    
+    new_expiration = base_date + timedelta(days=validity_days)
+    
+    # Criar entrada no histórico
+    renewal_entry = {
+        "id": str(uuid.uuid4()),
+        "renewal_date": now.isoformat(),
+        "previous_expiration": previous_expiration.isoformat() if previous_expiration else None,
+        "new_expiration": new_expiration.isoformat(),
+        "validity_days": validity_days,
+        "renewed_by_id": current_user.id,
+        "renewed_by_name": current_user.name,
+        "renewed_by_email": current_user.email,
+        "notes": renew_data.notes
+    }
+    
+    # Buscar histórico existente
+    existing_history = doc.get("renewal_history", [])
+    if not isinstance(existing_history, list):
+        existing_history = []
+    
+    # Atualizar licença
+    updates = {
+        "expires_at": new_expiration,
+        "status": "active",  # Reativar se estava expirada
+        "updated_at": now,
+        "renewal_history": existing_history + [renewal_entry]
+    }
+    
+    await db.licenses.update_one({"id": license_id}, {"$set": updates})
+    
+    # Log de auditoria
+    await log_activity(
+        user_email=current_user.email,
+        user_name=current_user.name,
+        activity_type="license_renewed",
+        description=f"Licença '{doc.get('name')}' renovada por {validity_days} dias",
+        tenant_id=tenant_id,
+        resource_id=license_id,
+        resource_type="license"
+    )
+    
+    # Buscar documento atualizado
+    updated = await db.licenses.find_one({"id": license_id})
+    updated.pop("_id", None)
+    
+    return {
+        "success": True,
+        "message": f"Licença renovada com sucesso por {validity_days} dias",
+        "license": updated,
+        "renewal_entry": renewal_entry
+    }
+
+
+@api_router.get("/licenses/{license_id}/history")
+async def get_license_renewal_history(
+    license_id: str,
+    current_user: User = Depends(get_current_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Buscar histórico de renovações de uma licença
+    """
+    doc = await db.licenses.find_one({"id": license_id, "tenant_id": tenant_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    
+    history = doc.get("renewal_history", [])
+    
+    return {
+        "license_id": license_id,
+        "license_name": doc.get("name"),
+        "current_expiration": doc.get("expires_at"),
+        "validity_days": doc.get("validity_days", 365),
+        "total_renewals": len(history),
+        "renewal_history": history
+    }
+
+
+@api_router.get("/admin/salespeople")
+async def get_salespeople(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Listar vendedores disponíveis (usuários com role admin ou super_admin do tenant)
+    """
+    # Buscar usuários admin do tenant
+    filter_query = {
+        "tenant_id": tenant_id,
+        "role": {"$in": ["admin", "super_admin"]},
+        "is_active": True
+    }
+    
+    salespeople = await db.users.find(filter_query, {
+        "_id": 0,
+        "id": 1,
+        "name": 1,
+        "email": 1,
+        "role": 1
+    }).to_list(100)
+    
+    return {
+        "salespeople": salespeople,
+        "total": len(salespeople)
+    }
+
+
+# ============================================================================
 # TICKET ENDPOINTS - Sistema de Solicitações e Suporte
 # ============================================================================
 
