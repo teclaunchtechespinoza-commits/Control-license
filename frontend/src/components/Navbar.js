@@ -111,6 +111,12 @@ const Navbar = () => {
                       licensesError ? 'Erro ao carregar' : 
                       `${licenseCount} licenças no sistema`
         },
+        { 
+          label: 'Gestão Avançada', 
+          path: '/gestao-licencas', 
+          icon: RotateCcw, 
+          description: 'Renovações e vendedores' 
+        },
         { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
       ]
     }
