@@ -1399,6 +1399,10 @@ class LicenseUpdate(BaseModel):
     client_pj_id: Optional[str] = None
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
+    # 🆕 Campos avançados de gestão de licenças
+    validity_days: Optional[int] = None
+    salesperson_id: Optional[str] = None
+    salesperson_name: Optional[str] = None
 
 
 # ============================================================================
@@ -6882,6 +6886,10 @@ class LicenseUpdate(BaseModel):
     client_pj_id: Optional[str] = None
     product_id: Optional[str] = None
     plan_id: Optional[str] = None
+    # 🆕 Campos avançados de gestão de licenças
+    validity_days: Optional[int] = None
+    salesperson_id: Optional[str] = None
+    salesperson_name: Optional[str] = None
     serial: str | None = None
 
 @api_router.put("/licenses/{license_id}", response_model=License)
