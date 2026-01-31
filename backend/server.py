@@ -1334,6 +1334,21 @@ class LicensePlanUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 # Enhanced License Models (updated to use new client system)
+# ============================================================================
+# RENEWAL HISTORY MODEL - Histórico de Renovações
+# ============================================================================
+class RenewalHistoryEntry(BaseModel):
+    """Entrada do histórico de renovação de licença"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    renewal_date: datetime = Field(default_factory=datetime.utcnow)  # Data/hora da renovação
+    previous_expiration: Optional[datetime] = None  # Data de expiração anterior
+    new_expiration: datetime  # Nova data de expiração
+    validity_days: int  # Dias de validade aplicados
+    renewed_by_id: str  # ID do usuário que renovou
+    renewed_by_name: str  # Nome do usuário que renovou
+    renewed_by_email: str  # Email do usuário que renovou
+    notes: Optional[str] = None  # Observações opcionais
+
 class LicenseBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -1353,6 +1368,11 @@ class LicenseBase(BaseModel):
     activation_date: Optional[datetime] = None  # Data de ativação (Adicionado em)
     import_source: Optional[str] = None  # Origem da importação (ex: "AutoAuthTool")
     import_batch_id: Optional[str] = None  # ID do lote de importação
+    # 🆕 Campos avançados de gestão de licenças
+    validity_days: int = 365  # Dias de validade padrão (editável)
+    salesperson_id: Optional[str] = None  # ID do vendedor (admin) responsável
+    salesperson_name: Optional[str] = None  # Nome do vendedor (desnormalizado para performance)
+    renewal_history: List[RenewalHistoryEntry] = []  # Histórico de renovações
 
 class LicenseCreate(LicenseBase):
     assigned_user_id: Optional[str] = None
