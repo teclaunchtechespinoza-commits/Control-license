@@ -11,11 +11,23 @@ import pytest
 import requests
 import os
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv('/app/frontend/.env')
 
 # Get BASE_URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
-if not BASE_URL:
-    raise ValueError("REACT_APP_BACKEND_URL environment variable is required")
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001').rstrip('/')
+if not BASE_URL or BASE_URL == 'http://localhost:8001':
+    # Try to load from .env file directly
+    try:
+        with open('/app/frontend/.env') as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL'):
+                    BASE_URL = line.split('=')[1].strip().rstrip('/')
+                    break
+    except:
+        BASE_URL = 'http://localhost:8001'
 
 # Test credentials from review request
 SUPER_ADMIN_EMAIL = "superadmin@autotech.com"
