@@ -7009,6 +7009,13 @@ async def renew_license(
     now = datetime.now(timezone.utc)
     previous_expiration = doc.get("expires_at")
     
+    # Normalizar timezone para comparação segura
+    # MongoDB pode retornar datetime naive ou aware dependendo de como foi salvo
+    if previous_expiration:
+        if previous_expiration.tzinfo is None:
+            # Se naive, assumir UTC
+            previous_expiration = previous_expiration.replace(tzinfo=timezone.utc)
+    
     # Se a licença ainda está ativa, adicionar dias a partir da expiração atual
     # Se expirada, começar a partir de agora
     if previous_expiration and previous_expiration > now:
