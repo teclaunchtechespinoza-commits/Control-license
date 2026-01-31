@@ -6935,6 +6935,13 @@ async def update_license_by_id(
         updates["product_id"] = body.product_id
     if body.plan_id is not None:
         updates["plan_id"] = body.plan_id
+    # 🆕 Novos campos de gestão avançada
+    if body.validity_days is not None:
+        updates["validity_days"] = body.validity_days
+    if body.salesperson_id is not None:
+        updates["salesperson_id"] = body.salesperson_id
+    if body.salesperson_name is not None:
+        updates["salesperson_name"] = body.salesperson_name
     
     # Update timestamp
     updates["updated_at"] = datetime.now(timezone.utc)
