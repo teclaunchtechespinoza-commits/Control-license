@@ -345,6 +345,16 @@ function App() {
                   } 
                 />
                 
+                {/* Gestão Avançada de Licenças */}
+                <Route 
+                  path="/gestao-licencas" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <LicenseManagement />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 {/* Sprint 2 - Convites */}
                 <Route path="/accept-invite" element={<AcceptInvitePage />} />
                 <Route 
