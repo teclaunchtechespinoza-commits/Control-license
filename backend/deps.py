@@ -5,17 +5,26 @@ Critical security module - ensures 100% tenant data isolation
 from fastapi import HTTPException, Request, status
 from typing import Optional
 
+TENANT_HEADER = "X-Tenant-ID"
+
 def require_tenant(request: Request) -> str:
     """
     CRITICAL: Ensure every request runs under a tenant context
     This dependency MUST be used on all data-related endpoints
+    Priority: 1. X-Tenant-ID header, 2. request.state.tenant_id, 3. default
     """
-    tid = getattr(request.state, "tenant_id", None)
+    # Primeiro, verificar header X-Tenant-ID
+    tid = request.headers.get(TENANT_HEADER)
+    
+    # Fallback para request.state (setado pelo middleware)
     if not tid:
-        # For development/demo, use 'default' if no tenant resolved
-        # In production, this should be more strict
+        tid = getattr(request.state, "tenant_id", None)
+    
+    # Para desenvolvimento/demo, usar 'default' se nenhum tenant
+    if not tid:
         tid = "default"
         request.state.tenant_id = tid
+    
     return tid
 
 def add_tenant_filter(base: dict, tenant_id: Optional[str] = None) -> dict:
