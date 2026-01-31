@@ -43,21 +43,33 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 - [x] Status: active, expired, suspended, pending, cancelled
 - [x] Associação com clientes PF/PJ
 - [x] Notificações de expiração
-- [x] **Módulo de Importação de Dados (30/01/2026)** ✨
+- [x] Módulo de Importação de Dados (CSV/Excel)
+- [x] **Gestão Avançada de Licenças (31/01/2026)** ✨
 
-### Módulo de Importação (NOVO)
+### Módulo de Gestão Avançada (NOVO - 31/01/2026)
+- [x] Campo `validity_days` editável (padrão 365 dias)
+- [x] Associação com vendedor (`salesperson_id` - admins existentes)
+- [x] Histórico de renovações (`renewal_history`)
+- [x] Endpoint de renovação com registro automático
+- [x] Visualização de histórico de renovações
+- [x] Interface completa em `/gestao-licencas`
+- [x] Estatísticas: ativas, expirando, expiradas, total
+
+**Campos do Histórico de Renovação:**
+- `renewal_date` - Data/hora da renovação
+- `previous_expiration` - Expiração anterior
+- `new_expiration` - Nova expiração
+- `validity_days` - Dias aplicados
+- `renewed_by_id/name/email` - Quem renovou
+- `notes` - Observações
+
+### Módulo de Importação
 - [x] Upload de arquivos CSV/Excel
 - [x] Pré-visualização antes de importar
 - [x] Detecção automática de conflitos (Serial duplicado)
 - [x] Mapeamento flexível de colunas
 - [x] Histórico de importações
 - [x] Relatório detalhado de importação
-
-**Campos suportados:**
-- Manufacturer → Fabricante
-- Model → Modelo
-- Serial → Número de série (chave única)
-- Added → Data de ativação
 
 ### Sistema de Tickets
 - [x] Criação de tickets por usuários
@@ -90,23 +102,26 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ## Changelog Recente
 
+### 31/01/2026 - Módulo de Gestão Avançada de Licenças
+- **Implementado**: Sistema completo de gestão avançada de licenças
+  - Modelo `RenewalHistoryEntry` para histórico de renovações
+  - Novos campos em `License`: `validity_days`, `salesperson_id`, `salesperson_name`, `renewal_history`
+  - Endpoint `GET /api/admin/salespeople` - Lista admins como vendedores
+  - Endpoint `POST /api/licenses/{id}/renew` - Renovar com histórico
+  - Endpoint `GET /api/licenses/{id}/history` - Buscar histórico
+  - Atualização de `PUT /api/licenses/{id}` com novos campos
+  - Componente `LicenseManagement.js` com interface completa
+  - Rota `/gestao-licencas` no frontend
+  - Link "Gestão Avançada" no menu de Licenças
+
+- **Bug Fix**: Corrigido erro de comparação de timezone em `renew_license`
+  - MongoDB retorna datetime naive, código usava aware
+  - Adicionada normalização de timezone antes de comparar
+
 ### 30/01/2026 - Módulo de Importação de Dados
-- **Implementado**: Sistema completo de importação CSV/Excel
-  - Endpoints: `/api/import/preview`, `/api/import/execute`, `/api/import/history`, `/api/import/conflicts`
-  - Interface drag-and-drop para upload
-  - Pré-visualização de dados antes de importar
-  - Detecção de conflitos por Serial
-  - Opção de atualizar registros existentes
-  - Relatório de importação com estatísticas
-  - Histórico de lotes de importação
-  
-- **Campos da Licença expandidos**:
-  - `serial_number` - Número de série único
-  - `manufacturer` - Fabricante
-  - `model` - Modelo do equipamento
-  - `activation_date` - Data de ativação
-  - `import_source` - Origem da importação
-  - `import_batch_id` - ID do lote
+- Sistema completo de importação CSV/Excel
+- Endpoints: `/api/import/preview`, `/api/import/execute`, `/api/import/history`
+- Interface drag-and-drop para upload
 
 ### 26/01/2026 - Sistema de Aprovação de Registros
 - Fluxo completo de aprovação de registros
@@ -114,34 +129,63 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ---
 
+## API Endpoints - Gestão Avançada
+
+```
+GET  /api/admin/salespeople              - Listar vendedores (admins do tenant)
+POST /api/licenses/{id}/renew            - Renovar licença
+GET  /api/licenses/{id}/history          - Histórico de renovações
+PUT  /api/licenses/{id}                  - Atualizar (inclui novos campos)
+```
+
+**Exemplo de renovação:**
+```json
+POST /api/licenses/{id}/renew
+{
+  "validity_days": 365,
+  "notes": "Renovação anual"
+}
+```
+
+**Resposta:**
+```json
+{
+  "success": true,
+  "message": "Licença renovada com sucesso por 365 dias",
+  "license": {...},
+  "renewal_entry": {
+    "id": "uuid",
+    "renewal_date": "2026-01-31T13:47:49Z",
+    "previous_expiration": "2026-12-31T00:00:00Z",
+    "new_expiration": "2027-12-31T00:00:00Z",
+    "validity_days": 365,
+    "renewed_by_name": "Super Administrator",
+    "notes": "Renovação anual"
+  }
+}
+```
+
+---
+
 ## Próximas Tarefas (Backlog)
 
-### P1 - Importação Avançada
-- [ ] Suporte a Excel (.xlsx) com múltiplas abas
-- [ ] Agendamento de importação automática
-- [ ] Mapeamento customizável de colunas
-
-### P2 - Documentação
+### P1 - Documentação & Apresentação
 - [ ] Manual do usuário no Help Center
 - [ ] Manual do administrador
 - [ ] Changelog técnico visível
+- [ ] Pitch deck para apresentação
+
+### P2 - Melhorias de Importação
+- [ ] Suporte a Excel (.xlsx) com múltiplas abas
+- [ ] Agendamento de importação automática
+- [ ] Mapeamento customizável de colunas
 
 ### P3 - Funcionalidades Futuras
 - [ ] Notificação por email quando registro for aprovado
 - [ ] Renovação self-service de licenças
 - [ ] Histórico de pagamentos
+- [ ] Download de certificado de licença
 - [ ] Modularização do server.py
-
----
-
-## API Endpoints de Importação
-
-```
-POST /api/import/preview     - Pré-visualiza dados do arquivo
-POST /api/import/execute     - Executa importação
-GET  /api/import/history     - Histórico de importações
-GET  /api/import/conflicts   - Lista conflitos pendentes
-```
 
 ---
 
@@ -150,7 +194,21 @@ GET  /api/import/conflicts   - Lista conflitos pendentes
 ### Email Service (MOCKED)
 O serviço de email está stub. Para produção, integrar com SendGrid/AWS SES.
 
-### Importação de Dados
-- Serial é usado como chave única para detecção de duplicados
-- Suporta múltiplos formatos de data
-- Gera nome automático: `{Manufacturer} - {Model}` ou `Licença {Serial[:8]}`
+### Timezone Handling
+MongoDB pode retornar datetimes naive ou aware. Sempre normalizar com:
+```python
+if dt.tzinfo is None:
+    dt = dt.replace(tzinfo=timezone.utc)
+```
+
+### X-Tenant-ID Header
+Obrigatório em todas as requisições autenticadas. O frontend adiciona automaticamente via interceptor do axios.
+
+---
+
+## Testes
+
+Arquivo de testes: `/app/backend/tests/test_license_management.py`
+- 13 testes cobrindo todos os endpoints de gestão avançada
+- Usa `requests.Session` para manter cookies de autenticação
+- Todos os testes passando ✅
