@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 
 class JSXCorrectionsAPITester:
-    def __init__(self, base_url="https://tenantbay.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://licensehub-26.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.user_token = None

@@ -1,158 +1,177 @@
 <analysis>**original_problem_statement:**
-The user's goal is to prepare a multi-tenant license management SaaS application for a presentation to a major client. This involves fixing all critical bugs, improving the user experience, and implementing essential features.
+The user's goal is to prepare a multi-tenant license management SaaS application for a presentation to a major client. This involves fixing critical bugs, improving the user experience, and implementing essential features.
 
-Initial requests included creating a simplified UI for 'user' roles, unifying the admin dashboard, and implementing a ticket/audit system. Recent work focused on resolving severe bugs related to data integrity, application performance, and user permissions.
+Initial requests focused on stability, UI refinement, and a password recovery flow. The project has since evolved based on user feedback.
 
-The current user request is to implement a robust and user-friendly password recovery flow, as the login page lacks any option for users who have forgotten their credentials. The user has opted for an experimental, low-cost implementation using a recovery code sent via a stubbed email service to validate the user experience before committing to a more complex solution. The overarching priority is to create a stable, professional, and secure platform.
+Recent user requests implemented include:
+1.  **Password Recovery**: A complete, code-based password recovery system.
+2.  **Login Unification**: A redesigned, single login page that intelligently handles both email-based (admin) and code-based (user) logins, improving the user experience.
+3.  **Registration Approval**: A security enhancement requiring new user registrations to be manually approved by an administrator before they can access the system.
+4.  **Data Import Module**: A feature to import license data from a CSV file, including a preview and execution step.
+
+The current user request is to build an advanced license management module. This module should include fields for editable license validity (defaulting to 365 days), associating a salesperson (from a new, dedicated Vendedores module or existing system users), and maintaining a history of renewals. The user also requires a comprehensive UI for full CRUD (Create, Read, Update, Delete) operations on these licenses.
 
 **User's preferred language**: Portuguese (pt-BR). The next agent MUST respond in Portuguese.
 
 **what currently exists?**
-The application is a full-stack system with a FastAPI backend, React frontend, and MongoDB database. It features multi-tenancy, Role-Based Access Control (RBAC), and modules for managing tenants, users, licenses, products, and plans.
+The application is a stable full-stack system with a FastAPI backend, React frontend, and MongoDB database. It features multi-tenancy and Role-Based Access Control (RBAC).
 
-The system is now in a stable state after numerous critical bug fixes:
--   **Data Integrity:** Severe bugs causing tenant duplication and data inconsistency have been resolved by removing duplicate API endpoints and adding unique indexes to the database. Orphaned data has been purged.
--   **Performance:** A major latency issue caused by repeated timeouts when trying to connect to a non-existent Redis service has been fixed.
--   **Security:** RBAC vulnerabilities have been patched. Regular users can no longer access lists of other users, and the  now has the correct permissions to view and manage all users across all tenants.
--   **UX/UI:** A password visibility toggle (eye icon) has been implemented on all password fields. The UI for standard 'user' roles has been completely redesigned into a clean, modern, and focused .
--   **Password Recovery:** The foundation for a password recovery feature is in place. Backend endpoints (, ) and a new frontend component () have been created.
+Key functionalities include:
+-   **Unified Login**: A single, streamlined login page that dynamically adapts to email or access code inputs.
+-   **User Registration with Approval**: New users can register, but their accounts are created with a  status and must be manually activated by an admin.
+-   **Password Recovery**: A fully functional Forgot Password flow using a recovery code sent via a stubbed email service.
+-   **Admin Panel**: A comprehensive dashboard for managing users, tenants, and now, user registration approvals.
+-   **Data Import**: A module accessible from the navigation bar that allows admins to upload a CSV file to bulk-import license data. The backend handles previewing the data and executing the import.
+-   **Stubbed Email Service**: Emails (like for password recovery) are currently printed to the backend console logs.
 
 **Last working item**:
--   **Last item agent was working**: Implementing the **Forgot Password** feature using a recovery code sent via an email stub. The agent created the necessary backend endpoints and the frontend component () and was in the process of integrating it into the  component.
--   **Status**: **IN PROGRESS**
+-   **Last item agent was working**: Planning the implementation of an advanced license management system. The user has provided detailed requirements for license validity, salesperson tracking, renewal history, and a full management interface. The agent analyzed the request and was about to begin implementation.
+-   **Status**: **NOT STARTED**
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**:  to verify the new UI elements (link and modal), followed by manual testing of the end-to-end flow. A final verification with the  is recommended upon completion.
+-   **Which testing method agent to use?**: both (backend and frontend testing agents) after the feature is complete, as this involves significant changes to the data model, API, and UI.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Complete and Test the Password Recovery Flow (P0)
+-   **Issue 1**: Playwright session/cookie persistence issues (P2)
 
 **Issues Detail**:
 -   **Issue 1**:
-    -   **Description**: The user-facing part of the password recovery feature is incomplete. The backend logic and frontend component exist, but the Esqueci minha senha link is not yet visible on the login page, and the complete flow has not been tested.
-    -   **Attempted fixes**: Backend endpoints and a frontend component were created.
+    -   **Description**: Automated frontend tests using the  tool (Playwright) frequently fail due to session loss after login. When navigating to a protected route (e.g., ), the test is redirected back to the login page. This is a limitation of the testing environment's handling of cross-origin cookies, not an application bug.
+    -   **Attempted fixes**: The previous agent confirmed backend and API functionality using  with cookie management ( and  flags), proving the authentication logic is correct.
     -   **Next debug checklist**:
-        1.  Edit .
-        2.  Add a Esqueci minha senha link or button within the Admin login tab's form.
-        3.  Ensure the  handler for this link correctly opens the  modal/component.
-        4.  Test the full E2E flow: request code -> check backend log for the email -> enter code -> reset password -> log in with the new password.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical user experience feature required for the client presentation. It provides a standard, secure way for users to regain access to their accounts.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Both.
+        1.  When testing frontend flows that require authentication, be aware that Playwright may lose the session.
+        2.  Prioritize  tests for verifying backend logic and API endpoints.
+        3.  For UI verification, test components in isolation or accept that full E2E flows might require manual testing in a real browser.
+    -   **Why fix this issue and what will be achieved with the fix?**: Acknowledging this limitation will save the next agent time by preventing them from debugging a non-existent application bug and focusing on reliable testing methods like .
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: NA
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: Complete the Go-Live Plan - Phase 1 (P0)
-
-**Task Detail**:
--   **Task 1**:
-    -   **Description**: Finalize the implementation of the password recovery feature as part of the Go-Live plan.
-    -   **Where to resume**: Integrating the  component into  by adding the user-facing link.
-    -   **What will be achieved with this?**: A complete, testable password recovery flow, marking the completion of the first phase of the final preparation plan.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Both.
-    -   **Blocked on something**: None.
+-   There are no tasks currently in progress.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (Go-Live Plan)**:
-    -   **P1: Fase 2: Documentação Final e Apresentação**:
-        - Create comprehensive User and Administrator manuals within the app's Help Center.
-        - Develop a pitch deck style presentation inside the app to showcase its features.
-        - Generate a technical changelog of all recent fixes and improvements.
-    -   **P2: Fase 3: Polimento Final da UI/UX**:
-        - Systematically replace all remaining default  dialogs with custom, styled modals.
-        - Refine UI animations and transitions for a more professional feel.
-        - Conduct a final review of responsive design across mobile and tablet devices.
+**Upcoming Tasks:**
+-   **P0: Implement Advanced License Management Module**:
+    -   **Backend**:
+        -   Modify the  model in  to include:  (editable integer), , , , and  (array of objects).
+        -   Create a new  (Salesperson) model and corresponding CRUD endpoints.
+        -   Create new API endpoints for full CRUD management of licenses with the new fields.
+        -   When a license is renewed, create an entry in .
+    -   **Frontend**:
+        -   Create a new management interface (likely within  or as a new component) to display licenses with the new fields (e.g., days remaining, salesperson).
+        -   Build a form/modal for creating/editing licenses, allowing admins to set validity and select a salesperson from a dropdown (populated by system admins and the new Vendedores list).
+        -   Implement UI for viewing renewal history.
+-   **P1: Go-Live Plan - Phase 2: Final Documentation & Presentation**:
+    -   Create comprehensive User and Administrator manuals.
+    -   Develop a pitch deck style presentation inside the app.
+    -   Generate a technical changelog of all recent fixes and improvements.
 
--   **Future Tasks (From Backlog)**:
-    -   Implement self-service license renewal capabilities.
-    -   Add a Payment History view for users.
-    -   Allow users to download a formal license certificate/receipt.
-    -   Modularize the monolithic  file.
-    -   Build an advanced reporting and analytics system.
-    -   Develop a public API for third-party integrations.
+**Future Tasks:**
+-   Modularize the monolithic  file.
+-   Implement self-service license renewal and payment history.
+-   Add functionality to download a formal license certificate/receipt.
+-   Build an advanced reporting and analytics system.
+-   Develop a public API for third-party integrations.
 
 **Completed work in this session**
--   **Data Integrity & Stability**:
-    -   Fixed a critical bug causing duplicate tenants to be created by removing redundant API endpoints (, ) and adding unique database indexes.
-    -   Purged all duplicate and orphaned data (tenants, users, licenses) from the database, restoring data consistency.
--   **Performance Optimization**:
-    -   Resolved a severe application-wide slowdown by implementing a graceful fallback in the rate limiter to prevent repeated, failing connection attempts to a non-existent Redis service.
--   **Security & RBAC**:
-    -   Patched a security vulnerability that allowed non-admin users to list other users.
-    -   Corrected permissions to ensure  can view and manage all users across all tenants from the Admin Panel.
--   **UI/UX Improvements**:
-    -   Successfully implemented the password visibility toggle (eye icon) across all relevant forms.
-    -   Completely redesigned the 'user' role interface into a modern, clean , and fixed the application routing to ensure users are correctly directed to it.
-    -   Fixed an infinite loading loop for the  by improving error handling in the UI.
--   **Bug Fixes**:
-    -   Fixed numerous bugs in creation forms (Company, Product, Plan, License) where the  was not being injected correctly by the backend.
-    -   Repaired the user management panel to correctly display all users and enable actions (edit, delete, etc.).
+-   **Login Page Redesign & Unification**:
+    -   The User and Admin login tabs were merged into a single, intelligent Entrar (Login) tab.
+    -   The input field now automatically detects whether an email or an access code is being entered and adjusts the UI accordingly (e.g., showing the Forgot Password link only for emails).
+    -   The UI was enhanced with distinct active/inactive colors for the Entrar (blue) and Registrar (green) tabs.
+-   **Registration Approval Workflow**:
+    -   Implemented a critical security feature where new user registrations are set to a  status.
+    -   Admins can now view a list of pending registrations in the  and approve or reject them.
+    -   Users cannot log in until their account is approved.
+    -   A dedicated Aguardando Aprovação (Waiting for Approval) screen was added to the frontend.
+-   **Password Recovery Flow Completion**:
+    -   The Forgot Password feature, which was previously in progress, was fully completed and tested end-to-end.
+    -   The link was added to the login UI, and the recovery modal was integrated and verified.
+-   **Admin Password Management Modal**:
+    -   Created and refined a modal in the  allowing  to view and reset any user's password.
+    -   Fixed numerous bugs related to fetching, displaying, and updating passwords for different users.
+-   **Data Import Module (CSV to Licenses)**:
+    -   Created a full-featured module to import license data from a CSV file.
+    -   **Backend**: Developed endpoints  (to validate the file) and  (to perform the import), with logic to handle new vs. existing records.
+    -   **Frontend**: Built a new  component with a file dropzone and review table. Integrated it into the main navigation for admin users.
+-   **Numerous Bug Fixes**:
+    -   Resolved issues with backend routing where new endpoints were not being registered correctly.
+    -   Fixed middleware logic to correctly handle tenant ID and authentication for new admin endpoints.
+    -   Corrected frontend syntax errors and improved state management in .
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend**: FastAPI, MongoDB (Motor), Pydantic, JWT.
--   **Frontend**: React, Tailwind CSS, Axios,  (for toasts).
--   **Architecture**: RBAC, Multi-tenancy, API Caching ( hook).
--   **Security**: Unique database indexes (uid=0(root) gid=0(root) groups=0(root),  on tenants) to enforce data integrity.
--   **Performance**: Connection failure caching/flagging to prevent repeated timeouts on unavailable services (like Redis).
--   **Password Recovery**: Using a time-sensitive, single-use code sent via a stubbed email service and stored temporarily on the user document.
+-   **Dynamic Login UI**: A single React component that alters its behavior and appearance based on user input ().
+-   **Stateful User Registration**: Implemented an  field (, , ) in the  collection to manage the registration lifecycle.
+-   **Bulk Data Import**: Using FastAPI's  to process CSV data. A two-step process (preview, then execute) provides a safer user experience.
+-   **Conflict Handling (Import)**: The import logic checks for existing  to prevent duplicates and reports conflicts.
+-   **Modular Frontend Components**: New features (Pending Approvals, Data Import) were built as separate components and integrated into existing layouts (, ).
 
 **key DB schema**
--   :  - Now with unique indexes on uid=0(root) gid=0(root) groups=0(root) and .
--   :  - The new logic temporarily adds  and  during password reset.
--   : 
--   : 
--   : 
+-   :  - Now includes fields for managing the registration approval workflow and password hints for the admin panel.
+-   :  - New fields added during the import module creation to store data from the CSV.
 
 **All files of reference**
--   : The core backend logic.
--   : Entry point for users, contains the new password recovery logic.
--   : The new UI for the recovery flow.
--   : The new, clean interface for standard users.
--   : The user management interface for admins.
--   : Contains the project checklist that guides the Go-Live plan.
+-   : Contains all new backend logic for approvals, password management, and data import.
+-   : The completely redesigned login/registration component.
+-   : The central hub for user management, now including the approvals panel and password reset modal.
+-   : The new UI for the CSV import feature.
+-   : The component used within  to manage new user registrations.
+-   : Contains routing for the new components.
+-   : Contains navigation links.
 
 **Areas that need refactoring**
--    remains a very large monolithic file. Modularizing it into separate files for different concerns (e.g., , ) is a key future task.
+-    is now extremely large and complex. It is the highest priority for future refactoring into a modular structure (e.g., , , ).
 
 **key api endpoints**
--   **New**:
-    -   : Generates a recovery code and sends a stubbed email.
-    -   : Validates the code and updates the user's password.
--   **Fixed/Modified**:
-    -   : Now correctly filters users based on role, with  seeing everyone.
-    -   : Correctly calculates and returns user/license counts for each tenant.
-    -   , , : Endpoints now correctly inject .
-    -   : Endpoint now handles errors gracefully.
+-   **Registration Approval**:
+    -   : Lists all users with .
+    -   : Changes user status to .
+    -   : Changes user status to .
+-   **Admin Password Management**:
+    -   : Retrieves a password hint for a user (for the demo).
+    -   : Updates a user's password.
+-   **Data Import**:
+    -   : Receives a CSV file and returns a preview of the data, identifying new vs. conflicting records.
+    -   : Receives a list of records to import and commits them to the database.
 
 **Critical Info for New Agent**
-1.  **Immediate Task**: Your first priority is to complete the Forgot Password feature. This involves adding the link to the UI in  and testing the entire flow.
-2.  **Client-Facing Goal**: The user has high urgency to get the platform ready for a client presentation. Prioritize stability, a professional look, and completing the Go-Live plan.
-3.  **Email is a Stub**: The password recovery email is currently a  statement in . This is intentional for the experimental phase. Check the backend logs to find the recovery code during testing.
-4.  **Data Integrity**: While major data duplication bugs were fixed with database indexes, remain vigilant. The codebase has a history of these issues.
+1.  **Immediate Task**: The highest priority is to implement the **Advanced License Management Module** as detailed in the user's latest request. This is a significant feature build.
+2.  **User Engagement**: The user is highly technical, provides excellent feedback, and has a clear vision. They appreciate proactive suggestions and detailed explanations.
+3.  **Testing Environment Quirk**: Be aware of the Playwright session issue. Do not waste time debugging it. Use  for reliable backend testing and focus on component-level UI tests.
+4.  **Backend Structure**: The  file is monolithic. Be careful when adding new code to avoid introducing new complexities. The user is aware and has approved future refactoring.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   The user reported and the agent fixed several critical issues: an infinite loading loop for the , inability to edit users in the admin panel, and a data inconsistency where a license counter was incorrect due to an orphan license.
--   The user then requested a Forgot Password feature for the login page, emphasizing the need for a positive user experience for a client presentation.
--   The agent presented a viability study with two options.
--   The user chose **Option B (Recovery Code)** for its speed and suitability for a quick UX validation.
--   The agent started implementing Option B. There are no pending user messages.
+1.  User requested a way to handle spam/fake registrations.
+2.  Agent proposed two options: email verification or manual admin approval.
+3.  User chose **manual admin approval (Option B)**.
+4.  Agent implemented the full registration approval workflow (backend + frontend).
+5.  User reported a bug where an approved user's purpose was unclear (they expected a password reset code).
+6.  Agent clarified the flow: the user sets their password during registration, and approval simply activates the account. A bug was found where the login failed.
+7.  Agent fixed the login issue for approved users.
+8.  User then requested an easier way for admins to manage user passwords directly from the admin panel.
+9.  Agent implemented a new modal for viewing and resetting user passwords.
+10. User reported bugs with the new password modal (empty fields, slowness).
+11. Agent fixed the modal bugs and verified that all user passwords and logins were working correctly.
+12. User then pivoted to the next major feature: **implementing a CSV data import module**.
+13. Agent implemented the full data import module.
+14. User approved the import module and immediately proposed the next feature: the **advanced license management system**. The agent was about to start this work.
 
 **Project Health Check:**
--   **Broken**: None. The application is in a stable, functional state.
--   **Mocked**: The email service in  is a stub that logs password recovery codes to the console instead of sending actual emails.
+-   **Broken**: None. The application is stable.
+-   **Mocked**: The email service in  still only prints to the console.
 
 **3rd Party Integrations**
--   None added. The system does not currently use Redis, and the code has been adapted to handle its absence.
+-   None.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES. The testing agent was instrumental in identifying the critical RBAC permission vulnerability.
+-   **Testing agent used after significant changes**: NO (for the latest features).
 -   **Troubleshoot agent used after agent stuck in loop**: NO.
 -   **Test files created**: None.
--   **Known regressions**: None. All known regressions have been fixed.
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
 -   **Super Admin**:  / 
@@ -160,4 +179,4 @@ The system is now in a stable state after numerous critical bug fixes:
 -   **User**:  / 
 
 **What agent forgot to execute**
--   Nothing was forgotten. The agent has been methodically addressing user requests and bugs. The current task (password recovery) is the direct result of the last user request.</analysis>
+-   Nothing was forgotten. The agent successfully followed the user's lead, implementing several complex features and responding to feedback and bug reports in sequence.</analysis>

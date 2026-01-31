@@ -10,7 +10,7 @@ load_dotenv('/app/frontend/.env')
 class SuperAdminLoginTester:
     def __init__(self):
         # Get backend URL from environment
-        backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://tenantbay.preview.emergentagent.com')
+        backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://licensehub-26.preview.emergentagent.com')
         self.base_url = f"{backend_url}/api"
         self.tests_run = 0
         self.tests_passed = 0

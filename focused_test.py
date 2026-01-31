@@ -3,7 +3,7 @@ import json
 
 def test_stats_endpoint():
     """Test the stats endpoint specifically"""
-    base_url = "https://tenantbay.preview.emergentagent.com/api"
+    base_url = "https://licensehub-26.preview.emergentagent.com/api"
     session = requests.Session()
     
     print("🔍 Testing Stats Endpoint Issue")
