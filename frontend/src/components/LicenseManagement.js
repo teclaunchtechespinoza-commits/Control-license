@@ -752,7 +752,7 @@ const LicenseManagement = () => {
                     <SelectValue placeholder="Selecionar vendedor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {salespeople.map(sp => (
                       <SelectItem key={sp.id} value={sp.id}>
                         <span className="flex items-center gap-2">
