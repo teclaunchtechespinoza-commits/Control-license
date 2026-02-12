@@ -103,6 +103,18 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ## Changelog Recente
 
+### 31/01/2026 - Security Hardening v1.4.0
+- **Implementado**: Fortalecimento de segurança do sistema
+  - `SecretMaskingFilter` em `structured_logger.py` - Mascara secrets automaticamente em logs
+  - Script `scripts/security_audit.py` - Auditoria automatizada de código
+  - Script `scripts/setup_secrets.py` - Gerador de secrets seguros
+  - Atualização do `.env.example` com documentação completa
+  - Verificação: .env no .gitignore, módulos de segurança existentes
+
+- **Bug Fix**: Corrigido erro de Select.Item com value="" no frontend
+  - Componente `LicenseManagement.js` linha 755
+  - SelectItem não aceita value vazio, alterado para value="none"
+
 ### 31/01/2026 - Módulo de Gestão Avançada de Licenças
 - **Implementado**: Sistema completo de gestão avançada de licenças
   - Modelo `RenewalHistoryEntry` para histórico de renovações
