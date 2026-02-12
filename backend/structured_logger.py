@@ -526,4 +526,103 @@ if __name__ == "__main__":
             details={"test_context": "error handling"}
         )
     
+
+
+# ==========================================
+# EXTENSÃO v1.4.0: Mascaramento de Secrets
+# Adicionado: 2026-02-13
+# ==========================================
+import re
+
+class SecretMaskingFilter(logging.Filter):
+    """
+    Filtro que mascara secrets em logs automaticamente
+    Integração transparente com structured_logger existente
+    """
+    
+    SENSITIVE_PATTERNS = [
+        (r'mongodb://[^:]+:[^@]+@[^/\s"\']*', 'mongodb://***:***@***'),
+        (r'Bearer\s+[a-zA-Z0-9_\-\.]+', 'Bearer ***MASKED***'),
+        (r'\b(sk-[a-zA-Z0-9]{20,})', '***MASKED***'),
+        (r'\b(pk-[a-zA-Z0-9]{20,})', '***MASKED***'),
+        (r'(api[_-]?key["\']?\s*[:=]\s*["\']?)[a-zA-Z0-9\-_]{16,}', r'\1***MASKED***'),
+        (r'("password"\s*:\s*")[^"]*', r'\1***MASKED***'),
+        (r'("secret"\s*:\s*")[^"]*', r'\1***MASKED***'),
+        (r'("token"\s*:\s*")[^"]*', r'\1***MASKED***'),
+        (r'(postgresql://[^:]+:)[^@]+(@)', r'\1***MASKED***\2'),
+        (r'(mysql://[^:]+:)[^@]+(@)', r'\1***MASKED***\2'),
+    ]
+    
+    def filter(self, record):
+        if isinstance(record.msg, str):
+            record.msg = self._mask_sensitive_data(record.msg)
+        
+        if record.args:
+            new_args = []
+            for arg in record.args:
+                if isinstance(arg, str):
+                    new_args.append(self._mask_sensitive_data(arg))
+                else:
+                    new_args.append(arg)
+            record.args = tuple(new_args)
+        
+        if hasattr(record, 'extra_fields') and isinstance(record.extra_fields, dict):
+            record.extra_fields = self._mask_dict(record.extra_fields)
+        
+        if record.exc_info and record.exc_text:
+            record.exc_text = self._mask_sensitive_data(record.exc_text)
+        
+        return True
+    
+    def _mask_sensitive_data(self, text):
+        if not isinstance(text, str):
+            return text
+        masked = text
+        for pattern, replacement in self.SENSITIVE_PATTERNS:
+            masked = re.sub(pattern, replacement, masked, flags=re.IGNORECASE)
+        return masked
+    
+    def _mask_dict(self, data):
+        if not isinstance(data, dict):
+            return self._mask_sensitive_data(str(data))
+        
+        masked = {}
+        sensitive_keys = {'password', 'secret', 'token', 'key', 'auth', 'credential', 
+                         'api_key', 'apikey', 'access_token', 'refresh_token'}
+        
+        for key, value in data.items():
+            key_lower = key.lower()
+            if any(sensitive in key_lower for sensitive in sensitive_keys):
+                masked[key] = '***MASKED***'
+            elif isinstance(value, dict):
+                masked[key] = self._mask_dict(value)
+            elif isinstance(value, list):
+                masked[key] = [self._mask_dict(item) if isinstance(item, dict) 
+                              else self._mask_sensitive_data(str(item)) for item in value]
+            elif isinstance(value, str):
+                masked[key] = self._mask_sensitive_data(value)
+            else:
+                masked[key] = value
+        return masked
+
+
+def add_secret_masking():
+    """Adiciona filtro de máscara ao logger existente"""
+    logger = logging.getLogger("license_manager")
+    
+    for handler in logger.handlers:
+        for f in handler.filters:
+            if isinstance(f, SecretMaskingFilter):
+                return
+    
+    mask_filter = SecretMaskingFilter()
+    for handler in logger.handlers:
+        handler.addFilter(mask_filter)
+    
+    logger.debug("Secret masking filter activated")
+
+
+# Auto-executa ao importar o módulo
+add_secret_masking()
+
     print("✅ Structured logging test completed. Check /app/structured_logs.json and /app/audit_logs.json")
