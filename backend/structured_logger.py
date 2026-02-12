@@ -624,5 +624,3 @@ def add_secret_masking():
 
 # Auto-executa ao importar o módulo
 add_secret_masking()
-
-    print("✅ Structured logging test completed. Check /app/structured_logs.json and /app/audit_logs.json")
