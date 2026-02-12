@@ -263,10 +263,12 @@ const LicenseManagement = () => {
 
   // Atualizar vendedor no formulário
   const handleSalespersonChange = (salespersonId) => {
-    const salesperson = salespeople.find(s => s.id === salespersonId);
+    // Tratar "none" como string vazia (sem vendedor)
+    const actualId = salespersonId === 'none' ? '' : salespersonId;
+    const salesperson = salespeople.find(s => s.id === actualId);
     setLicenseForm({
       ...licenseForm,
-      salesperson_id: salespersonId,
+      salesperson_id: actualId,
       salesperson_name: salesperson?.name || ''
     });
   };
