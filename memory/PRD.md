@@ -31,6 +31,7 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 - [x] Password visibility toggle (ícone de olho)
 - [x] Recuperação de Senha via Código
 - [x] Sistema de Aprovação de Registros
+- [x] **Security Hardening v1.4.0 (31/01/2026)** ✨
 
 ### UI/UX Melhorias
 - [x] Login Unificado - Uma única aba para email e código
