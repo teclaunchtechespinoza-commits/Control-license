@@ -747,7 +747,7 @@ const LicenseManagement = () => {
               <div className="space-y-2">
                 <Label htmlFor="salesperson">Vendedor Responsável</Label>
                 <Select 
-                  value={licenseForm.salesperson_id} 
+                  value={licenseForm.salesperson_id || 'none'} 
                   onValueChange={handleSalespersonChange}
                 >
                   <SelectTrigger data-testid="license-salesperson-select">
