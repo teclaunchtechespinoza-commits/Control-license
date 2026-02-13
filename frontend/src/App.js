@@ -258,31 +258,35 @@ function App() {
   return (
     <div className="App">
       <Router>
-        <AuthProvider>
-          <HelpProvider>
-            <div className="min-h-screen">
-              <Routes>
-                {/* Rotas Públicas (sem navbar, sem auth) */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/certificado/:code" element={<CertificateValidation />} />
-                <Route path="/accept-invite" element={<AcceptInvitePage />} />
-                
-                {/* Rotas Protegidas */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/licenses" 
-                  element={
-                    <ProtectedRoute>
-                      <UserLicenses />
-                    </ProtectedRoute>
-                  } 
+        <Routes>
+          {/* Rotas 100% Públicas (fora do AuthProvider) */}
+          <Route path="/certificado/:code" element={<CertificateValidation />} />
+          
+          {/* Rotas que usam AuthProvider */}
+          <Route path="/*" element={
+            <AuthProvider>
+              <HelpProvider>
+                <Routes>
+                  {/* Rotas Públicas (sem auth mas dentro do provider) */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/accept-invite" element={<AcceptInvitePage />} />
+                  
+                  {/* Rotas Protegidas */}
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/licenses" 
+                    element={
+                      <ProtectedRoute>
+                        <UserLicenses />
+                      </ProtectedRoute>
+                    } 
                 />
                 <Route 
                   path="/minhas-licencas" 
