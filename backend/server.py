@@ -7131,6 +7131,323 @@ async def get_salespeople(
 
 
 # ============================================================================
+# 🆕 CERTIFICATE SYSTEM - Sistema de Certificados Digitais
+# ============================================================================
+
+from certificate_system import (
+    Certificate, CertificateStatus, CertificateCredentials,
+    get_certificate_generator
+)
+from pdf_generator import generate_pdf
+
+class CertificateGenerateRequest(BaseModel):
+    """Request para gerar certificado"""
+    client_name: Optional[str] = None
+    region: Optional[str] = "América do Norte"
+    generate_credentials: bool = True
+
+
+@api_router.post("/licenses/{license_id}/certificate/generate")
+async def generate_certificate(
+    license_id: str,
+    request_data: CertificateGenerateRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Gerar certificado digital para uma licença
+    - Cria certificado com QR Code
+    - Gera credenciais automáticas
+    - Salva no banco de dados
+    """
+    # Buscar licença
+    license_doc = await db.licenses.find_one({"id": license_id, "tenant_id": tenant_id})
+    if not license_doc:
+        raise HTTPException(status_code=404, detail="Licença não encontrada")
+    
+    # Verificar se já existe certificado ativo para esta licença
+    existing_cert = await db.certificates.find_one({
+        "license_id": license_id,
+        "status": "active"
+    })
+    
+    if existing_cert:
+        # Retornar certificado existente
+        existing_cert.pop("_id", None)
+        return {
+            "success": True,
+            "message": "Certificado já existe para esta licença",
+            "certificate": existing_cert,
+            "is_existing": True
+        }
+    
+    # Preparar dados da licença
+    license_data = {
+        "id": license_id,
+        "client_name": request_data.client_name or license_doc.get("name", "Cliente"),
+        "serial_number": license_doc.get("serial_number") or license_doc.get("license_key", ""),
+        "manufacturer": license_doc.get("manufacturer", ""),
+        "model": license_doc.get("model", ""),
+        "product_name": license_doc.get("manufacturer", "Produto"),
+        "region": request_data.region,
+        "activation_date": license_doc.get("activation_date") or license_doc.get("created_at"),
+        "expires_at": license_doc.get("expires_at"),
+        "client_document": license_doc.get("client_document")
+    }
+    
+    # Dados do emissor
+    issuer_data = {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email
+    }
+    
+    # Gerar certificado
+    generator = get_certificate_generator()
+    certificate = generator.create_certificate(license_data, issuer_data, tenant_id)
+    
+    # Converter para dict para salvar
+    cert_dict = certificate.dict()
+    
+    # Converter datetime para ISO string para MongoDB
+    for key in ['activation_date', 'expiration_date', 'issued_at', 'created_at', 'updated_at']:
+        if key in cert_dict and cert_dict[key]:
+            if hasattr(cert_dict[key], 'isoformat'):
+                cert_dict[key] = cert_dict[key].isoformat()
+    
+    if cert_dict.get('credentials') and cert_dict['credentials'].get('generated_at'):
+        if hasattr(cert_dict['credentials']['generated_at'], 'isoformat'):
+            cert_dict['credentials']['generated_at'] = cert_dict['credentials']['generated_at'].isoformat()
+    
+    # Salvar no banco
+    await db.certificates.insert_one(cert_dict)
+    
+    # Atualizar licença com referência ao certificado
+    await db.licenses.update_one(
+        {"id": license_id},
+        {"$set": {
+            "certificate_id": certificate.id,
+            "certificate_number": certificate.certificate_number,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    # Log de auditoria
+    await log_activity(
+        user_email=current_user.email,
+        user_name=current_user.name,
+        activity_type="certificate_generated",
+        description=f"Certificado {certificate.certificate_number} gerado para licença {license_doc.get('name')}",
+        tenant_id=tenant_id,
+        resource_id=certificate.id,
+        resource_type="certificate"
+    )
+    
+    # Remover _id antes de retornar
+    cert_dict.pop("_id", None)
+    
+    return {
+        "success": True,
+        "message": "Certificado gerado com sucesso",
+        "certificate": cert_dict,
+        "is_existing": False
+    }
+
+
+@api_router.get("/certificates/{verification_code}")
+async def get_certificate_by_code(verification_code: str):
+    """
+    Buscar certificado pelo código de verificação (PÚBLICO)
+    - Usado para validação via QR Code/Link
+    - Não requer autenticação
+    """
+    certificate = await db.certificates.find_one({"verification_code": verification_code})
+    
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificado não encontrado")
+    
+    # Incrementar contador de visualizações
+    await db.certificates.update_one(
+        {"verification_code": verification_code},
+        {"$inc": {"view_count": 1}}
+    )
+    
+    # Calcular status atual
+    now = datetime.now(timezone.utc)
+    exp_date = certificate.get("expiration_date")
+    
+    if isinstance(exp_date, str):
+        exp_date = datetime.fromisoformat(exp_date.replace('Z', '+00:00'))
+    
+    if exp_date and exp_date.tzinfo is None:
+        exp_date = exp_date.replace(tzinfo=timezone.utc)
+    
+    # Determinar status
+    status = certificate.get("status", "active")
+    if status != "revoked":
+        if exp_date and exp_date < now:
+            status = "expired"
+        else:
+            status = "active"
+    
+    # Calcular dias restantes
+    days_remaining = None
+    if exp_date:
+        delta = exp_date - now
+        days_remaining = delta.days
+    
+    # Remover campos sensíveis para resposta pública
+    certificate.pop("_id", None)
+    
+    # Ocultar senha parcialmente na resposta pública
+    if certificate.get("credentials"):
+        password = certificate["credentials"].get("password", "")
+        if len(password) > 4:
+            certificate["credentials"]["password"] = password[:2] + "****" + password[-2:]
+    
+    return {
+        "success": True,
+        "certificate": certificate,
+        "validation": {
+            "status": status,
+            "days_remaining": days_remaining,
+            "is_valid": status == "active",
+            "verified_at": now.isoformat(),
+            "server_status": "online"
+        }
+    }
+
+
+@api_router.get("/certificates/{verification_code}/pdf")
+async def download_certificate_pdf(verification_code: str):
+    """
+    Download do certificado em PDF
+    - Pode ser público ou autenticado dependendo das configurações
+    """
+    certificate = await db.certificates.find_one({"verification_code": verification_code})
+    
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificado não encontrado")
+    
+    # Incrementar contador de downloads
+    await db.certificates.update_one(
+        {"verification_code": verification_code},
+        {"$inc": {"download_count": 1}}
+    )
+    
+    # Converter datas de string para datetime se necessário
+    for key in ['activation_date', 'expiration_date', 'issued_at']:
+        if key in certificate and isinstance(certificate[key], str):
+            certificate[key] = datetime.fromisoformat(certificate[key].replace('Z', '+00:00'))
+    
+    if certificate.get('credentials') and isinstance(certificate['credentials'].get('generated_at'), str):
+        certificate['credentials']['generated_at'] = datetime.fromisoformat(
+            certificate['credentials']['generated_at'].replace('Z', '+00:00')
+        )
+    
+    # Remover _id
+    certificate.pop("_id", None)
+    
+    # Gerar PDF
+    try:
+        pdf_bytes = generate_pdf(certificate)
+    except Exception as e:
+        logger.error(f"Erro ao gerar PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar PDF: {str(e)}")
+    
+    # Retornar como download
+    from fastapi.responses import Response
+    
+    filename = f"certificado_{certificate['certificate_number']}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
+@api_router.get("/licenses/{license_id}/certificate")
+async def get_license_certificate(
+    license_id: str,
+    current_user: User = Depends(get_current_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Buscar certificado de uma licença (autenticado)
+    """
+    certificate = await db.certificates.find_one({
+        "license_id": license_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not certificate:
+        return {
+            "success": False,
+            "message": "Nenhum certificado encontrado para esta licença",
+            "certificate": None
+        }
+    
+    certificate.pop("_id", None)
+    
+    return {
+        "success": True,
+        "certificate": certificate
+    }
+
+
+@api_router.post("/certificates/{certificate_id}/revoke")
+async def revoke_certificate(
+    certificate_id: str,
+    reason: str = "Revogado pelo administrador",
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Revogar um certificado
+    """
+    certificate = await db.certificates.find_one({
+        "id": certificate_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificado não encontrado")
+    
+    if certificate.get("status") == "revoked":
+        raise HTTPException(status_code=400, detail="Certificado já está revogado")
+    
+    # Revogar
+    await db.certificates.update_one(
+        {"id": certificate_id},
+        {"$set": {
+            "status": "revoked",
+            "revoked_at": datetime.now(timezone.utc).isoformat(),
+            "revoked_reason": reason,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Log de auditoria
+    await log_activity(
+        user_email=current_user.email,
+        user_name=current_user.name,
+        activity_type="certificate_revoked",
+        description=f"Certificado {certificate.get('certificate_number')} revogado: {reason}",
+        tenant_id=tenant_id,
+        resource_id=certificate_id,
+        resource_type="certificate"
+    )
+    
+    return {
+        "success": True,
+        "message": "Certificado revogado com sucesso"
+    }
+
+
+# ============================================================================
 # TICKET ENDPOINTS - Sistema de Solicitações e Suporte
 # ============================================================================
 
