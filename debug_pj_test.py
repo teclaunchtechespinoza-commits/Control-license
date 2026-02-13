@@ -7,7 +7,7 @@ admin_credentials = {
     "password": "admin123"
 }
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/auth/login", json=admin_credentials)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/auth/login", json=admin_credentials)
 token = response.json()['access_token']
 
 headers = {
@@ -27,7 +27,7 @@ test_data = {
 }
 
 print("\n1. Testing minimal data...")
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
@@ -36,7 +36,7 @@ else:
     print(f"Success: Created client {client_id}")
     
     # Clean up
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test with address
 print("\n2. Testing with address...")
@@ -50,14 +50,14 @@ test_data["endereco_matriz"] = {
 }
 test_data["cnpj"] = "88777666000156"  # Different CNPJ
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with address {client_id}")
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test with certificate
 print("\n3. Testing with certificate...")
@@ -69,14 +69,14 @@ test_data["certificado_digital"] = {
 }
 test_data["cnpj"] = "88777666000157"  # Different CNPJ
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with certificate {client_id}")
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test with license info
 print("\n4. Testing with license info...")
@@ -88,13 +88,13 @@ test_data["license_info"] = {
 }
 test_data["cnpj"] = "88777666000158"  # Different CNPJ
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with license info {client_id}")
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 print("\nDebug test completed.")

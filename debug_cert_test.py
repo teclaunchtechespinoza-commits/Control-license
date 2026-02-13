@@ -7,7 +7,7 @@ admin_credentials = {
     "password": "admin123"
 }
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/auth/login", json=admin_credentials)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/auth/login", json=admin_credentials)
 token = response.json()['access_token']
 
 headers = {
@@ -31,14 +31,14 @@ test_data = {
     }
 }
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client without cert date {client_id}")
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 # Test certificate with date as null
 print("\n2. Testing certificate with null date...")
@@ -55,13 +55,13 @@ test_data = {
     }
 }
 
-response = requests.post("https://licensehub-26.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
+response = requests.post("https://certmaster-15.preview.emergentagent.com/api/clientes-pj", json=test_data, headers=headers)
 print(f"Status: {response.status_code}")
 if response.status_code != 200:
     print(f"Error: {response.text}")
 else:
     client_id = response.json()['id']
     print(f"Success: Created client with null cert date {client_id}")
-    requests.delete(f"https://licensehub-26.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
+    requests.delete(f"https://certmaster-15.preview.emergentagent.com/api/clientes-pj/{client_id}", headers=headers)
 
 print("\nCertificate debug test completed.")
