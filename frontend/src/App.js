@@ -367,6 +367,9 @@ function App() {
                   } 
                 />
                 
+                {/* Certificado Digital - Página Pública */}
+                <Route path="/certificado/:code" element={<CertificateValidation />} />
+                
                 <Route path="/" element={<RoleBasedRedirect />} />
               </Routes>
             </div>
