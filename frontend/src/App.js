@@ -361,8 +361,7 @@ function App() {
                   } 
                 />
                 
-                {/* Sprint 2 - Convites */}
-                <Route path="/accept-invite" element={<AcceptInvitePage />} />
+                {/* Sprint 2 - Convites (admin) */}
                 <Route 
                   path="/admin/convites" 
                   element={
@@ -371,9 +370,6 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-                
-                {/* Certificado Digital - Página Pública */}
-                <Route path="/certificado/:code" element={<CertificateValidation />} />
                 
                 <Route path="/" element={<RoleBasedRedirect />} />
               </Routes>
