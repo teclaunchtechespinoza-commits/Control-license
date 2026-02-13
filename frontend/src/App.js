@@ -262,7 +262,12 @@ function App() {
           <HelpProvider>
             <div className="min-h-screen">
               <Routes>
+                {/* Rotas Públicas (sem navbar, sem auth) */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/certificado/:code" element={<CertificateValidation />} />
+                <Route path="/accept-invite" element={<AcceptInvitePage />} />
+                
+                {/* Rotas Protegidas */}
                 <Route 
                   path="/dashboard" 
                   element={
