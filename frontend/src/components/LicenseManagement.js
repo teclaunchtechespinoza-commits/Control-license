@@ -81,11 +81,14 @@ const LicenseManagement = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showRenewDialog, setShowRenewDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showCertificateDialog, setShowCertificateDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   
   // Estados de dados selecionados
   const [selectedLicense, setSelectedLicense] = useState(null);
   const [renewalHistory, setRenewalHistory] = useState([]);
+  const [generatedCertificate, setGeneratedCertificate] = useState(null);
+  const [generatingCertificate, setGeneratingCertificate] = useState(false);
   
   // Estados de formulários
   const [licenseForm, setLicenseForm] = useState({
