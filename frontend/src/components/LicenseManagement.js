@@ -59,7 +59,10 @@ import {
   ChevronDown,
   ChevronUp,
   RotateCcw,
-  Users
+  Users,
+  Award,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
