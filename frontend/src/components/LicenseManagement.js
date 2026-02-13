@@ -224,6 +224,67 @@ const LicenseManagement = () => {
     }
   };
 
+  // Gerar certificado
+  const handleGenerateCertificate = async (license) => {
+    setSelectedLicense(license);
+    setGeneratingCertificate(true);
+    setShowCertificateDialog(true);
+    
+    try {
+      const response = await api.post(`/licenses/${license.id}/certificate/generate`, {
+        client_name: license.name,
+        region: 'América do Norte'
+      });
+      
+      setGeneratedCertificate(response.data.certificate);
+      
+      if (response.data.is_existing) {
+        toast.info('Certificado já existe para esta licença');
+      } else {
+        toast.success('Certificado gerado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar certificado:', error);
+      toast.error(error.response?.data?.detail || 'Erro ao gerar certificado');
+      setShowCertificateDialog(false);
+    } finally {
+      setGeneratingCertificate(false);
+    }
+  };
+
+  // Baixar PDF do certificado
+  const handleDownloadCertificatePDF = async () => {
+    if (!generatedCertificate) return;
+    
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/certificates/${generatedCertificate.verification_code}/pdf`
+      );
+      
+      if (!response.ok) throw new Error('Erro ao baixar PDF');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificado_${generatedCertificate.certificate_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('PDF baixado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao baixar PDF');
+    }
+  };
+
+  // Abrir página do certificado
+  const openCertificatePage = () => {
+    if (!generatedCertificate) return;
+    window.open(`/certificado/${generatedCertificate.verification_code}`, '_blank');
+  };
+
   // Deletar licença
   const handleDeleteLicense = async () => {
     if (!deleteConfirmId) return;
