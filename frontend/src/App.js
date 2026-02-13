@@ -376,22 +376,13 @@ function App() {
                 />
                 
                 <Route path="/" element={<RoleBasedRedirect />} />
-              </Routes>
-            </div>
-            
-            {/* Rodapé simples e harmonioso */}
-            <footer className="bg-gray-50 py-4 px-4 mt-auto">
-              <div className="text-center">
-                <div className="text-sm text-gray-500">
-                  © 2025 License Manager. Todos os direitos reservados.
-                </div>
-              </div>
-            </footer>
-            
-            <Toaster position="top-right" richColors />
-          </HelpProvider>
-        </AuthProvider>
+                </Routes>
+              </HelpProvider>
+            </AuthProvider>
+          } />
+        </Routes>
       </Router>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
