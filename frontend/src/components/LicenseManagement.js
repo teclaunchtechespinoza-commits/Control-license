@@ -624,6 +624,16 @@ const LicenseManagement = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleGenerateCertificate(license)}
+                              className="text-purple-600 hover:text-purple-700"
+                              title="Certificado"
+                              data-testid={`certificate-btn-${license.id}`}
+                            >
+                              <Award className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => openRenewDialog(license)}
                               className="text-green-600 hover:text-green-700"
                               title="Renovar"
