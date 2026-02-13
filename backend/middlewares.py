@@ -90,6 +90,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         return (
             path in self.PUBLIC_ENDPOINTS or
             path.startswith("/api/accept-invite") or
+            path.startswith("/api/certificates/") or  # 🆕 Certificados públicos (QR Code)
             path.startswith("/docs") or
             path.startswith("/openapi") or
             path.startswith("/static") or
