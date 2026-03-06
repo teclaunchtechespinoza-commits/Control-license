@@ -184,6 +184,11 @@ class CertificateGenerator:
         if isinstance(expiration_date, str):
             expiration_date = datetime.fromisoformat(expiration_date.replace('Z', '+00:00'))
         
+        # Se não houver data de expiração, usar validade padrão de 365 dias
+        if not expiration_date:
+            validity_days = license_data.get('validity_days', 365)
+            expiration_date = activation_date + timedelta(days=validity_days)
+        
         # Gerar credenciais
         credentials = self.generate_credentials(client_name, serial_number)
         
