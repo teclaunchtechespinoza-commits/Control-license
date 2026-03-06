@@ -71,17 +71,24 @@ export default function CertificateSettingsPage() {
     setSaving(true);
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const response = await fetch(`${API}/api/certificate-settings/logo`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
-        body: JSON.stringify({ logo_base64: e.target?.result, logo_filename: file.name })
-      });
-      if (response.ok) {
-        toast.success('Logo atualizado!');
-        fetchSettings();
-      } else {
-        toast.error('Erro ao atualizar logo');
+      try {
+        const response = await fetch(`${API}/api/certificate-settings/logo`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
+          body: JSON.stringify({ logo_base64: e.target?.result, logo_filename: file.name })
+        });
+        if (response.ok) {
+          toast.success('Logo atualizado!');
+          fetchSettings();
+        } else if (response.status === 401) {
+          toast.error('Sessão expirada. Faça login novamente.');
+          window.location.href = '/login';
+        } else {
+          toast.error('Erro ao atualizar logo');
+        }
+      } catch (error) {
+        toast.error('Erro de conexão');
       }
       setSaving(false);
     };
