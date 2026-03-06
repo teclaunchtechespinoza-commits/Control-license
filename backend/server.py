@@ -7770,6 +7770,30 @@ async def add_procedure_step(
     }
 
 
+@api_router.put("/certificate-settings/procedure-steps/reset")
+async def reset_procedure_steps(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Restaurar passos padrão do procedimento"""
+    default_steps = get_default_procedure_steps()
+    steps_dict = [s.dict() for s in default_steps]
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "procedure_steps": steps_dict,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Passos do procedimento restaurados ao padrão"
+    }
+
+
 @api_router.put("/certificate-settings/procedure-steps/{step_id}")
 async def update_procedure_step(
     step_id: str,
