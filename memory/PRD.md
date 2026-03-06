@@ -67,6 +67,23 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 - [x] Credenciais de acesso geradas automaticamente
 - [x] Hash SHA256 para validação de integridade
 
+### Configurações de Certificado (NOVO - 06/03/2026) ✨
+- [x] Upload de logo customizado (PNG, JPG, SVG)
+- [x] Edição de nome e subtítulo da empresa
+- [x] Editor de Termos de Compromisso (6 cláusulas)
+- [x] Gerenciador de Passos do Procedimento (screenshots)
+- [x] Restaurar padrão para termos e passos
+- [x] Template PDF v2 com design limpo (sem carros)
+- [x] Configurações por tenant (multi-tenant)
+- [x] QR Code para validação pública
+- [x] Página pública de validação (`/certificado/:code`)
+- [x] Status animado: VÁLIDO, INVÁLIDO, EXPIRANDO, EXPIRADO
+- [x] Indicador de conectividade "Servidor Online"
+- [x] Download de certificado em PDF (WeasyPrint)
+- [x] Compartilhamento via link ou Web Share API
+- [x] Credenciais de acesso geradas automaticamente
+- [x] Hash SHA256 para validação de integridade
+
 **Campos do Histórico de Renovação:**
 - `renewal_date` - Data/hora da renovação
 - `previous_expiration` - Expiração anterior
