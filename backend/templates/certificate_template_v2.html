@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado de Ativação - {{ certificate.certificate_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: {{ settings.background_color }};
+            color: #ffffff;
+        }
+        
+        /* ==================== PÁGINA BASE ==================== */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            background: linear-gradient(180deg, #0d1f0d 0%, {{ settings.background_color }} 50%, {{ settings.background_color }} 100%);
+            position: relative;
+            page-break-after: always;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Header com Logo */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        
+        .logo-section {
+            text-align: left;
+        }
+        
+        .logo-image {
+            max-width: {{ settings.logo_width | default(150, true) }}px;
+            max-height: 80px;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: {{ settings.primary_color }};
+            letter-spacing: 2px;
+        }
+        
+        .logo-subtext {
+            font-size: 14px;
+            color: #86efac;
+            letter-spacing: 4px;
+        }
+        
+        .cert-title {
+            text-align: right;
+            color: #9ca3af;
+        }
+        
+        .cert-title h1 {
+            font-size: 16px;
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+        
+        .cert-number {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        /* Conteúdo Principal */
+        .main-content {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .right-column {
+            flex: 1.5;
+        }
+        
+        /* Ícone de Cadeado */
+        .lock-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #1e40af 0%, {{ settings.secondary_color }} 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+        
+        .lock-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: #ffffff;
+        }
+        
+        .status-active {
+            background: linear-gradient(135deg, #166534 0%, {{ settings.primary_color }} 100%);
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .status-active h2 {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        .status-active p {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        /* Dados do Certificado */
+        .data-section {
+            margin-bottom: 25px;
+        }
+        
+        .data-label {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .data-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            padding: 10px 0;
+            border-bottom: 1px solid #374151;
+        }
+        
+        .data-value.highlight {
+            color: {{ settings.primary_color }};
+        }
+        
+        .data-value.mono {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+        
+        /* Credenciais */
+        .credentials-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #374151;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .credentials-title {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .credential-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .credential-row:last-child {
+            border-bottom: none;
+        }
+        
+        .credential-label {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        
+        .credential-value {
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* QR Code */
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .qr-code {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .qr-code img {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .qr-label {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+        
+        /* Footer */
+        .page-footer {
+            position: absolute;
+            bottom: 20mm;
+            left: 20mm;
+            right: 20mm;
+            text-align: center;
+        }
+        
+        .footer-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #374151, transparent);
+            margin-bottom: 15px;
+        }
+        
+        .footer-text {
+            font-size: 10px;
+            color: #6b7280;
+        }
+        
+        /* ==================== PÁGINA 2: CERTIFICAÇÃO ==================== */
+        .page-certification {
+            text-align: center;
+            padding-top: 50mm;
+        }
+        
+        .cert-header {
+            margin-bottom: 40px;
+        }
+        
+        .cert-header h1 {
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 5px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+        
+        .cert-header h2 {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #ffffff;
+        }
+        
+        .confirmation-text {
+            font-size: 14px;
+            color: #d1d5db;
+            margin: 30px 0;
+            letter-spacing: 1px;
+        }
+        
+        /* Selo de Validação */
+        .validation-seal {
+            width: 180px;
+            height: 180px;
+            margin: 40px auto;
+            background: linear-gradient(135deg, #166534 0%, {{ settings.primary_color }} 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 50px rgba(34, 197, 94, 0.4);
+        }
+        
+        .validation-seal svg {
+            width: 60px;
+            height: 60px;
+            fill: #ffffff;
+            margin-bottom: 10px;
+        }
+        
+        .validation-seal span {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+        
+        /* Informações Importantes */
+        .important-info {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #374151;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 20mm;
+            text-align: left;
+        }
+        
+        .important-info h3 {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+        
+        .info-bullet {
+            width: 8px;
+            height: 8px;
+            background: {{ settings.primary_color }};
+            border-radius: 50%;
+            margin-right: 15px;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        
+        .info-text {
+            font-size: 13px;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+        
+        /* ==================== PÁGINA 3: TERMO ==================== */
+        .page-termo {
+            padding-top: 30mm;
+        }
+        
+        .termo-header {
+            margin-bottom: 30px;
+        }
+        
+        .termo-header h1 {
+            font-size: 12px;
+            font-weight: 300;
+            letter-spacing: 5px;
+            color: #9ca3af;
+        }
+        
+        .termo-header h2 {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin-top: 10px;
+        }
+        
+        .termo-subtitle {
+            font-size: 14px;
+            color: {{ settings.primary_color }};
+            margin-top: 10px;
+        }
+        
+        .termo-intro {
+            font-size: 12px;
+            color: #d1d5db;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+        
+        .termo-section {
+            margin-bottom: 25px;
+        }
+        
+        .termo-section h3 {
+            font-size: 14px;
+            font-weight: bold;
+            color: {{ settings.primary_color }};
+            margin-bottom: 10px;
+        }
+        
+        .termo-section p {
+            font-size: 12px;
+            color: #d1d5db;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        
+        .termo-list {
+            margin: 10px 0 10px 20px;
+            list-style: none;
+        }
+        
+        .termo-list li {
+            font-size: 12px;
+            color: #d1d5db;
+            line-height: 1.8;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .termo-list li::before {
+            content: "•";
+            color: {{ settings.primary_color }};
+            position: absolute;
+            left: 0;
+        }
+        
+        /* ==================== PÁGINA PROCEDIMENTO ==================== */
+        .page-procedimento {
+            padding-top: 30mm;
+        }
+        
+        .proc-header h1 {
+            font-size: 12px;
+            font-weight: 300;
+            letter-spacing: 5px;
+            color: #9ca3af;
+        }
+        
+        .proc-header h2 {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin-top: 10px;
+        }
+        
+        .proc-subtitle {
+            font-size: 14px;
+            color: {{ settings.primary_color }};
+            margin-top: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .prereq-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid {{ settings.primary_color }};
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .prereq-title {
+            font-size: 12px;
+            color: {{ settings.primary_color }};
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .prereq-item {
+            font-size: 12px;
+            color: #d1d5db;
+            margin-bottom: 8px;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .prereq-item::before {
+            content: "•";
+            color: {{ settings.primary_color }};
+            position: absolute;
+            left: 0;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: {{ settings.primary_color }};
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: {{ settings.background_color }};
+            flex-shrink: 0;
+            margin-right: 15px;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content h4 {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .step-content p {
+            font-size: 12px;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+        
+        .step-screenshot {
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+        
+        /* Hash Footer */
+        .hash-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+            text-align: center;
+        }
+        
+        .hash-label {
+            font-size: 10px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        
+        .hash-value {
+            font-size: 9px;
+            font-family: 'Courier New', monospace;
+            color: #4b5563;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <!-- PÁGINA 1: DADOS DA ATIVAÇÃO -->
+    <div class="page">
+        <div class="header">
+            <div class="logo-section">
+                {% if settings.logo_base64 %}
+                <img src="{{ settings.logo_base64 }}" alt="Logo" class="logo-image">
+                {% else %}
+                <div class="logo-text">{{ settings.company_name | default('LICENSE', true) }}</div>
+                {% if settings.company_subtitle %}
+                <div class="logo-subtext">{{ settings.company_subtitle }}</div>
+                {% endif %}
+                {% endif %}
+            </div>
+            <div class="cert-title">
+                <h1>CERTIFICADO DE ATIVAÇÃO</h1>
+                <div class="cert-number">{{ certificate.certificate_number }}</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="left-column">
+                <div class="lock-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8H17V6C17 3.24 14.76 1 12 1ZM12 3C13.66 3 15 4.34 15 6V8H9V6C9 4.34 10.34 3 12 3ZM12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13Z"/>
+                    </svg>
+                </div>
+                
+                <div class="status-active">
+                    <h2>LICENÇA ATIVA</h2>
+                    <p>USE CONFORME AS ORIENTAÇÕES</p>
+                </div>
+                
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <img src="data:image/png;base64,{{ certificate.qr_code_data }}" alt="QR Code">
+                    </div>
+                    <div class="qr-label">Escaneie para validar online</div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="data-section">
+                    <div class="data-label">NOME</div>
+                    <div class="data-value">{{ certificate.client_name | upper }}</div>
+                </div>
+                
+                <div class="data-section">
+                    <div class="data-label">PRODUTO / SCANNER</div>
+                    <div class="data-value">{{ certificate.product_name | upper }}</div>
+                </div>
+                
+                <div class="data-section">
+                    <div class="data-label">SERIAL NUMBER</div>
+                    <div class="data-value mono">{{ certificate.serial_number }}</div>
+                </div>
+                
+                <div class="data-section">
+                    <div class="data-label">REGIÃO</div>
+                    <div class="data-value">{{ certificate.region | upper }}</div>
+                </div>
+                
+                {% if certificate.credentials %}
+                <div class="credentials-box">
+                    <div class="credentials-title">CREDENCIAIS DE ACESSO</div>
+                    <div class="credential-row">
+                        <span class="credential-label">LOGIN</span>
+                        <span class="credential-value">{{ certificate.credentials.login }}</span>
+                    </div>
+                    <div class="credential-row">
+                        <span class="credential-label">SENHA</span>
+                        <span class="credential-value">{{ certificate.credentials.password }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="data-section" style="margin-top: 30px;">
+                    <div class="data-label">EXPIRA EM</div>
+                    <div class="data-value highlight">{{ certificate.expiration_date.strftime('%d/%m/%Y') if certificate.expiration_date.strftime else certificate.expiration_date }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="footer-line"></div>
+            <div class="footer-text">
+                Emitido em {{ certificate.issued_at.strftime('%d/%m/%Y às %H:%M') if certificate.issued_at.strftime else certificate.issued_at }} por {{ certificate.issued_by_name }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- PÁGINA 2: CERTIFICAÇÃO -->
+    <div class="page page-certification">
+        <div class="cert-header">
+            <h1>CERTIFICADO</h1>
+            <h2>DE ATIVAÇÃO</h2>
+        </div>
+        
+        <div class="confirmation-text">
+            CERTIFICAMOS QUE A LICENÇA FOI ATIVADA COM SUCESSO
+        </div>
+        
+        <div class="validation-seal">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+            </svg>
+            <span>ATIVAÇÃO</span>
+            <span>VALIDADA</span>
+        </div>
+        
+        <div class="important-info">
+            <h3>INFORMAÇÕES IMPORTANTES</h3>
+            
+            {% for info in settings.important_info %}
+            <div class="info-item">
+                <div class="info-bullet"></div>
+                <div class="info-text">{{ info }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="hash-footer">
+            <div class="hash-label">HASH DE VALIDAÇÃO</div>
+            <div class="hash-value">sha256:{{ certificate.hash }}</div>
+        </div>
+        
+        <div class="page-footer">
+            <div class="footer-line"></div>
+            <div class="footer-text">
+                {{ settings.company_name | default('LICENSE MANAGER', true) }} • Certificado {{ certificate.certificate_number }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- PÁGINA 3: TERMO DE COMPROMISSO -->
+    <div class="page page-termo">
+        <div class="termo-header">
+            <h1>TERMO</h1>
+            <h2>DE COMPROMISSO</h2>
+            <div class="termo-subtitle">CONSULTORIA COM LICENÇA DE ACESSO</div>
+        </div>
+        
+        {% if settings.terms.introduction %}
+        <p class="termo-intro">{{ settings.terms.introduction }}</p>
+        {% endif %}
+        
+        {% for section in settings.terms.sections[:4] %}
+        <div class="termo-section">
+            <h3>{{ section.number }}. {{ section.title }}</h3>
+            {% if section.content %}
+            <p>{{ section.content }}</p>
+            {% endif %}
+            {% if section.items %}
+            <ul class="termo-list">
+                {% for item in section.items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="page-footer">
+            <div class="footer-line"></div>
+            <div class="footer-text">
+                {{ settings.company_name | default('LICENSE MANAGER', true) }} • Página 3 de {{ 4 + ((settings.procedure_steps | length) // 4) }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- PÁGINA 4: TERMO (CONTINUAÇÃO) + PROCEDIMENTO -->
+    <div class="page page-procedimento">
+        {% for section in settings.terms.sections[4:] %}
+        <div class="termo-section">
+            <h3>{{ section.number }}. {{ section.title }}</h3>
+            {% if section.content %}
+            <p>{{ section.content }}</p>
+            {% endif %}
+            {% if section.items %}
+            <ul class="termo-list">
+                {% for item in section.items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="proc-header" style="margin-top: 40px;">
+            <h1>PROCEDIMENTO</h1>
+            <h2>{{ settings.procedure_title | default('ATIVAÇÃO', true) }}</h2>
+            <div class="proc-subtitle">{{ settings.procedure_subtitle | default('Siga os passos abaixo para ativar seu acesso', true) }}</div>
+        </div>
+        
+        <div class="prereq-box">
+            <div class="prereq-title">PRÉ-REQUISITOS</div>
+            {% for prereq in settings.prerequisites %}
+            <div class="prereq-item">{{ prereq }}</div>
+            {% endfor %}
+        </div>
+        
+        {% for step in settings.procedure_steps[:6] %}
+        <div class="step">
+            <div class="step-number">{{ step.order }}</div>
+            <div class="step-content">
+                {% if step.title %}
+                <h4>{{ step.title }}</h4>
+                {% endif %}
+                <p>{{ step.description }}</p>
+                {% if step.screenshot_base64 %}
+                <img src="{{ step.screenshot_base64 }}" alt="Screenshot" class="step-screenshot">
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="page-footer">
+            <div class="footer-line"></div>
+            <div class="footer-text">
+                {{ settings.company_name | default('LICENSE MANAGER', true) }} • Certificado {{ certificate.certificate_number }} • Página 4 de {{ 4 + ((settings.procedure_steps | length) // 4) }}
+            </div>
+        </div>
+    </div>
+    
+    {% if settings.procedure_steps | length > 6 %}
+    <!-- PÁGINA 5+: PROCEDIMENTO (CONTINUAÇÃO) -->
+    <div class="page page-procedimento">
+        {% for step in settings.procedure_steps[6:] %}
+        <div class="step">
+            <div class="step-number">{{ step.order }}</div>
+            <div class="step-content">
+                {% if step.title %}
+                <h4>{{ step.title }}</h4>
+                {% endif %}
+                <p>{{ step.description }}</p>
+                {% if step.screenshot_base64 %}
+                <img src="{{ step.screenshot_base64 }}" alt="Screenshot" class="step-screenshot">
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="page-footer">
+            <div class="footer-line"></div>
+            <div class="footer-text">
+                {{ settings.company_name | default('LICENSE MANAGER', true) }} • Certificado {{ certificate.certificate_number }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
