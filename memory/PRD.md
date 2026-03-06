@@ -290,10 +290,11 @@ POST /api/licenses/{id}/renew
 - [ ] Changelog técnico visível
 - [ ] Pitch deck para apresentação
 
-### P2 - Melhorias de Certificados
-- [ ] Upload de logo customizado para certificados
-- [ ] Templates de certificados personalizáveis
+### P2 - Melhorias de Certificados (PARCIALMENTE CONCLUÍDO ✅)
+- [x] Upload de logo customizado para certificados
+- [x] Templates de certificados personalizáveis (Termos + Procedimento)
 - [ ] Geração automática de credenciais mais complexas
+- [ ] Múltiplos templates visuais (light/dark theme)
 
 ### P3 - Melhorias de Importação
 - [ ] Suporte a Excel (.xlsx) com múltiplas abas
