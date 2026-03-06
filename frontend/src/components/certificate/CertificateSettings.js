@@ -235,13 +235,24 @@ export default function CertificateSettingsPage() {
 
   const handleSaveImportantInfo = async () => {
     setSaving(true);
-    const response = await fetch(`${API}/api/certificate-settings/important-info`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
-      body: JSON.stringify({ items: settings.important_info || [] })
-    });
-    if (response.ok) toast.success('Informações salvas!');
+    try {
+      const response = await fetch(`${API}/api/certificate-settings/important-info`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
+        body: JSON.stringify({ items: settings.important_info || [] })
+      });
+      if (response.ok) {
+        toast.success('Informações salvas!');
+      } else if (response.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        window.location.href = '/login';
+      } else {
+        toast.error('Erro ao salvar');
+      }
+    } catch (error) {
+      toast.error('Erro de conexão');
+    }
     setSaving(false);
   };
 
