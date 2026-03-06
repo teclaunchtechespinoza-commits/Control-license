@@ -106,14 +106,24 @@ export default function CertificateSettingsPage() {
   // Termos
   const handleSaveTerms = async () => {
     setSaving(true);
-    const response = await fetch(`${API}/api/certificate-settings/terms`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
-      body: JSON.stringify({ introduction: settings.terms?.introduction, sections: settings.terms?.sections })
-    });
-    if (response.ok) toast.success('Termos salvos!');
-    else toast.error('Erro ao salvar termos');
+    try {
+      const response = await fetch(`${API}/api/certificate-settings/terms`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': tenantId || 'default' },
+        body: JSON.stringify({ introduction: settings.terms?.introduction, sections: settings.terms?.sections })
+      });
+      if (response.ok) {
+        toast.success('Termos salvos!');
+      } else if (response.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        window.location.href = '/login';
+      } else {
+        toast.error('Erro ao salvar termos');
+      }
+    } catch (error) {
+      toast.error('Erro de conexão');
+    }
     setSaving(false);
   };
 
