@@ -7,7 +7,7 @@ import io
 import uuid
 import hashlib
 import base64
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
