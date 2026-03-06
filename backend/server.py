@@ -7323,6 +7323,7 @@ async def download_certificate_pdf(verification_code: str):
     """
     Download do certificado em PDF
     - Pode ser público ou autenticado dependendo das configurações
+    - Usa configurações personalizadas do tenant (logo, termos, procedimento)
     """
     certificate = await db.certificates.find_one({"verification_code": verification_code})
     
@@ -7334,6 +7335,14 @@ async def download_certificate_pdf(verification_code: str):
         {"verification_code": verification_code},
         {"$inc": {"download_count": 1}}
     )
+    
+    # Buscar configurações do tenant
+    tenant_id = certificate.get("tenant_id")
+    settings = None
+    if tenant_id:
+        settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+        if settings:
+            settings.pop("_id", None)
     
     # Converter datas de string para datetime se necessário
     for key in ['activation_date', 'expiration_date', 'issued_at']:
@@ -7348,9 +7357,9 @@ async def download_certificate_pdf(verification_code: str):
     # Remover _id
     certificate.pop("_id", None)
     
-    # Gerar PDF
+    # Gerar PDF com configurações do tenant
     try:
-        pdf_bytes = generate_pdf(certificate)
+        pdf_bytes = generate_pdf(certificate, settings)
     except Exception as e:
         logger.error(f"Erro ao gerar PDF: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao gerar PDF: {str(e)}")
