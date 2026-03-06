@@ -172,6 +172,44 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ---
 
+## API Endpoints - Certificados Digitais
+
+```
+POST /api/licenses/{id}/certificate/generate  - Gerar certificado (autenticado)
+GET  /api/certificates/{code}                  - Validar certificado (público)
+GET  /api/certificates/{code}/pdf              - Download PDF (público)
+```
+
+**Exemplo de validação pública:**
+```json
+GET /api/certificates/86fe95a60d76
+
+{
+  "success": true,
+  "certificate": {
+    "certificate_number": "CERT-2026-7839CA",
+    "verification_code": "86fe95a60d76",
+    "client_name": "Cliente LTDA",
+    "product_name": "Software Pro",
+    "serial_number": "V6BGS5C01803",
+    "status": "active",
+    "expiration_date": "2030-07-29T13:47:49Z",
+    "credentials": {
+      "login": "user1803",
+      "password": "@L****5B"
+    }
+  },
+  "validation": {
+    "status": "active",
+    "days_remaining": 1605,
+    "is_valid": true,
+    "server_status": "online"
+  }
+}
+```
+
+---
+
 ## API Endpoints - Gestão Avançada
 
 ```
