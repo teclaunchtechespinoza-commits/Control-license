@@ -114,6 +114,25 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ## Changelog Recente
 
+### 06/03/2026 - Sistema de Certificados Digitais v1.5.0
+- **Implementado**: Sistema completo de geração de certificados
+  - Backend: `certificate_system.py`, `pdf_generator.py`, `templates/certificate_template.html`
+  - Endpoints: `POST /api/licenses/{id}/certificate/generate`, `GET /api/certificates/{code}`, `GET /api/certificates/{code}/pdf`
+  - Todos endpoints públicos funcionam sem autenticação
+  - QR Code gerado automaticamente com link de validação
+  - PDF gerado server-side com WeasyPrint
+  - Hash SHA256 para integridade
+
+- **Frontend**: Página pública de validação
+  - Componentes: `CertificateValidation.js`, `StatusBadge.js`
+  - Rota pública: `/certificado/:code` (fora do AuthProvider)
+  - Status animado com CSS keyframes
+  - Botões: Baixar PDF, Copiar Link, Compartilhar
+
+- **Bug Fix**: Corrigido roteamento de rotas públicas
+  - Rota `/certificado/:code` estava redirecionando para `/login`
+  - Movida para fora do `AuthProvider` em `App.js`
+
 ### 31/01/2026 - Security Hardening v1.4.0
 - **Implementado**: Fortalecimento de segurança do sistema
   - `SecretMaskingFilter` em `structured_logger.py` - Mascara secrets automaticamente em logs
