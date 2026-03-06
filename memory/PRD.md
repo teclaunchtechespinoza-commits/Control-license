@@ -56,6 +56,17 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 - [x] Interface completa em `/gestao-licencas`
 - [x] Estatísticas: ativas, expirando, expiradas, total
 
+### Sistema de Certificados Digitais (NOVO - 06/03/2026) ✨
+- [x] Geração de certificados digitais para licenças
+- [x] QR Code para validação pública
+- [x] Página pública de validação (`/certificado/:code`)
+- [x] Status animado: VÁLIDO, INVÁLIDO, EXPIRANDO, EXPIRADO
+- [x] Indicador de conectividade "Servidor Online"
+- [x] Download de certificado em PDF (WeasyPrint)
+- [x] Compartilhamento via link ou Web Share API
+- [x] Credenciais de acesso geradas automaticamente
+- [x] Hash SHA256 para validação de integridade
+
 **Campos do Histórico de Renovação:**
 - `renewal_date` - Data/hora da renovação
 - `previous_expiration` - Expiração anterior
