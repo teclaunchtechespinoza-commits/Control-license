@@ -1054,7 +1054,7 @@ const LicenseManagement = () => {
 
       {/* Modal Certificado Digital */}
       <Dialog open={showCertificateDialog} onOpenChange={setShowCertificateDialog}>
-        <DialogContent className="sm:max-w-[550px] bg-gray-900 border-gray-700 text-white">
+        <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto bg-gray-900 border-gray-700 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Award className="w-5 h-5 text-purple-400" />
@@ -1067,26 +1067,26 @@ const LicenseManagement = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
+          <div className="py-3">
             {generatingCertificate ? (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 border-4 border-gray-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-400">Gerando certificado...</p>
+              <div className="text-center py-6">
+                <div className="w-10 h-10 border-4 border-gray-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">Gerando certificado...</p>
               </div>
             ) : generatedCertificate ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Status do certificado */}
-                <div className="bg-green-900/50 border border-green-700 rounded-lg p-4 text-center">
-                  <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-2" />
-                  <p className="font-bold text-green-300">Certificado Gerado!</p>
-                  <p className="text-sm text-green-400">{generatedCertificate.certificate_number}</p>
+                <div className="bg-green-900/50 border border-green-700 rounded-lg p-3 text-center">
+                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-1" />
+                  <p className="font-bold text-green-300 text-sm">Certificado Gerado!</p>
+                  <p className="text-xs text-green-400">{generatedCertificate.certificate_number}</p>
                 </div>
                 
-                {/* Dados do certificado */}
-                <div className="bg-gray-800 rounded-lg p-4 space-y-2 text-sm">
+                {/* Dados do certificado - compacto */}
+                <div className="bg-gray-800 rounded-lg p-3 space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Cliente:</span>
-                    <span className="font-medium text-white">{generatedCertificate.client_name}</span>
+                    <span className="font-medium text-white truncate max-w-[200px]">{generatedCertificate.client_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Serial:</span>
@@ -1099,48 +1099,48 @@ const LicenseManagement = () => {
                     </span>
                   </div>
                   {generatedCertificate.credentials && (
-                    <>
-                      <div className="border-t border-gray-700 pt-2 mt-2">
-                        <p className="text-gray-400 mb-1">Credenciais:</p>
-                        <div className="bg-gray-900 rounded p-2 font-mono text-xs text-green-400">
-                          <div>Login: {generatedCertificate.credentials.login}</div>
-                          <div>Senha: {generatedCertificate.credentials.password}</div>
-                        </div>
+                    <div className="border-t border-gray-700 pt-2 mt-2">
+                      <p className="text-gray-400 mb-1">Credenciais:</p>
+                      <div className="bg-gray-900 rounded p-2 font-mono text-xs text-green-400">
+                        <div>Login: {generatedCertificate.credentials.login}</div>
+                        <div>Senha: {generatedCertificate.credentials.password}</div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
                 
-                {/* QR Code */}
+                {/* QR Code - menor */}
                 {generatedCertificate.qr_code_data && (
                   <div className="text-center">
-                    <p className="text-sm text-gray-400 mb-2">QR Code de Validação</p>
+                    <p className="text-xs text-gray-400 mb-1">QR Code de Validação</p>
                     <img 
                       src={`data:image/png;base64,${generatedCertificate.qr_code_data}`}
                       alt="QR Code"
-                      className="w-32 h-32 mx-auto border border-gray-700 rounded-lg bg-white p-2"
+                      className="w-24 h-24 mx-auto border border-gray-700 rounded-lg bg-white p-1"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Escaneie para validar online
+                      Escaneie para validar
                     </p>
                   </div>
                 )}
                 
-                {/* Ações */}
-                <div className="flex gap-2 pt-4">
+                {/* Ações - compacto */}
+                <div className="flex gap-2 pt-2">
                   <Button 
                     onClick={handleDownloadCertificatePDF}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                    size="sm"
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs"
                   >
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="w-3 h-3 mr-1" />
                     Baixar PDF
                   </Button>
                   <Button 
                     variant="outline"
+                    size="sm"
                     onClick={openCertificatePage}
-                    className="flex-1 border-gray-600 text-gray-200 hover:bg-gray-800"
+                    className="flex-1 border-gray-600 text-gray-200 hover:bg-gray-800 text-xs"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="w-3 h-3 mr-1" />
                     Ver Online
                   </Button>
                 </div>
@@ -1151,6 +1151,7 @@ const LicenseManagement = () => {
           <DialogFooter>
             <Button 
               variant="outline" 
+              size="sm"
               onClick={() => {
                 setShowCertificateDialog(false);
                 setGeneratedCertificate(null);
