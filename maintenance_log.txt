@@ -404,3 +404,4 @@
 [2026-03-06 20:03:27] [INFO] health - system_health_check: {"database_response_ms": 4.672, "database_status": "healthy", "notification_queue_size": 0, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2026-03-06 20:18:28] [INFO] health - system_health_check: {"database_response_ms": 40.308, "database_status": "healthy", "notification_queue_size": 0, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
 [2026-03-06 20:33:27] [INFO] health - system_health_check: {"database_response_ms": 5.067, "database_status": "healthy", "notification_queue_size": 0, "queue_status": "healthy", "recent_errors": 0, "error_status": "healthy", "overall_status": "healthy"}
+[2026-03-06 20:40:53] [INFO] scheduler - shutdown: {"status": "stopped", "uptime_minutes": 67.42064183333333, "total_executions": 0}

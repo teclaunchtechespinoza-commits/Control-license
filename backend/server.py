@@ -7918,7 +7918,73 @@ async def update_prerequisites(
     }
 
 
-# ============================================================================
+@api_router.get("/certificate-settings/preview-pdf")
+async def preview_certificate_pdf(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Gera um PDF de preview com dados de exemplo
+    usando as configurações atuais do tenant
+    """
+    from fastapi.responses import Response
+    
+    # Buscar configurações do tenant
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    if settings:
+        settings.pop("_id", None)
+    
+    # Dados de exemplo para o preview
+    preview_certificate = {
+        "certificate_number": "CERT-PREVIEW-2026",
+        "verification_code": "preview123",
+        "client_name": "CLIENTE EXEMPLO LTDA",
+        "product_name": "Scanner Autel MaxiSys Pro",
+        "serial_number": "PREVIEW-SN-001",
+        "region": "América do Sul - Brasil",
+        "activation_date": datetime.now(timezone.utc),
+        "expiration_date": datetime.now(timezone.utc) + timedelta(days=365),
+        "issued_at": datetime.now(timezone.utc),
+        "issued_by_name": current_user.name or "Administrador",
+        "hash": "sha256_preview_hash_example_1234567890abcdef",
+        "credentials": {
+            "login": "usuario_exemplo",
+            "password": "S3nh4@Ex3mpl0"
+        },
+        "qr_code_data": None  # Sem QR no preview
+    }
+    
+    # Gerar QR Code de exemplo
+    try:
+        import qrcode
+        import io
+        import base64
+        
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(f"https://exemplo.com/certificado/preview123")
+        qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        
+        buffer = io.BytesIO()
+        qr_img.save(buffer, format='PNG')
+        preview_certificate["qr_code_data"] = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    except Exception:
+        pass
+    
+    # Gerar PDF
+    try:
+        pdf_bytes = generate_pdf(preview_certificate, settings)
+    except Exception as e:
+        logger.error(f"Erro ao gerar PDF preview: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar preview: {str(e)}")
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "inline; filename=preview_certificado.pdf"
+        }
+    )
 # TICKET ENDPOINTS - Sistema de Solicitações e Suporte
 # ============================================================================
 
