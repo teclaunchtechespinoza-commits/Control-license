@@ -131,6 +131,23 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ## Changelog Recente
 
+### 06/03/2026 - Configurações de Certificado v1.6.0
+- **Implementado**: Sistema completo de personalização de certificados
+  - Backend: `certificate_settings.py` com modelos e endpoints CRUD
+  - Endpoints: `/api/certificate-settings/*` (logo, termos, passos do procedimento)
+  - Upload de logo em base64 com validação
+  - Editor de termos com 6 cláusulas customizáveis
+  - Gerenciador de passos com upload de screenshots
+  - Template PDF v2 (`certificate_template_v2.html`) design limpo
+
+- **Frontend**: Página `/admin/certificados/configuracoes`
+  - Componente `CertificateSettings.js` com 3 abas
+  - Upload de logo com preview
+  - Editor de termos com seções expansíveis
+  - Gerenciador de passos com drag-and-drop
+
+- **Testes**: 16 testes automatizados em `test_certificate_settings.py`
+
 ### 06/03/2026 - Sistema de Certificados Digitais v1.5.0
 - **Implementado**: Sistema completo de geração de certificados
   - Backend: `certificate_system.py`, `pdf_generator.py`, `templates/certificate_template.html`
