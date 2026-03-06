@@ -294,7 +294,24 @@ Obrigatório em todas as requisições autenticadas. O frontend adiciona automat
 
 ## Testes
 
-Arquivo de testes: `/app/backend/tests/test_license_management.py`
-- 13 testes cobrindo todos os endpoints de gestão avançada
-- Usa `requests.Session` para manter cookies de autenticação
+### Gestão Avançada de Licenças
+Arquivo: `/app/backend/tests/test_license_management.py`
+- 13 testes cobrindo todos os endpoints
 - Todos os testes passando ✅
+
+### Certificados Digitais
+Arquivo: `/app/backend/tests/test_certificate_public.py`
+- 10 testes cobrindo endpoints públicos
+- 100% de sucesso ✅
+
+---
+
+## Collections MongoDB
+
+- `tenants` - Configurações de tenant
+- `users` - Usuários do sistema
+- `licenses` - Licenças de software
+- `certificates` - Certificados digitais gerados ✨
+- `tickets` - Tickets de suporte
+- `activity_logs` - Logs de atividade
+- `password_recovery` - Tokens de recuperação
