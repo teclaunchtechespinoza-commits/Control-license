@@ -266,7 +266,7 @@ POST /api/licenses/{id}/renew
 - [ ] Agendamento de importação automática
 - [ ] Mapeamento customizável de colunas
 
-### P3 - Funcionalidades Futuras
+### P4 - Funcionalidades Futuras
 - [ ] Notificação por email quando registro for aprovado
 - [ ] Renovação self-service de licenças
 - [ ] Histórico de pagamentos
