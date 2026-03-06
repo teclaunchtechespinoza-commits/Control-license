@@ -117,6 +117,12 @@ const Navbar = () => {
           icon: RotateCcw, 
           description: 'Renovações e vendedores' 
         },
+        {
+          label: 'Config. Certificado',
+          path: '/admin/certificados/configuracoes',
+          icon: FileText,
+          description: 'Logo, termos e procedimento'
+        },
         { label: 'Dashboard Vendas', path: '/vendas', icon: TrendingUp, description: 'Vendas e conversões' }
       ]
     }
