@@ -7448,6 +7448,467 @@ async def revoke_certificate(
 
 
 # ============================================================================
+# CERTIFICATE SETTINGS - Configurações de Certificado por Tenant
+# ============================================================================
+
+from certificate_settings import (
+    CertificateSettings,
+    CertificateTerms,
+    ProcedureStep,
+    create_default_settings,
+    get_default_terms,
+    get_default_procedure_steps
+)
+
+
+class UpdateLogoRequest(BaseModel):
+    """Request para atualizar logo"""
+    logo_base64: str
+    logo_filename: Optional[str] = None
+    company_name: Optional[str] = None
+    company_subtitle: Optional[str] = None
+
+
+class UpdateTermsRequest(BaseModel):
+    """Request para atualizar termos"""
+    introduction: Optional[str] = None
+    sections: Optional[List[Dict[str, Any]]] = None
+
+
+class UpdateProcedureStepRequest(BaseModel):
+    """Request para atualizar passo do procedimento"""
+    order: Optional[int] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    screenshot_base64: Optional[str] = None
+    screenshot_filename: Optional[str] = None
+
+
+class AddProcedureStepRequest(BaseModel):
+    """Request para adicionar passo do procedimento"""
+    title: str
+    description: str
+    order: Optional[int] = None
+    screenshot_base64: Optional[str] = None
+    screenshot_filename: Optional[str] = None
+
+
+class UpdateImportantInfoRequest(BaseModel):
+    """Request para atualizar informações importantes"""
+    items: List[str]
+
+
+class UpdatePrerequisitesRequest(BaseModel):
+    """Request para atualizar pré-requisitos"""
+    items: List[str]
+
+
+@api_router.get("/certificate-settings")
+async def get_certificate_settings(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Buscar configurações de certificado do tenant
+    Cria configurações padrão se não existirem
+    """
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    
+    if not settings:
+        # Buscar nome do tenant
+        tenant = await db.tenants.find_one({"id": tenant_id})
+        company_name = tenant.get("name", "LICENSE MANAGER") if tenant else "LICENSE MANAGER"
+        
+        # Criar configurações padrão
+        default_settings = create_default_settings(tenant_id, company_name)
+        settings_dict = default_settings.dict()
+        
+        # Converter datetimes para ISO strings
+        for key in ['created_at', 'updated_at']:
+            if key in settings_dict and settings_dict[key]:
+                settings_dict[key] = settings_dict[key].isoformat()
+        if settings_dict.get('terms', {}).get('updated_at'):
+            settings_dict['terms']['updated_at'] = settings_dict['terms']['updated_at'].isoformat()
+        
+        await db.certificate_settings.insert_one(settings_dict)
+        settings = settings_dict
+    
+    # Remover _id do MongoDB
+    settings.pop("_id", None)
+    
+    return {
+        "success": True,
+        "settings": settings
+    }
+
+
+@api_router.put("/certificate-settings/logo")
+async def update_certificate_logo(
+    request_data: UpdateLogoRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Atualizar logo do certificado
+    Aceita imagem em base64 (PNG, JPG, SVG)
+    """
+    # Validar base64
+    try:
+        # Verificar se é base64 válido
+        if ',' in request_data.logo_base64:
+            # Remove prefixo data:image/...;base64,
+            base64_data = request_data.logo_base64.split(',')[1]
+        else:
+            base64_data = request_data.logo_base64
+        
+        # Tenta decodificar para validar
+        decoded = base64.b64decode(base64_data)
+        if len(decoded) > 5 * 1024 * 1024:  # 5MB max
+            raise HTTPException(status_code=400, detail="Logo muito grande. Máximo 5MB.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Logo inválido: {str(e)}")
+    
+    update_data = {
+        "logo_base64": request_data.logo_base64,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if request_data.logo_filename:
+        update_data["logo_filename"] = request_data.logo_filename
+    if request_data.company_name:
+        update_data["company_name"] = request_data.company_name
+    if request_data.company_subtitle:
+        update_data["company_subtitle"] = request_data.company_subtitle
+    
+    result = await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    await log_activity(
+        user_email=current_user.email,
+        user_name=current_user.name,
+        activity_type="certificate_logo_updated",
+        description="Logo do certificado atualizado",
+        tenant_id=tenant_id
+    )
+    
+    return {
+        "success": True,
+        "message": "Logo atualizado com sucesso"
+    }
+
+
+@api_router.delete("/certificate-settings/logo")
+async def remove_certificate_logo(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Remover logo customizado (volta ao padrão)"""
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "logo_base64": None,
+            "logo_filename": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "message": "Logo removido"
+    }
+
+
+@api_router.put("/certificate-settings/terms")
+async def update_certificate_terms(
+    request_data: UpdateTermsRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """
+    Atualizar termos de compromisso
+    """
+    update_data = {
+        "terms.updated_at": datetime.now(timezone.utc).isoformat(),
+        "terms.updated_by": current_user.email,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if request_data.introduction is not None:
+        update_data["terms.introduction"] = request_data.introduction
+    if request_data.sections is not None:
+        update_data["terms.sections"] = request_data.sections
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    await log_activity(
+        user_email=current_user.email,
+        user_name=current_user.name,
+        activity_type="certificate_terms_updated",
+        description="Termos de compromisso atualizados",
+        tenant_id=tenant_id
+    )
+    
+    return {
+        "success": True,
+        "message": "Termos atualizados com sucesso"
+    }
+
+
+@api_router.put("/certificate-settings/terms/reset")
+async def reset_certificate_terms(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Restaurar termos padrão"""
+    default_terms = get_default_terms()
+    terms_dict = default_terms.dict()
+    terms_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    terms_dict['updated_by'] = current_user.email
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "terms": terms_dict,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Termos restaurados ao padrão"
+    }
+
+
+@api_router.get("/certificate-settings/procedure-steps")
+async def get_procedure_steps(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Listar passos do procedimento"""
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    
+    steps = []
+    if settings and settings.get("procedure_steps"):
+        steps = settings["procedure_steps"]
+    else:
+        # Retornar passos padrão
+        default_steps = get_default_procedure_steps()
+        steps = [s.dict() for s in default_steps]
+    
+    # Ordenar por order
+    steps.sort(key=lambda x: x.get("order", 0))
+    
+    return {
+        "success": True,
+        "steps": steps
+    }
+
+
+@api_router.post("/certificate-settings/procedure-steps")
+async def add_procedure_step(
+    request_data: AddProcedureStepRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Adicionar novo passo ao procedimento"""
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    
+    current_steps = []
+    if settings and settings.get("procedure_steps"):
+        current_steps = settings["procedure_steps"]
+    
+    # Determinar ordem
+    if request_data.order is not None:
+        new_order = request_data.order
+    else:
+        max_order = max([s.get("order", 0) for s in current_steps], default=0)
+        new_order = max_order + 1
+    
+    new_step = {
+        "id": str(uuid.uuid4())[:8],
+        "order": new_order,
+        "title": request_data.title,
+        "description": request_data.description,
+        "screenshot_base64": request_data.screenshot_base64,
+        "screenshot_filename": request_data.screenshot_filename
+    }
+    
+    current_steps.append(new_step)
+    current_steps.sort(key=lambda x: x.get("order", 0))
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "procedure_steps": current_steps,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "step": new_step,
+        "message": "Passo adicionado com sucesso"
+    }
+
+
+@api_router.put("/certificate-settings/procedure-steps/{step_id}")
+async def update_procedure_step(
+    step_id: str,
+    request_data: UpdateProcedureStepRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Atualizar passo do procedimento"""
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    
+    if not settings or not settings.get("procedure_steps"):
+        raise HTTPException(status_code=404, detail="Configurações não encontradas")
+    
+    steps = settings["procedure_steps"]
+    step_index = next((i for i, s in enumerate(steps) if s.get("id") == step_id), None)
+    
+    if step_index is None:
+        raise HTTPException(status_code=404, detail="Passo não encontrado")
+    
+    # Atualizar campos fornecidos
+    if request_data.order is not None:
+        steps[step_index]["order"] = request_data.order
+    if request_data.title is not None:
+        steps[step_index]["title"] = request_data.title
+    if request_data.description is not None:
+        steps[step_index]["description"] = request_data.description
+    if request_data.screenshot_base64 is not None:
+        steps[step_index]["screenshot_base64"] = request_data.screenshot_base64
+    if request_data.screenshot_filename is not None:
+        steps[step_index]["screenshot_filename"] = request_data.screenshot_filename
+    
+    steps.sort(key=lambda x: x.get("order", 0))
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "procedure_steps": steps,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "step": steps[step_index],
+        "message": "Passo atualizado com sucesso"
+    }
+
+
+@api_router.delete("/certificate-settings/procedure-steps/{step_id}")
+async def delete_procedure_step(
+    step_id: str,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Remover passo do procedimento"""
+    settings = await db.certificate_settings.find_one({"tenant_id": tenant_id})
+    
+    if not settings or not settings.get("procedure_steps"):
+        raise HTTPException(status_code=404, detail="Configurações não encontradas")
+    
+    steps = [s for s in settings["procedure_steps"] if s.get("id") != step_id]
+    
+    # Reordenar
+    for i, step in enumerate(steps):
+        step["order"] = i + 1
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "procedure_steps": steps,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "message": "Passo removido com sucesso"
+    }
+
+
+@api_router.put("/certificate-settings/procedure-steps/reset")
+async def reset_procedure_steps(
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Restaurar passos padrão do procedimento"""
+    default_steps = get_default_procedure_steps()
+    steps_dict = [s.dict() for s in default_steps]
+    
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "procedure_steps": steps_dict,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Passos do procedimento restaurados ao padrão"
+    }
+
+
+@api_router.put("/certificate-settings/important-info")
+async def update_important_info(
+    request_data: UpdateImportantInfoRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Atualizar informações importantes (página 2)"""
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "important_info": request_data.items,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Informações importantes atualizadas"
+    }
+
+
+@api_router.put("/certificate-settings/prerequisites")
+async def update_prerequisites(
+    request_data: UpdatePrerequisitesRequest,
+    current_user: User = Depends(get_current_admin_user),
+    tenant_id: str = Depends(require_tenant)
+):
+    """Atualizar pré-requisitos do procedimento"""
+    await db.certificate_settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "prerequisites": request_data.items,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Pré-requisitos atualizados"
+    }
+
+
+# ============================================================================
 # TICKET ENDPOINTS - Sistema de Solicitações e Suporte
 # ============================================================================
 
