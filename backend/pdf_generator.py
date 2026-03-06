@@ -1,11 +1,11 @@
 """
-PDF Generator for Certificates - License Manager v1.4.0
-Gera PDFs profissionais a partir de templates HTML
+PDF Generator for Certificates - License Manager v1.5.0
+Gera PDFs profissionais a partir de templates HTML com suporte a configurações dinâmicas
 """
 import os
 import io
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML, CSS
 
@@ -14,7 +14,7 @@ TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 
 class CertificatePDFGenerator:
-    """Gerador de PDFs para certificados"""
+    """Gerador de PDFs para certificados com configurações dinâmicas"""
     
     def __init__(self):
         self.env = Environment(
@@ -25,20 +25,20 @@ class CertificatePDFGenerator:
     def generate_certificate_pdf(
         self,
         certificate: Dict[str, Any],
-        company_name: Optional[str] = None
+        settings: Optional[Dict[str, Any]] = None
     ) -> bytes:
         """
-        Gera PDF do certificado
+        Gera PDF do certificado com configurações do tenant
         
         Args:
             certificate: Dados do certificado
-            company_name: Nome da empresa (para branding)
+            settings: Configurações de certificado do tenant (logo, termos, procedimento)
         
         Returns:
             bytes: Conteúdo do PDF
         """
         # Carregar template
-        template = self.env.get_template('certificate_template.html')
+        template = self.env.get_template('certificate_template_v2.html')
         
         # Calcular dias de validade
         activation = certificate.get('activation_date')
@@ -51,10 +51,44 @@ class CertificatePDFGenerator:
         
         days_validity = (expiration - activation).days if activation and expiration else 365
         
+        # Configurações padrão
+        default_settings = {
+            'company_name': os.environ.get('COMPANY_NAME', 'LICENSE MANAGER'),
+            'company_subtitle': None,
+            'logo_base64': None,
+            'primary_color': '#22c55e',
+            'secondary_color': '#3b82f6',
+            'background_color': '#0a0a0a',
+            'terms': {
+                'introduction': 'Este termo estabelece as condições de uso da licença de acesso ao sistema.',
+                'sections': []
+            },
+            'procedure_title': 'PROCEDIMENTO DE ATIVAÇÃO',
+            'procedure_subtitle': 'Siga os passos abaixo para ativar seu acesso',
+            'prerequisites': [
+                'Equipamento compatível com número de série válido',
+                'Conexão com a internet estável',
+                'Credenciais de acesso (fornecidas neste certificado)'
+            ],
+            'procedure_steps': [],
+            'important_info': [
+                'Mantenha este certificado em seus arquivos.',
+                'Consulte nossa documentação ou suporte técnico em caso de dúvidas.',
+                'O acesso é de uso exclusivo e intransferível.',
+                'Mantenha seu equipamento atualizado.'
+            ]
+        }
+        
+        # Mesclar com configurações fornecidas
+        if settings:
+            for key, value in settings.items():
+                if value is not None:
+                    default_settings[key] = value
+        
         # Renderizar HTML
         html_content = template.render(
             certificate=certificate,
-            company_name=company_name or os.environ.get('COMPANY_NAME', 'LICENSE MANAGER'),
+            settings=default_settings,
             days_validity=days_validity,
             generated_at=datetime.now(timezone.utc)
         )
@@ -77,7 +111,7 @@ class CertificatePDFGenerator:
         company_name: Optional[str] = None
     ) -> bytes:
         """
-        Gera PDF simplificado (apenas páginas 1 e 2)
+        Gera PDF simplificado (compatibilidade com versão anterior)
         """
         certificate = {
             'client_name': client_name,
@@ -94,13 +128,15 @@ class CertificatePDFGenerator:
             'credentials': credentials
         }
         
-        return self.generate_certificate_pdf(certificate, company_name)
+        settings = {'company_name': company_name} if company_name else None
+        
+        return self.generate_certificate_pdf(certificate, settings)
 
 
 # Instância global
 pdf_generator = CertificatePDFGenerator()
 
 
-def generate_pdf(certificate_data: Dict[str, Any], company_name: Optional[str] = None) -> bytes:
+def generate_pdf(certificate_data: Dict[str, Any], settings: Optional[Dict[str, Any]] = None) -> bytes:
     """Função utilitária para gerar PDF"""
-    return pdf_generator.generate_certificate_pdf(certificate_data, company_name)
+    return pdf_generator.generate_certificate_pdf(certificate_data, settings)
