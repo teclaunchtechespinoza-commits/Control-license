@@ -256,7 +256,12 @@ POST /api/licenses/{id}/renew
 - [ ] Changelog técnico visível
 - [ ] Pitch deck para apresentação
 
-### P2 - Melhorias de Importação
+### P2 - Melhorias de Certificados
+- [ ] Upload de logo customizado para certificados
+- [ ] Templates de certificados personalizáveis
+- [ ] Geração automática de credenciais mais complexas
+
+### P3 - Melhorias de Importação
 - [ ] Suporte a Excel (.xlsx) com múltiplas abas
 - [ ] Agendamento de importação automática
 - [ ] Mapeamento customizável de colunas
