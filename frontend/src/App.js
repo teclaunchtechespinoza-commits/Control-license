@@ -23,6 +23,7 @@ import TenantAdmin from './components/TenantAdmin';
 import DataImport from './components/DataImport';
 import LicenseManagement from './components/LicenseManagement';
 import CertificateValidation from './components/certificate/CertificateValidation';
+import CertificateSettings from './components/certificate/CertificateSettings';
 import Navbar from './components/Navbar';
 import QuickAccessPanel from './components/QuickAccessPanel';
 import LoadingSpinner from './components/LoadingSpinner';
