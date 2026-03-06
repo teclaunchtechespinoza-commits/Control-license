@@ -1054,113 +1054,113 @@ const LicenseManagement = () => {
 
       {/* Modal Certificado Digital */}
       <Dialog open={showCertificateDialog} onOpenChange={setShowCertificateDialog}>
-        <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto bg-gray-900 border-gray-700 text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
-              <Award className="w-5 h-5 text-purple-400" />
-              Certificado Digital
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {selectedLicense && (
-                <span>Licença: <strong className="text-gray-200">{selectedLicense.name}</strong></span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-3">
-            {generatingCertificate ? (
-              <div className="text-center py-6">
-                <div className="w-10 h-10 border-4 border-gray-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">Gerando certificado...</p>
-              </div>
-            ) : generatedCertificate ? (
-              <div className="space-y-3">
-                {/* Status do certificado */}
-                <div className="bg-green-900/50 border border-green-700 rounded-lg p-3 text-center">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-1" />
-                  <p className="font-bold text-green-300 text-sm">Certificado Gerado!</p>
-                  <p className="text-xs text-green-400">{generatedCertificate.certificate_number}</p>
+        <DialogContent className="sm:max-w-[420px] bg-gray-900 border-gray-700 text-white p-0 overflow-hidden">
+          <div className="p-5">
+            <DialogHeader className="pb-3">
+              <DialogTitle className="flex items-center gap-2 text-white text-base">
+                <Award className="w-4 h-4 text-purple-400" />
+                Certificado Digital
+              </DialogTitle>
+              <DialogDescription className="text-gray-400 text-sm">
+                {selectedLicense && (
+                  <span>Licença: <strong className="text-gray-200">{selectedLicense.name}</strong></span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="pt-2">
+              {generatingCertificate ? (
+                <div className="text-center py-6">
+                  <div className="w-8 h-8 border-3 border-gray-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-gray-400 text-xs">Gerando certificado...</p>
                 </div>
-                
-                {/* Dados do certificado - compacto */}
-                <div className="bg-gray-800 rounded-lg p-3 space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Cliente:</span>
-                    <span className="font-medium text-white truncate max-w-[200px]">{generatedCertificate.client_name}</span>
+              ) : generatedCertificate ? (
+                <div className="space-y-3">
+                  {/* Status */}
+                  <div className="bg-green-900/40 border border-green-700/50 rounded-lg p-3 text-center">
+                    <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-1" />
+                    <p className="font-semibold text-green-300 text-sm">Certificado Gerado!</p>
+                    <p className="text-xs text-green-400/80">{generatedCertificate.certificate_number}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Serial:</span>
-                    <span className="font-mono text-gray-200">{generatedCertificate.serial_number}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Expira em:</span>
-                    <span className="font-medium text-white">
-                      {new Date(generatedCertificate.expiration_date).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                  {generatedCertificate.credentials && (
-                    <div className="border-t border-gray-700 pt-2 mt-2">
-                      <p className="text-gray-400 mb-1">Credenciais:</p>
-                      <div className="bg-gray-900 rounded p-2 font-mono text-xs text-green-400">
-                        <div>Login: {generatedCertificate.credentials.login}</div>
-                        <div>Senha: {generatedCertificate.credentials.password}</div>
+                  
+                  {/* Dados */}
+                  <div className="bg-gray-800/50 rounded-lg p-3 space-y-2 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Cliente:</span>
+                      <span className="font-medium text-white truncate max-w-[180px]">{generatedCertificate.client_name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Serial:</span>
+                      <span className="font-mono text-gray-300">{generatedCertificate.serial_number}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Expira em:</span>
+                      <span className="font-medium text-white">
+                        {new Date(generatedCertificate.expiration_date).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                    {generatedCertificate.credentials && (
+                      <div className="border-t border-gray-700/50 pt-2 mt-1">
+                        <p className="text-gray-500 mb-1">Credenciais:</p>
+                        <div className="bg-gray-900/50 rounded p-2 font-mono text-xs text-green-400">
+                          <div>Login: {generatedCertificate.credentials.login}</div>
+                          <div>Senha: {generatedCertificate.credentials.password}</div>
+                        </div>
                       </div>
+                    )}
+                  </div>
+                  
+                  {/* QR Code */}
+                  {generatedCertificate.qr_code_data && (
+                    <div className="text-center py-1">
+                      <p className="text-xs text-gray-500 mb-1">QR Code de Validação</p>
+                      <img 
+                        src={`data:image/png;base64,${generatedCertificate.qr_code_data}`}
+                        alt="QR Code"
+                        className="w-20 h-20 mx-auto border border-gray-700 rounded bg-white p-1"
+                      />
+                      <p className="text-[10px] text-gray-600 mt-1">Escaneie para validar</p>
                     </div>
                   )}
-                </div>
-                
-                {/* QR Code - menor */}
-                {generatedCertificate.qr_code_data && (
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400 mb-1">QR Code de Validação</p>
-                    <img 
-                      src={`data:image/png;base64,${generatedCertificate.qr_code_data}`}
-                      alt="QR Code"
-                      className="w-24 h-24 mx-auto border border-gray-700 rounded-lg bg-white p-1"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Escaneie para validar
-                    </p>
+                  
+                  {/* Botões */}
+                  <div className="flex gap-2 pt-1">
+                    <Button 
+                      onClick={handleDownloadCertificatePDF}
+                      size="sm"
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs h-8"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Baixar PDF
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={openCertificatePage}
+                      className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 text-xs h-8"
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Ver Online
+                    </Button>
                   </div>
-                )}
-                
-                {/* Ações - compacto */}
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    onClick={handleDownloadCertificatePDF}
-                    size="sm"
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs"
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Baixar PDF
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={openCertificatePage}
-                    className="flex-1 border-gray-600 text-gray-200 hover:bg-gray-800 text-xs"
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    Ver Online
-                  </Button>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
 
-          <DialogFooter>
+          <div className="border-t border-gray-800 bg-gray-900/50 px-5 py-3">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
               onClick={() => {
                 setShowCertificateDialog(false);
                 setGeneratedCertificate(null);
               }}
-              className="border-gray-600 text-gray-200 hover:bg-gray-800"
+              className="w-full text-gray-400 hover:text-white hover:bg-gray-800 text-xs h-8"
             >
               Fechar
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
