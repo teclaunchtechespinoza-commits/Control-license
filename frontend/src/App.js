@@ -366,6 +366,16 @@ function App() {
                   } 
                 />
                 
+                {/* Configurações de Certificado */}
+                <Route 
+                  path="/admin/certificados/configuracoes" 
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <CertificateSettings />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 {/* Sprint 2 - Convites (admin) */}
                 <Route 
                   path="/admin/convites" 
