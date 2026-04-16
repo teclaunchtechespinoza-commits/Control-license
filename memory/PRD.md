@@ -131,6 +131,16 @@ Sistema SaaS multi-tenant para gerenciamento de licenças de software, com contr
 
 ## Changelog Recente
 
+### 16/04/2026 - Preview de Certificado v1.6.1
+- **Implementado**: Botão "Visualizar Certificado" na página de Configurações
+  - Frontend: Botão no header de `CertificateSettings.js` com loading state
+  - Backend: Endpoint `GET /api/certificate-settings/preview-pdf` gera PDF com dados de exemplo
+  - PDF abre em nova aba do navegador via Blob URL
+- **Bug Fix**: Corrigido conflito `dict.items()` no template Jinja2
+  - `section.items` resolvia para o método `dict.items()` em vez da chave `items`
+  - Alterado para `section['items']` em `certificate_template_v2.html`
+- **Testes**: 7/7 backend + frontend 100% ✅
+
 ### 06/03/2026 - Configurações de Certificado v1.6.0
 - **Implementado**: Sistema completo de personalização de certificados
   - Backend: `certificate_settings.py` com modelos e endpoints CRUD
@@ -293,6 +303,8 @@ POST /api/licenses/{id}/renew
 ### P2 - Melhorias de Certificados (PARCIALMENTE CONCLUÍDO ✅)
 - [x] Upload de logo customizado para certificados
 - [x] Templates de certificados personalizáveis (Termos + Procedimento)
+- [x] Botão "Visualizar Certificado" na página de Configurações (Preview PDF em nova aba)
+- [ ] Configurar termos reais baseados no PDF ABERAMA do cliente
 - [ ] Geração automática de credenciais mais complexas
 - [ ] Múltiplos templates visuais (light/dark theme)
 
