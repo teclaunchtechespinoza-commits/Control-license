@@ -30,6 +30,7 @@ export default function CertificateSettingsPage() {
   const { user, tenantId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
   const [settings, setSettings] = useState(null);
   const [activeTab, setActiveTab] = useState('logo');
   const fileInputRef = useRef(null);
@@ -258,6 +259,30 @@ export default function CertificateSettingsPage() {
     setSaving(false);
   };
 
+  const handlePreviewPDF = async () => {
+    setPreviewing(true);
+    try {
+      const response = await fetch(`${API}/api/certificate-settings/preview-pdf`, {
+        credentials: 'include',
+        headers: { 'X-Tenant-ID': tenantId || 'default' }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } else if (response.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        window.location.href = '/login';
+      } else {
+        toast.error('Erro ao gerar preview do certificado');
+      }
+    } catch (error) {
+      toast.error('Erro de conexão ao gerar preview');
+    }
+    setPreviewing(false);
+  };
+
   const updateLocalSettings = (path, value) => {
     setSettings(prev => {
       const newSettings = { ...prev };
@@ -295,15 +320,32 @@ export default function CertificateSettingsPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <Settings className="w-6 h-6 text-emerald-600" />
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Settings className="w-6 h-6 text-emerald-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-800">Configurações de Certificado</h1>
+              </div>
+              <p className="text-gray-600 ml-12">
+                Personalize o layout, termos e procedimento dos seus certificados digitais
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Configurações de Certificado</h1>
+            <Button
+              onClick={handlePreviewPDF}
+              disabled={previewing}
+              data-testid="preview-certificate-btn"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md px-5 py-2.5 rounded-lg flex items-center gap-2"
+            >
+              {previewing ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+              {previewing ? 'Gerando...' : 'Visualizar Certificado'}
+            </Button>
           </div>
-          <p className="text-gray-600 ml-12">
-            Personalize o layout, termos e procedimento dos seus certificados digitais
-          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>

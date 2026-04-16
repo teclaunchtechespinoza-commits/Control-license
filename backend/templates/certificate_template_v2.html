@@ -712,9 +712,9 @@
             {% if section.content %}
             <p>{{ section.content }}</p>
             {% endif %}
-            {% if section.items %}
+            {% if section['items'] %}
             <ul class="termo-list">
-                {% for item in section.items %}
+                {% for item in section['items'] %}
                 <li>{{ item }}</li>
                 {% endfor %}
             </ul>
@@ -738,9 +738,9 @@
             {% if section.content %}
             <p>{{ section.content }}</p>
             {% endif %}
-            {% if section.items %}
+            {% if section['items'] %}
             <ul class="termo-list">
-                {% for item in section.items %}
+                {% for item in section['items'] %}
                 <li>{{ item }}</li>
                 {% endfor %}
             </ul>

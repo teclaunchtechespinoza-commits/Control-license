@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 class InfiniteLoopFixTester:
-    def __init__(self, base_url="https://certmaster-15.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://license-admin-hub-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()  # Use session to maintain cookies
         self.tests_run = 0

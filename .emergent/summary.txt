@@ -1,182 +1,144 @@
 <analysis>**original_problem_statement:**
-The user's goal is to prepare a multi-tenant license management SaaS application for a presentation to a major client. This involves fixing critical bugs, improving the user experience, and implementing essential features.
+The user's ongoing goal is to prepare a multi-tenant license management SaaS application for a client presentation. The current core requirement is finalizing a comprehensive system for generating digital and downloadable license certificates. Specifically, the user wants the certificates to have customizable settings (company name, dynamic logo, editable terms of use, and procedural instructions) managed via an admin panel, modeled after an uploaded PDF document (ABERAMA). 
 
-Initial requests focused on stability, UI refinement, and a password recovery flow. The project has since evolved based on user feedback.
-
-Recent user requests implemented include:
-1.  **Password Recovery**: A complete, code-based password recovery system.
-2.  **Login Unification**: A redesigned, single login page that intelligently handles both email-based (admin) and code-based (user) logins, improving the user experience.
-3.  **Registration Approval**: A security enhancement requiring new user registrations to be manually approved by an administrator before they can access the system.
-4.  **Data Import Module**: A feature to import license data from a CSV file, including a preview and execution step.
-
-The current user request is to build an advanced license management module. This module should include fields for editable license validity (defaulting to 365 days), associating a salesperson (from a new, dedicated Vendedores module or existing system users), and maintaining a history of renewals. The user also requires a comprehensive UI for full CRUD (Create, Read, Update, Delete) operations on these licenses.
-
-**User's preferred language**: Portuguese (pt-BR). The next agent MUST respond in Portuguese.
+**User's preferred language**: Portuguese (pt-BR). (INSTRUCT NEXT AGENT: You MUST respond in Portuguese only).
 
 **what currently exists?**
-The application is a stable full-stack system with a FastAPI backend, React frontend, and MongoDB database. It features multi-tenancy and Role-Based Access Control (RBAC).
-
-Key functionalities include:
--   **Unified Login**: A single, streamlined login page that dynamically adapts to email or access code inputs.
--   **User Registration with Approval**: New users can register, but their accounts are created with a  status and must be manually activated by an admin.
--   **Password Recovery**: A fully functional Forgot Password flow using a recovery code sent via a stubbed email service.
--   **Admin Panel**: A comprehensive dashboard for managing users, tenants, and now, user registration approvals.
--   **Data Import**: A module accessible from the navigation bar that allows admins to upload a CSV file to bulk-import license data. The backend handles previewing the data and executing the import.
--   **Stubbed Email Service**: Emails (like for password recovery) are currently printed to the backend console logs.
+A full-stack system (FastAPI, React, MongoDB) with multi-tenancy, RBAC, Advanced License Management, and a functional Certificate Generation System (QR code validation, public verification page). A new Certificate Settings feature has just been introduced, allowing admins to upload custom logos and edit terms dynamically to generate V2 PDF templates.
 
 **Last working item**:
--   **Last item agent was working**: Planning the implementation of an advanced license management system. The user has provided detailed requirements for license validity, salesperson tracking, renewal history, and a full management interface. The agent analyzed the request and was about to begin implementation.
--   **Status**: **NOT STARTED**
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both (backend and frontend testing agents) after the feature is complete, as this involves significant changes to the data model, API, and UI.
--   **User Testing Done**: N
+- **Last item agent was working**: Implementing a Preview Certificate/Terms (*Visualizar Certificado*) button on the Certificate Settings frontend page. The user requested a way to see a preview of the PDF while editing the settings. The backend endpoint  was just added to , and the agent was about to modify the frontend component .
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: N
+- **Which testing method agent to use?**: Use  tool to verify the new button on the frontend, then use  or browser preview to test the PDF generation endpoint. Use  once the feature is fully wired up.
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Playwright session/cookie persistence issues (P2)
+- Issue 1: Automated frontend tests using Playwright lose session/cookie (P2)
 
-**Issues Detail**:
--   **Issue 1**:
-    -   **Description**: Automated frontend tests using the  tool (Playwright) frequently fail due to session loss after login. When navigating to a protected route (e.g., ), the test is redirected back to the login page. This is a limitation of the testing environment's handling of cross-origin cookies, not an application bug.
-    -   **Attempted fixes**: The previous agent confirmed backend and API functionality using  with cookie management ( and  flags), proving the authentication logic is correct.
-    -   **Next debug checklist**:
-        1.  When testing frontend flows that require authentication, be aware that Playwright may lose the session.
-        2.  Prioritize  tests for verifying backend logic and API endpoints.
-        3.  For UI verification, test components in isolation or accept that full E2E flows might require manual testing in a real browser.
-    -   **Why fix this issue and what will be achieved with the fix?**: Acknowledging this limitation will save the next agent time by preventing them from debugging a non-existent application bug and focusing on reliable testing methods like .
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: NA
-    -   **Blocked on other issue**: None
+Issues Detail:
+- Issue 1:
+   - Attempted fixes: Acknowledged as a testing environment limitation in earlier forks.
+   - Next debug checklist: Prioritize  for backend tests. For UI, test components in isolation.
+   - Why fix this issue and what will be achieved with the fix?: Ensures e2e testing stability.
+   - Status: NOT STARTED
+   - Is recurring issue?: Y
+   - Should Test frontend/backend/both after fix?: NA
+   - Blocked on other issue: None
 
 **In progress Task List**:
--   There are no tasks currently in progress.
+- Task 1: Add Preview Certificate (Visualizar Certificado) Button (P0)
+- Task 2: Populate Custom Terms based on User's ABERAMA PDF Model (P1)
+
+Task Detail:
+- Task 1:
+   - Where to resume: Modify  to add a button that calls  and opens or downloads the sample PDF.
+   - What will be achieved with this?: Admins can visualize the exact PDF layout in real-time while editing terms and logos.
+   - Status: IN PROGRESS
+   - Should Test frontend/backend/both after fix?: both
+   - Blocked on something: None
+
+- Task 2:
+   - Where to resume: After completing the preview button, assist the user in transcribing/configuring the actual terms and procedural steps from the ABERAMA PDF they uploaded earlier into the newly built Settings UI.
+   - What will be achieved with this?: Fulfills the user's explicit request to adapt their manual PDF model into the automated system.
+   - Status: NOT STARTED
+   - Should Test frontend/backend/both after fix?: frontend
+   - Blocked on something: Task 1
 
 **Upcoming and Future Tasks**
-**Upcoming Tasks:**
--   **P0: Implement Advanced License Management Module**:
-    -   **Backend**:
-        -   Modify the  model in  to include:  (editable integer), , , , and  (array of objects).
-        -   Create a new  (Salesperson) model and corresponding CRUD endpoints.
-        -   Create new API endpoints for full CRUD management of licenses with the new fields.
-        -   When a license is renewed, create an entry in .
-    -   **Frontend**:
-        -   Create a new management interface (likely within  or as a new component) to display licenses with the new fields (e.g., days remaining, salesperson).
-        -   Build a form/modal for creating/editing licenses, allowing admins to set validity and select a salesperson from a dropdown (populated by system admins and the new Vendedores list).
-        -   Implement UI for viewing renewal history.
--   **P1: Go-Live Plan - Phase 2: Final Documentation & Presentation**:
-    -   Create comprehensive User and Administrator manuals.
-    -   Develop a pitch deck style presentation inside the app.
-    -   Generate a technical changelog of all recent fixes and improvements.
+Upcoming Tasks:
+- P1: Go-Live Plan - Documentation (Create User Manual integrated into the system, Technical changelog/pitch deck).
 
-**Future Tasks:**
--   Modularize the monolithic  file.
--   Implement self-service license renewal and payment history.
--   Add functionality to download a formal license certificate/receipt.
--   Build an advanced reporting and analytics system.
--   Develop a public API for third-party integrations.
+Future Tasks:
+- P2: Modularize the monolithic  (Currently over 10,000 lines).
+- P3: Self-Service: Implement self-service license renewal and payment history.
+- P4: Data Import: Enhance the CSV import to handle Excel with multiple tabs and customizable column mapping.
+- P4: Reporting: Build an advanced reporting and analytics system.
 
 **Completed work in this session**
--   **Login Page Redesign & Unification**:
-    -   The User and Admin login tabs were merged into a single, intelligent Entrar (Login) tab.
-    -   The input field now automatically detects whether an email or an access code is being entered and adjusts the UI accordingly (e.g., showing the Forgot Password link only for emails).
-    -   The UI was enhanced with distinct active/inactive colors for the Entrar (blue) and Registrar (green) tabs.
--   **Registration Approval Workflow**:
-    -   Implemented a critical security feature where new user registrations are set to a  status.
-    -   Admins can now view a list of pending registrations in the  and approve or reject them.
-    -   Users cannot log in until their account is approved.
-    -   A dedicated Aguardando Aprovação (Waiting for Approval) screen was added to the frontend.
--   **Password Recovery Flow Completion**:
-    -   The Forgot Password feature, which was previously in progress, was fully completed and tested end-to-end.
-    -   The link was added to the login UI, and the recovery modal was integrated and verified.
--   **Admin Password Management Modal**:
-    -   Created and refined a modal in the  allowing  to view and reset any user's password.
-    -   Fixed numerous bugs related to fetching, displaying, and updating passwords for different users.
--   **Data Import Module (CSV to Licenses)**:
-    -   Created a full-featured module to import license data from a CSV file.
-    -   **Backend**: Developed endpoints  (to validate the file) and  (to perform the import), with logic to handle new vs. existing records.
-    -   **Frontend**: Built a new  component with a file dropzone and review table. Integrated it into the main navigation for admin users.
--   **Numerous Bug Fixes**:
-    -   Resolved issues with backend routing where new endpoints were not being registered correctly.
-    -   Fixed middleware logic to correctly handle tenant ID and authentication for new admin endpoints.
-    -   Corrected frontend syntax errors and improved state management in .
+- Fixed frontend routing bug in  that blocked the public  route.
+- Certificate Settings Backend (, endpoints in ).
+- Dynamic PDF Generation (Created  and updated  to use DB settings).
+- Frontend Settings UI ( created with a clean, light theme requested by the user).
+- Fixed Certificate generation bug for licenses without an explicit expiration date ().
+- UI/UX Refinements: Fixed z-index, scrollbars, dimensions, and dark-theme alignment for the Certificate Generation Dialog Modal in .
+
+**Earlier issues found/mentioned but not fixed**
+None.
+
+**Known issue recurrence from previous fork**
+- Issue recurrence in previous fork: Playwright session loss on protected routes during testing agent runs.
+- Recurrence count: 3
+- Status: NOT STARTED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Dynamic Login UI**: A single React component that alters its behavior and appearance based on user input ().
--   **Stateful User Registration**: Implemented an  field (, , ) in the  collection to manage the registration lifecycle.
--   **Bulk Data Import**: Using FastAPI's  to process CSV data. A two-step process (preview, then execute) provides a safer user experience.
--   **Conflict Handling (Import)**: The import logic checks for existing  to prevent duplicates and reports conflicts.
--   **Modular Frontend Components**: New features (Pending Approvals, Data Import) were built as separate components and integrated into existing layouts (, ).
+- React Router v6 public/private routing structures.
+- WeasyPrint PDF generation with dynamic Jinja2 contexts.
+- Base64 Image handling for Logo uploads.
+- Custom UI component styling (Shadcn Dialogs, Tailwind CSS).
 
 **key DB schema**
--   :  - Now includes fields for managing the registration approval workflow and password hints for the admin panel.
--   :  - New fields added during the import module creation to store data from the CSV.
+- : 
+- : 
+
+**changes in tech stack**
+None.
 
 **All files of reference**
--   : Contains all new backend logic for approvals, password management, and data import.
--   : The completely redesigned login/registration component.
--   : The central hub for user management, now including the approvals panel and password reset modal.
--   : The new UI for the CSV import feature.
--   : The component used within  to manage new user registrations.
--   : Contains routing for the new components.
--   : Contains navigation links.
+-  (Backend preview endpoint added here)
+-  (Frontend file where the Preview button needs to be implemented)
+-  (Dynamic PDF template)
+-  (PDF generation logic)
 
 **Areas that need refactoring**
--    is now extremely large and complex. It is the highest priority for future refactoring into a modular structure (e.g., , , ).
+- : The file exceeds 10,000 lines. Routing, models, and business logic urgently need to be split into separate directories.
 
 **key api endpoints**
--   **Registration Approval**:
-    -   : Lists all users with .
-    -   : Changes user status to .
-    -   : Changes user status to .
--   **Admin Password Management**:
-    -   : Retrieves a password hint for a user (for the demo).
-    -   : Updates a user's password.
--   **Data Import**:
-    -   : Receives a CSV file and returns a preview of the data, identifying new vs. conflicting records.
-    -   : Receives a list of records to import and commits them to the database.
+- : Generates a preview PDF based on current settings (Recently added, needs frontend integration).
+- : Fetches tenant settings.
+- : Uploads base64 logo.
+- : Updates custom terms.
 
 **Critical Info for New Agent**
-1.  **Immediate Task**: The highest priority is to implement the **Advanced License Management Module** as detailed in the user's latest request. This is a significant feature build.
-2.  **User Engagement**: The user is highly technical, provides excellent feedback, and has a clear vision. They appreciate proactive suggestions and detailed explanations.
-3.  **Testing Environment Quirk**: Be aware of the Playwright session issue. Do not waste time debugging it. Use  for reliable backend testing and focus on component-level UI tests.
-4.  **Backend Structure**: The  file is monolithic. Be careful when adding new code to avoid introducing new complexities. The user is aware and has approved future refactoring.
+1. **Language Requirement**: The user speaks Portuguese (pt-BR). All your communication in the  or  tool MUST be in Portuguese.
+2. **Immediate Step**: The backend endpoint for previewing the PDF () was successfully added to . You need to pick up the work in  to add a Visualizar Certificado button that hits this endpoint and displays/downloads the PDF.
+3. **Session Expirations**: The user encountered a 401 error while saving terms because their session expired. Handled gracefully with toast messages, but be aware when testing via  or UI that tokens expire quickly.
+4. **UI/UX Standard**: The user is very sensitive to UI quality. They specifically requested a clean, light theme for the Settings page and fixing dialog overlaps. Maintain high UI standards and avoid adding scrollbars to small modals.
+
+**documents and test reports created in this job**
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  User requested a way to handle spam/fake registrations.
-2.  Agent proposed two options: email verification or manual admin approval.
-3.  User chose **manual admin approval (Option B)**.
-4.  Agent implemented the full registration approval workflow (backend + frontend).
-5.  User reported a bug where an approved user's purpose was unclear (they expected a password reset code).
-6.  Agent clarified the flow: the user sets their password during registration, and approval simply activates the account. A bug was found where the login failed.
-7.  Agent fixed the login issue for approved users.
-8.  User then requested an easier way for admins to manage user passwords directly from the admin panel.
-9.  Agent implemented a new modal for viewing and resetting user passwords.
-10. User reported bugs with the new password modal (empty fields, slowness).
-11. Agent fixed the modal bugs and verified that all user passwords and logins were working correctly.
-12. User then pivoted to the next major feature: **implementing a CSV data import module**.
-13. Agent implemented the full data import module.
-14. User approved the import module and immediately proposed the next feature: the **advanced license management system**. The agent was about to start this work.
+1. User uploaded an image showing a 401 Error (Erro ao salvar termos).
+2. Agent identified it as session expiration and improved frontend error handling (toast messages).
+3. Agent asked if they should proceed to configure the terms using the previously uploaded ABERAMA PDF.
+4. User uploaded an image and asked to remove the scrollbar and improve the padding/framing of the Certificate modal.
+5. Agent removed the scrollbars, adjusted the  layout, and shared a successful screenshot.
+6. Agent asked again if they should configure the certificate terms.
+7. User requested a Visualizar Certificado/Termo (Preview Certificate/Terms) button on the settings screen to see real-time layout changes while developing/adjusting settings.
+8. Agent acknowledged, added the preview endpoint  in . *(Execution stopped here, pending frontend implementation)*.
 
 **Project Health Check:**
--   **Broken**: None. The application is stable.
--   **Mocked**: The email service in  still only prints to the console.
+- **Broken**: None.
+- **Mocked**: Email service still logs to console.
 
 **3rd Party Integrations**
--   None.
+- WeasyPrint (PDF generation)
+- qrcode (QR Code generation)
 
 **Testing status**
--   **Testing agent used after significant changes**: NO (for the latest features).
--   **Troubleshoot agent used after agent stuck in loop**: NO.
--   **Test files created**: None.
--   **Known regressions**: None.
+- Testing agent used after significant changes: YES (iteration 2 passed 100%).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: 
+- Known regressions: None
 
 **Credentials to test flow:**
--   **Super Admin**:  / 
--   **Admin**:  / 
--   **User**:  / 
+- Super Admin:  / 
+- Admin:  / 
 
 **What agent forgot to execute**
--   Nothing was forgotten. The agent successfully followed the user's lead, implementing several complex features and responding to feedback and bug reports in sequence.</analysis>
+The agent was in the middle of implementing the Preview button requested by the user. The backend is done, but the frontend button in  remains pending. Furthermore, the agent has not yet copied the actual text/terms from the user's uploaded ABERAMA PDF into the system, which was agreed upon earlier.</analysis>

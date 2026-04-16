@@ -1180,7 +1180,7 @@ Se nada funcionar:
         {
           title: 'O que é um domínio personalizado?',
           content: `Ao invés de usar o endereço padrão:
-❌ https://certmaster-15.preview.emergentagent.com
+❌ https://license-admin-hub-1.preview.emergentagent.com
 
 Você pode usar seu próprio domínio:
 ✅ https://www.autotech.app.br
@@ -1240,7 +1240,7 @@ EXEMPLOS PARA SISTEMA DE LICENÇAS:
 
 1. Faça login no sistema
 2. Copie a URL da barra de endereços:
-   📋 https://certmaster-15.preview.emergentagent.com
+   📋 https://license-admin-hub-1.preview.emergentagent.com
 
 OU
 

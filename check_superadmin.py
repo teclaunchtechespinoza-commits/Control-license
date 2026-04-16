@@ -10,7 +10,7 @@ load_dotenv('/app/frontend/.env')
 class SuperAdminChecker:
     def __init__(self):
         # Get backend URL from environment
-        backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://certmaster-15.preview.emergentagent.com')
+        backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://license-admin-hub-1.preview.emergentagent.com')
         self.base_url = f"{backend_url}/api"
         
     def check_superadmin_exists(self):

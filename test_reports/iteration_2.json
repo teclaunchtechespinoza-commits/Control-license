@@ -30,7 +30,7 @@
   },
   "test_credentials": {
     "certificate_code": "86fe95a60d76",
-    "public_url": "https://certmaster-15.preview.emergentagent.com/certificado/86fe95a60d76"
+    "public_url": "https://license-admin-hub-1.preview.emergentagent.com/certificado/86fe95a60d76"
   },
   "seed_data_creation": "None - used existing certificate with code 86fe95a60d76",
   "retest_needed": false,
